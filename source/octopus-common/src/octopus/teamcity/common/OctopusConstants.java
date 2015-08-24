@@ -57,6 +57,18 @@ public class OctopusConstants {
         return "octopus_octopack_package_version";
     }
 
+    public String getOctoPackPublishPackageToHttp() {
+        return "octopus_octopack_publish_package_to_http";
+    }
+
+    public String getOctoPackPublishApiKey() {
+        return "octopus_octopack_publish_api_key";
+    }
+
+    public String getOctoPackAppendToPackageId() {
+        return "octopus_octopack_append_to_package_id";
+    }
+
     public String getDeployToKey() {
         return "octopus_deployto";
     }

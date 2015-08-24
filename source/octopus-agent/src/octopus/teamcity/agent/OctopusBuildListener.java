@@ -39,6 +39,9 @@ public class OctopusBuildListener extends AgentLifeCycleAdapter {
 
         String runOctoPackString = params.get(c.getRunOctoPack());
         String octoPackVersion = params.get(c.getOctoPackPackageVersion());
+        String publishUrl = params.get(c.getOctoPackPublishPackageToHttp());
+        String publishApiKey = params.get(c.getOctoPackPublishApiKey());
+        String appendToPackageId = params.get(c.getOctoPackAppendToPackageId());
 
         if (StringUtil.isEmptyOrSpaces(runOctoPackString))
         {
@@ -48,5 +51,16 @@ public class OctopusBuildListener extends AgentLifeCycleAdapter {
         logger.message("Enabling OctoPack");
         runner.addSystemProperty("RunOctoPack", "true");
         runner.addSystemProperty("OctoPackPackageVersion", octoPackVersion);
+
+        if (!StringUtil.isEmptyOrSpaces(appendToPackageId))
+        {
+            runner.addSystemProperty("OctoPackAppendToPackageId", appendToPackageId);
+        }
+
+        if (!StringUtil.isEmptyOrSpaces(publishUrl))
+        {
+            runner.addSystemProperty("OctoPackPublishPackageToHttp", publishUrl);
+            runner.addSystemProperty("OctoPackPublishApiKey", publishApiKey);
+        }
     }
 }
