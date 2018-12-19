@@ -54,7 +54,7 @@
       <props:textProperty name="${keys.packageVersionKey}" className="longField" />
       <span class="error" id="error_${keys.packageVersionKey}"></span>
       <span class="smallNote">
-        The package's version, e.g. "NuGet" or "zip". Defaults to NuGet if left blank.
+        The package's version, e.g. 1.0.0, 1.0.1-alpha, 1.0.2+githash. %build.number%
       </span>
     </td>
   </tr>
