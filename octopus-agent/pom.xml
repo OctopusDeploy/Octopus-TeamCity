@@ -63,14 +63,6 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>7</source>
-                    <target>7</target>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
                 <configuration>
                     <archive>
@@ -94,12 +86,6 @@
             <groupId>org.jetbrains.teamcity</groupId>
             <artifactId>agent-api</artifactId>
             <version>${teamcity.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jetbrains.teamcity</groupId>
-            <artifactId>server-api</artifactId>
-            <version>10.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
