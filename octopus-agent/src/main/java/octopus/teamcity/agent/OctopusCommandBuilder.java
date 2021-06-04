@@ -38,7 +38,7 @@ public abstract class OctopusCommandBuilder {
         return "\"" + value + "\"";
     }
 
-    protected List<String> splitSpaceSeparatedValues(String text) {
+    public static List<String> splitSpaceSeparatedValues(String text) {
         List<String> results = new ArrayList<String>();
         if (text == null || StringUtil.isEmptyOrSpaces(text)) {
             return results;
@@ -58,7 +58,7 @@ public abstract class OctopusCommandBuilder {
         return results;
     }
 
-    protected List<String> splitCommaSeparatedValues(String text) {
+    public static List<String> splitCommaSeparatedValues(String text) {
         List<String> results = new ArrayList<String>();
         if (text == null || StringUtil.isEmptyOrSpaces(text)) {
             return results;

@@ -25,6 +25,10 @@
 
     <repositories>
         <repository>
+            <id>maven-central</id>
+            <url>https://repo1.maven.org/maven2</url>
+        </repository>
+        <repository>
             <id>jetbrains-all</id>
             <url>http://download.jetbrains.com/teamcity-repository</url>
         </repository>
