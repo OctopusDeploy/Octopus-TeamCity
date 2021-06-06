@@ -7,7 +7,7 @@
     <groupId>com.octopus.teamcity</groupId>
     <artifactId>plugin</artifactId>
     <packaging>pom</packaging>
-    <version>1.0</version>
+    <version>5.5.5</version>
     <name>Octopus Deploy TeamCity Plugin</name>
 
     <modules>

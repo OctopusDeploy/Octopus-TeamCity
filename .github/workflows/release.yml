@@ -1,0 +1,46 @@
+name: Build, Test, Package and Push
+
+# Controls when the action will run.
+
+on:
+   create:
+    tags:
+      - v*
+
+jobs:
+  build:
+    name: "Build and Package"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+        # This is required for GitVersion to work (Get all tags and branches)
+        with:
+          fetch-depth: 0
+      - name: Set up JDK 11
+        uses: actions/setup-java@v2
+        with:
+          java-version: '8'
+          distribution: 'adopt'
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v0.9.9
+        with:
+          versionSpec: '5.5.0'
+      - name: Generate Version String
+        id: gitversion
+        uses: gittools/actions/gitversion/execute@v0.9.9
+        with:
+          useConfigFile: true
+      - name: Set version
+        run: mvn versions:set -DnewVersion=${{steps.gitversion.outputs.semVer}}
+      - name: Build with maven
+        run: mvn test
+      - name: Create Plugin Zip Deployment
+        run: mvn clean package
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: Octopus-TeamCity-${{steps.gitversion.outputs.semVer}}
+          path: |
+            octopus-distribution/target/*.zip
+
