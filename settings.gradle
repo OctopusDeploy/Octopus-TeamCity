@@ -1,0 +1,4 @@
+rootProject.name='Octopus-Teamcity'
+include 'octopus-agent'
+include 'octopus-common'
+include 'octopus-server'

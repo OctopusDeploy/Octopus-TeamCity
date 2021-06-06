@@ -1,0 +1,18 @@
+
+
+jar {
+    archiveBaseName = 'octopus-teamcity-common'
+    manifest {
+        attributes(
+                'Specification-Title': archiveBaseName,
+                'Specification-Version': project.version,
+                'Implementation-Title': archiveBaseName,
+                'Implementation-Version': project.version
+        )
+    }
+}
+
+dependencies {
+  provided 'org.jetbrains.teamcity:common-api'
+}
+

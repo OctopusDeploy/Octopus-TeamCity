@@ -30,14 +30,17 @@ public class OctopusDeployReleaseRunner implements AgentBuildRunner {
         return new OctopusDeployReleaseBuildProcess(runningBuild, context);
     }
 
+    @Override
     @NotNull
     public AgentBuildRunnerInfo getRunnerInfo() {
         return new AgentBuildRunnerInfo() {
+            @Override
             @NotNull
             public String getType() {
                 return OctopusConstants.DEPLOY_RELEASE_RUNNER_TYPE;
-            }
 
+            }
+            @Override
             public boolean canRun(@NotNull BuildAgentConfiguration agentConfiguration) {
                 return OctopusOsUtils.CanRunOcto(agentConfiguration);
             }

@@ -27,14 +27,17 @@ public class OctopusBuildInformationRunner implements AgentBuildRunner {
         return new OctopusBuildInformationBuildProcess(runningBuild, context);
     }
 
+    @Override
     @NotNull
     public AgentBuildRunnerInfo getRunnerInfo() {
         return new AgentBuildRunnerInfo() {
+            @Override
             @NotNull
             public String getType() {
                 return OctopusConstants.METADATA_RUNNER_TYPE;
             }
 
+            @Override
             public boolean canRun(@NotNull BuildAgentConfiguration agentConfiguration) {
                 return true;
             }
