@@ -3,25 +3,8 @@
     <formats>
         <format>zip</format>
     </formats>
-    <files>
-        <file>
-            <source>target/${artifact.artifactId}-${project.version}.jar</source>
-            <outputDirectory>/lib</outputDirectory>
-            <destName>Octopus.TeamCity.jar</destName>
-        </file>
-    </files>
     <dependencySets>
         <dependencySet>
-            <includes>
-                <include>com.octopus.teamcity:common</include>
-            </includes>
-            <outputDirectory>/lib</outputDirectory>
-            <outputFileNameMapping>Octopus.TeamCity-${artifact.artifactId}.${artifact.extension}</outputFileNameMapping>
-        </dependencySet>
-        <dependencySet>
-            <includes>
-                <include>com.google.code.gson:gson</include>
-            </includes>
             <outputDirectory>/lib</outputDirectory>
         </dependencySet>
     </dependencySets>

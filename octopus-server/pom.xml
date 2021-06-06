@@ -8,7 +8,7 @@
         <artifactId>plugin</artifactId>
         <version>1.0</version>
     </parent>
-    <artifactId>server</artifactId>
+    <artifactId>octopus-server</artifactId>
     <packaging>jar</packaging>
 
     <name>Octopus Deploy TeamCity Plugin - Server</name>

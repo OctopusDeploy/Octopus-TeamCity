@@ -8,8 +8,16 @@
         <artifactId>plugin</artifactId>
         <version>1.0</version>
     </parent>
-    <artifactId>agent</artifactId>
+    <artifactId>octopus-agent</artifactId>
     <packaging>jar</packaging>
+
+    <repositories>
+        <repository>
+            <id>jetbrains-rest-client</id>
+            <url>https://packages.jetbrains.team/maven/p/teamcity-rest-client/teamcity-rest-client</url>
+        </repository>
+    </repositories>
+
 
     <name>Octopus Deploy TeamCity Plugin - Agent</name>
 
@@ -92,6 +100,11 @@
             <artifactId>agent-api</artifactId>
             <version>${teamcity.version}</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains.teamcity</groupId>
+            <artifactId>teamcity-rest-client</artifactId>
+            <version>3.5</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.teamcity</groupId>
