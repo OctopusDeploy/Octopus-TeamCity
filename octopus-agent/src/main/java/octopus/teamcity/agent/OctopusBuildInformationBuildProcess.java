@@ -16,11 +16,7 @@
 
 package octopus.teamcity.agent;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import jetbrains.buildServer.agent.AgentRunningBuild;
-import jetbrains.buildServer.agent.BuildProgressLogger;
-import jetbrains.buildServer.agent.BuildRunnerContext;
+import jetbrains.buildServer.agent.*;
 import jetbrains.buildServer.util.StringUtil;
 import octopus.teamcity.common.Commit;
 import octopus.teamcity.common.OctopusConstants;
@@ -68,7 +64,7 @@ public class OctopusBuildInformationBuildProcess extends OctopusBuildProcess {
         final String dataFile = Paths.get(checkoutDir.getPath(), "octopus.buildinfo").toAbsolutePath().toString();
 
         try {
-            final AgentRunningBuild build = getContext().getBuild();
+            AgentRunningBuild build = getContext().getBuild();
 
             final OctopusBuildInformationBuilder builder = new OctopusBuildInformationBuilder();
 
@@ -106,7 +102,7 @@ public class OctopusBuildInformationBuildProcess extends OctopusBuildProcess {
         return new OctopusCommandBuilder() {
             @Override
             protected String[] buildCommand(boolean masked) {
-                final ArrayList<String> commands = new ArrayList<>();
+                final ArrayList<String> commands = new ArrayList<String>();
                 final String serverUrl = parameters.get(constants.getServerKey());
                 final String apiKey = parameters.get(constants.getApiKey());
                 final String spaceName = parameters.get(constants.getSpaceName());
@@ -118,7 +114,8 @@ public class OctopusBuildInformationBuildProcess extends OctopusBuildProcess {
                 OverwriteMode overwriteMode = OverwriteMode.FailIfExists;
                 if ("true".equals(forcePush)) {
                     overwriteMode = OverwriteMode.OverwriteExisting;
-                } else if (OverwriteMode.IgnoreIfExists.name().equals(forcePush)) {
+                }
+                else if (OverwriteMode.IgnoreIfExists.name().equals(forcePush)) {
                     overwriteMode = OverwriteMode.IgnoreIfExists;
                 }
 
@@ -138,7 +135,7 @@ public class OctopusBuildInformationBuildProcess extends OctopusBuildProcess {
                     commands.add(spaceName);
                 }
 
-                for (String packageId : StringUtil.split(packageIds, "\n")) {
+                for(String packageId : StringUtil.split(packageIds, "\n")) {
                     commands.add("--package-id");
                     commands.add(packageId);
                 }
