@@ -16,6 +16,8 @@
 
 package octopus.teamcity.agent;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import jetbrains.buildServer.agent.*;
 import jetbrains.buildServer.util.StringUtil;
 import octopus.teamcity.common.Commit;
@@ -163,8 +165,16 @@ public class OctopusBuildInformationBuildProcess extends OctopusBuildProcess {
     private String createJsonCommitHistory(final Build build) {
         final List<Change> changes = build.fetchChanges();
 
-        final List<Commit> commits = changes.stream().map(c -> new Commit(c.getVersion(),
-                c.getComment())).collect(Collectors.toList());
+
+        final List<Commit> commits = new ArrayList<>();
+        for (Change change : changes) {
+
+            final Commit c = new Commit();
+            c.Id = change.getVersion();
+            c.Comment = change.getComment();
+
+            commits.add(c);
+        }
 
         final Gson gson = new GsonBuilder()
                 .setPrettyPrinting()
