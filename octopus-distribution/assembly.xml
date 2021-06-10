@@ -24,7 +24,7 @@
         </dependencySet>
         <dependencySet>
             <includes>
-                <include>com.octopus.teamcity:server</include>
+                <include>com.octopus.teamcity:octopus-server</include>
             </includes>
             <outputDirectory>server</outputDirectory>
             <outputFileNameMapping>Octopus.TeamCity.${artifact.extension}</outputFileNameMapping>
