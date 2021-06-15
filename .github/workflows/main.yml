@@ -21,6 +21,6 @@ jobs:
           java-version: '8'
           distribution: 'adopt'
       - name: Build with maven
-        run: mvn test
+        run: ./gradlew test
       - name: Create Plugin Zip Deployment
-        run: mvn clean package
+        run: ./gradlew package

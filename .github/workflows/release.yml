@@ -31,12 +31,10 @@ jobs:
         uses: gittools/actions/gitversion/execute@v0.9.9
         with:
           useConfigFile: true
-      - name: Set version
-        run: mvn versions:set -DnewVersion=${{steps.gitversion.outputs.semVer}}
       - name: Build with maven
-        run: mvn test
+        run: ./gradlew test
       - name: Create Plugin Zip Deployment
-        run: mvn clean package
+        run: ./gradlew -Pversion=${{steps.gitversion.outputs.semVer}} clean package
       - name: Archive production artifacts
         uses: actions/upload-artifact@v2
         with:
