@@ -70,11 +70,12 @@ allprojects {
     maven { url "https://packages.jetbrains.team/maven/p/teamcity-rest-client/teamcity-rest-client" }
   }
 
-  dependencies { errorprone "com.google.errorprone:error_prone_core" }
-  tasks.withType(JavaCompile) {
-    options.fork = true
-    options.forkOptions.jvmArgs.add("-Xbootclasspath/p:${configurations.javac.asPath}" })
-}
+  dependencies {
+    errorprone "com.google.errorprone:error_prone_core"
+    errorproneJavac("com.google.errorprone:javac:9+181-r4173-1")
+  }
+
+
   
 // TODO(tmm): Re-enable spotless ASAP
 //  apply plugin: 'com.diffplug.spotless'
