@@ -2,7 +2,7 @@
 import net.ltgt.gradle.errorprone.CheckSeverity
 
 plugins {
-//  id 'com.diffplug.spotless' version '5.9.0'
+  id 'com.diffplug.spotless' version '5.9.0'
   id 'com.github.ben-manes.versions' version '0.36.0'
   id 'com.github.hierynomus.license' version '0.15.0'
   id 'io.spring.dependency-management' version '1.0.11.RELEASE'
