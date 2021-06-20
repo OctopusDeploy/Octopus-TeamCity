@@ -32,7 +32,6 @@ public class OctopusPushPackageRunner implements AgentBuildRunner {
         myExtensionHolder = extensionHolder;
     }
 
-
     @NotNull
     public BuildProcess createBuildProcess(@NotNull AgentRunningBuild runningBuild, @NotNull BuildRunnerContext context) throws RunBuildException {
         return new OctopusPushPackageBuildProcess(runningBuild, context, myExtensionHolder);

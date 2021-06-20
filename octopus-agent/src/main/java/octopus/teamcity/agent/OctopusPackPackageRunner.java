@@ -41,7 +41,6 @@ public class OctopusPackPackageRunner implements AgentBuildRunner {
     @NotNull
     public AgentBuildRunnerInfo getRunnerInfo() {
         return new AgentBuildRunnerInfo() {
-
             @Override
             @NotNull
             public String getType() {

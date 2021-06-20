@@ -38,8 +38,8 @@ public class OctopusDeployReleaseRunner implements AgentBuildRunner {
             @NotNull
             public String getType() {
                 return OctopusConstants.DEPLOY_RELEASE_RUNNER_TYPE;
-
             }
+
             @Override
             public boolean canRun(@NotNull BuildAgentConfiguration agentConfiguration) {
                 return OctopusOsUtils.CanRunOcto(agentConfiguration);
