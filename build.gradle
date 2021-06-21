@@ -149,7 +149,7 @@ apply plugin: "distribution"
 
 
 distZip {
-  archiveName = "Octopus.TeamCity.zip"
+  archiveName = "Octopus.TeamCity." + rootProject.version + ".zip"
 }
 
 distributions {
