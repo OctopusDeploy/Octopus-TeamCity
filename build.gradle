@@ -150,7 +150,6 @@ apply plugin: "distribution"
 
 
 distZip {
-  //remove the top-level directory
   archiveName = "Octopus.TeamCity.zip"
 }
 
