@@ -145,10 +145,10 @@ allprojects {
   }
 }
 
+
 apply plugin: "distribution"
 
-//This is required to override default behaviour of distTar to create all files
-//in a parent directory (rather than flattened).
+
 distZip {
   archiveName = "Octopus.TeamCity.zip"
   eachFile { file ->
@@ -164,10 +164,11 @@ distributions {
         filter(org.apache.tools.ant.filters.ReplaceTokens, tokens:[version: rootProject.version])
       }
       into('agent/') {
-        from tasks.findByPath(":octopus-agent:distZip").outputs.files.singleFile
+        //from tasks.findByPath(":octopus-agent:distZip").outputs.files
+        from tasks.findByPath(":octopus-agent:distZip")
       }
       into('server/') {
-        from tasks.findByPath(":octopus-server:installDist").outputs.files
+        from tasks.findByPath(":octopus-server:installDist")
       }
     }
   }
