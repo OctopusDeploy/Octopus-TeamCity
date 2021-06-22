@@ -18,14 +18,23 @@ package octopus.teamcity.agent;
 
 import com.intellij.openapi.diagnostic.Logger;
 import jetbrains.buildServer.RunBuildException;
-import jetbrains.buildServer.agent.*;
+import jetbrains.buildServer.agent.AgentRunningBuild;
+import jetbrains.buildServer.agent.BuildFinishedStatus;
+import jetbrains.buildServer.agent.BuildProcess;
+import jetbrains.buildServer.agent.BuildProgressLogger;
+import jetbrains.buildServer.agent.BuildRunnerContext;
 import jetbrains.buildServer.agent.runner.LoggingProcessListener;
 import jetbrains.buildServer.messages.DefaultMessagesInfo;
 import octopus.teamcity.common.OctopusConstants;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.util.StringUtils;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
@@ -38,7 +47,7 @@ public abstract class OctopusBuildProcess implements BuildProcess {
     private OutputReaderThread standardError;
     private OutputReaderThread standardOutput;
     private boolean isFinished;
-    private BuildProgressLogger logger;
+    private final BuildProgressLogger logger;
 
     protected OctopusBuildProcess(@NotNull AgentRunningBuild runningBuild, @NotNull BuildRunnerContext context) {
         this.runningBuild = runningBuild;
@@ -47,6 +56,7 @@ public abstract class OctopusBuildProcess implements BuildProcess {
         logger = runningBuild.getBuildLogger();
     }
 
+    @Override
     public void start() throws RunBuildException {
         extractOctoExe();
 
@@ -103,11 +113,9 @@ public abstract class OctopusBuildProcess implements BuildProcess {
         logger.progressMessage(getLogMessage());
 
         try {
-            Runtime runtime = Runtime.getRuntime();
+            final String octopusVersion = getSelectedOctopusVersion();
 
-            String octopusVersion = getSelectedOctopusVersion();
-
-            ArrayList<String> arguments = new ArrayList<String>();
+            final ArrayList<String> arguments = new ArrayList<>();
             if(useExe) {
                 arguments.add(new File(extractedTo, octopusVersion + "/octo.exe").getAbsolutePath());
             } else if(useOcto) {
@@ -136,16 +144,8 @@ public abstract class OctopusBuildProcess implements BuildProcess {
 
             final LoggingProcessListener listener = new LoggingProcessListener(logger);
 
-            standardError = new OutputReaderThread(process.getErrorStream(), new OutputWriter() {
-                public void write(String text) {
-                    listener.onErrorOutput(text);
-                }
-            });
-            standardOutput = new OutputReaderThread(process.getInputStream(), new OutputWriter() {
-                public void write(String text) {
-                    listener.onStandardOutput(text);
-                }
-            });
+            standardError = new OutputReaderThread(process.getErrorStream(),listener::onErrorOutput);
+            standardOutput = new OutputReaderThread(process.getInputStream(), listener::onStandardOutput);
 
             standardError.start();
             standardOutput.start();
@@ -175,20 +175,24 @@ public abstract class OctopusBuildProcess implements BuildProcess {
         return octopusVersion.replace("+", "");
     }
 
+    @Override
     public boolean isInterrupted() {
         return false;
     }
 
+    @Override
     public boolean isFinished() {
         return isFinished;
     }
 
+    @Override
     public void interrupt() {
         if (process != null) {
             process.destroy();
         }
     }
 
+    @Override
     @NotNull
     public BuildFinishedStatus waitFor() throws RunBuildException {
         int exitCode;
@@ -231,7 +235,7 @@ public abstract class OctopusBuildProcess implements BuildProcess {
         void write(String text);
     }
 
-    private class OutputReaderThread extends Thread {
+    private static class OutputReaderThread extends Thread {
         private final InputStream is;
         private final OutputWriter output;
 
@@ -240,9 +244,10 @@ public abstract class OctopusBuildProcess implements BuildProcess {
             this.output = output;
         }
 
+        @Override
         public void run() {
-            InputStreamReader isr = new InputStreamReader(is);
-            BufferedReader br = new BufferedReader(isr);
+            final InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
+            final BufferedReader br = new BufferedReader(isr);
             String line;
 
             try {

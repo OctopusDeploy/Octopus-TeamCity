@@ -16,10 +16,10 @@ dependencies {
     implementation project(':octopus-common')
     implementation 'org.jetbrains.teamcity:teamcity-rest-client'
     implementation 'com.google.code.gson:gson'
+    implementation 'com.google.guava:guava'
     provided files('./libs/agent.jar')
     provided 'org.jetbrains.teamcity:agent-api'
 
-    testImplementation 'com.google.guava:guava'
     testImplementation 'org.junit.jupiter:junit-jupiter-api'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
     testImplementation 'org.junit.jupiter:junit-jupiter-params'

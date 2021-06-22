@@ -68,6 +68,7 @@ public class OctopusPackPackageRunType extends RunType {
                 }
             }
 
+            @Override
             @NotNull
             public Collection<InvalidProperty> process(@Nullable final Map<String, String> p) {
                 final Collection<InvalidProperty> result = new ArrayList<InvalidProperty>();

@@ -18,13 +18,19 @@ package octopus.teamcity.agent;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import jetbrains.buildServer.agent.*;
+import jetbrains.buildServer.agent.AgentRunningBuild;
+import jetbrains.buildServer.agent.BuildProgressLogger;
+import jetbrains.buildServer.agent.BuildRunnerContext;
 import jetbrains.buildServer.util.StringUtil;
 import octopus.teamcity.common.Commit;
 import octopus.teamcity.common.OctopusConstants;
 import octopus.teamcity.common.OverwriteMode;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.teamcity.rest.*;
+import org.jetbrains.teamcity.rest.Build;
+import org.jetbrains.teamcity.rest.BuildId;
+import org.jetbrains.teamcity.rest.Change;
+import org.jetbrains.teamcity.rest.Revision;
+import org.jetbrains.teamcity.rest.TeamCityInstance;
 
 import java.io.File;
 import java.nio.file.Paths;
@@ -32,7 +38,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class OctopusBuildInformationBuildProcess extends OctopusBuildProcess {
 
@@ -183,17 +188,7 @@ public class OctopusBuildInformationBuildProcess extends OctopusBuildProcess {
         return gson.toJson(commits);
     }
 
-    private String getBranch(final Build build) {
-        final String reportedBranch = build.getBranch().getName();
-        return build.fetchRevisions().stream().findFirst().map(Revision::getVcsBranchName).orElse(
-                reportedBranch == null ? "" : reportedBranch);
-    }
-
     private String getVcsType(final String vcsRoot) {
         return vcsRoot.startsWith("git") ? "git" : "unknown";
-    }
-
-    private String getVcsRoot(final Optional<Revision> revision) {
-        return revision.map(r -> r.getVcsRoot().getName()).orElse("uknown");
     }
 }
