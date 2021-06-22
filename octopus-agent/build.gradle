@@ -27,7 +27,7 @@ dependencies {
 }
 
 distZip {
-    archiveBaseName = "Octopus.TeamCity"
+    archiveFileName = "Octopus.TeamCity.zip"
 }
 
 distributions {
