@@ -29,11 +29,5 @@
             <outputDirectory>server</outputDirectory>
             <outputFileNameMapping>Octopus.TeamCity.${artifact.extension}</outputFileNameMapping>
         </dependencySet>
-        <dependencySet>
-            <includes>
-                <include>com.google.code.gson:gson</include>
-            </includes>
-            <outputDirectory>server</outputDirectory>
-        </dependencySet>
     </dependencySets>
 </assembly>
