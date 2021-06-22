@@ -4,10 +4,13 @@ import jetbrains.buildServer.serverSide.InvalidProperty;
 import jetbrains.buildServer.serverSide.PropertiesProcessor;
 import jetbrains.buildServer.serverSide.RunTypeExtension;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
 
 public class OctopusBuildRunTypeExtension extends RunTypeExtension {
     private final PluginDescriptor pluginDescriptor;
@@ -27,12 +30,9 @@ public class OctopusBuildRunTypeExtension extends RunTypeExtension {
     @Nullable
     @Override
     public PropertiesProcessor getRunnerPropertiesProcessor() {
-        return new PropertiesProcessor() {
-            @NotNull
-            public Collection<InvalidProperty> process(@Nullable final Map<String, String> p) {
-                final Collection<InvalidProperty> result = new ArrayList<InvalidProperty>();
-                return result;
-            }
+        return p -> {
+            final Collection<InvalidProperty> result = new ArrayList<>();
+            return result;
         };
     }
 

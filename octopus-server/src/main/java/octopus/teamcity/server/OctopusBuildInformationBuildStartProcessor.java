@@ -12,7 +12,7 @@ import java.util.List;
 
 public class OctopusBuildInformationBuildStartProcessor implements BuildStartContextProcessor {
 
-  private ExtensionHolder extensionHolder;
+  private final ExtensionHolder extensionHolder;
 
   public OctopusBuildInformationBuildStartProcessor(@NotNull final ExtensionHolder extensionHolder,
                                                     @NotNull final WebLinks webLinks) {

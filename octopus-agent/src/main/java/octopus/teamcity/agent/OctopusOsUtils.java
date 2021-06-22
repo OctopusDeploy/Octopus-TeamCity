@@ -23,65 +23,67 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 
 public class OctopusOsUtils {
 
-    private static final Logger LOGGER = Loggers.AGENT;
+  private static final Logger LOGGER = Loggers.AGENT;
 
-    public static Boolean CanRunOcto(@NotNull BuildAgentConfiguration agentConfiguration){
-        if (agentConfiguration.getSystemInfo().isUnix() || agentConfiguration.getSystemInfo().isMac()) {
-            String os = agentConfiguration.getSystemInfo().isUnix() ? "Unix" : "Mac";
-            if(HasDotNet(agentConfiguration)){
-                LOGGER.info(String.format("Octopus can run on agent with %s and DotNot", os));
-                return true;
-            } else {
-                if (HasOcto(agentConfiguration)) {
-                    LOGGER.info(String.format("Octopus can run on agent with %s and octo", os));
-                    return true;
-                } else {
-                    LOGGER.info(String.format("Octopus can not run on agent with %s and without octo or DotNET", os));
-                    return false;
-                }
-            }
-        } else if (agentConfiguration.getSystemInfo().isWindows()) {
-            LOGGER.info("Octopus can run on agent with Windows");
-            return true;
+  public static Boolean CanRunOcto(@NotNull BuildAgentConfiguration agentConfiguration) {
+    if (agentConfiguration.getSystemInfo().isUnix() || agentConfiguration.getSystemInfo().isMac()) {
+      String os = agentConfiguration.getSystemInfo().isUnix() ? "Unix" : "Mac";
+      if (HasDotNet(agentConfiguration)) {
+        LOGGER.info(String.format("Octopus can run on agent with %s and DotNot", os));
+        return true;
+      } else {
+        if (HasOcto(agentConfiguration)) {
+          LOGGER.info(String.format("Octopus can run on agent with %s and octo", os));
+          return true;
+        } else {
+          LOGGER.info(String.format("Octopus can not run on agent with %s and without octo or DotNET", os));
+          return false;
         }
-
-        LOGGER.info("Octopus cannot run on agent without Windows, Unix or Mac");
-        return false;
+      }
+    } else if (agentConfiguration.getSystemInfo().isWindows()) {
+      LOGGER.info("Octopus can run on agent with Windows");
+      return true;
     }
 
-    public static Boolean HasDotNet(@NotNull BuildAgentConfiguration agentConfiguration){
-        String result = executeCommand("dotnet");
-        // v1 of dotnet outputs Microsoft, v2 outputs Usage
-        return result.contains("Microsoft") || result.contains("Usage");
+    LOGGER.info("Octopus cannot run on agent without Windows, Unix or Mac");
+    return false;
+  }
+
+  public static Boolean HasDotNet(@NotNull BuildAgentConfiguration agentConfiguration) {
+    String result = executeCommand("dotnet");
+    // v1 of dotnet outputs Microsoft, v2 outputs Usage
+    return result.contains("Microsoft") || result.contains("Usage");
+  }
+
+  public static Boolean HasOcto(@NotNull BuildAgentConfiguration agentConfiguration) {
+    String result = executeCommand("octo");
+    return result.contains("Octopus");
+  }
+
+  private static String executeCommand(final String command) {
+
+    final StringBuilder output = new StringBuilder();
+
+    Process p;
+    try {
+      p = Runtime.getRuntime().exec(command);
+      p.waitFor();
+      final BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream(),
+          StandardCharsets.UTF_8));
+
+      String line = "";
+      while ((line = reader.readLine()) != null) {
+        output.append(line + "\n");
+      }
+
+    } catch (Exception e) {
+      LOGGER.error("Failed to execute command " + command);
     }
 
-    public static Boolean HasOcto(@NotNull BuildAgentConfiguration agentConfiguration){
-        String result = executeCommand("octo");
-        return result.contains("Octopus");
-    }
-
-    private static String executeCommand(String command) {
-
-        StringBuffer output = new StringBuffer();
-
-        Process p;
-        try {
-            p = Runtime.getRuntime().exec(command);
-            p.waitFor();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-
-            String line = "";
-            while ((line = reader.readLine())!= null) {
-                output.append(line + "\n");
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return output.toString();
-    }
+    return output.toString();
+  }
 }

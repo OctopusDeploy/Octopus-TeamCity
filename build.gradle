@@ -75,7 +75,7 @@ allprojects {
   }
 
 
-  
+
 // TODO(tmm): Re-enable spotless ASAP
 //  apply plugin: 'com.diffplug.spotless'
 //  spotless {
@@ -111,7 +111,7 @@ allprojects {
       '-Xlint:divzero',
       '-Xlint:finally',
       '-Xlint:static',
-      //'-Werror', // TODO(tmm): Readd this ASAP
+      '-Werror',
     ]
 
     options.errorprone {

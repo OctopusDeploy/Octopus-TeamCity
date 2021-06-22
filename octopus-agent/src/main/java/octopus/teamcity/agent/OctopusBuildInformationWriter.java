@@ -4,15 +4,17 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import jetbrains.buildServer.agent.BuildProgressLogger;
 
-import java.io.*;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 
 public class OctopusBuildInformationWriter {
 
-    private BuildProgressLogger buildLogger;
-    private Boolean verboseLogging;
+    private final BuildProgressLogger buildLogger;
+    private final boolean verboseLogging;
 
-    public OctopusBuildInformationWriter(final BuildProgressLogger buildLogger, final Boolean verboseLogging) {
+    public OctopusBuildInformationWriter(final BuildProgressLogger buildLogger, final boolean verboseLogging) {
 
         this.buildLogger = buildLogger;
         this.verboseLogging = verboseLogging;

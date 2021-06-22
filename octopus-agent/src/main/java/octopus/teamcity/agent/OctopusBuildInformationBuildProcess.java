@@ -18,13 +18,20 @@ package octopus.teamcity.agent;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import jetbrains.buildServer.agent.*;
+import jetbrains.buildServer.agent.AgentRunningBuild;
+import jetbrains.buildServer.agent.BuildProgressLogger;
+import jetbrains.buildServer.agent.BuildRunnerContext;
 import jetbrains.buildServer.util.StringUtil;
 import octopus.teamcity.common.Commit;
 import octopus.teamcity.common.OctopusConstants;
 import octopus.teamcity.common.OverwriteMode;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.teamcity.rest.*;
+import org.jetbrains.teamcity.rest.Build;
+import org.jetbrains.teamcity.rest.BuildId;
+import org.jetbrains.teamcity.rest.Change;
+import org.jetbrains.teamcity.rest.Revision;
+import org.jetbrains.teamcity.rest.TeamCityInstance;
+import org.jetbrains.teamcity.rest.TeamCityInstanceFactory;
 
 import java.io.File;
 import java.nio.file.Paths;

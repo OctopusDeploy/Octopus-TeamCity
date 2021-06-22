@@ -16,22 +16,25 @@
 
 package octopus.teamcity.agent;
 
-import com.intellij.openapi.diagnostic.Logger;
 import jetbrains.buildServer.ExtensionHolder;
 import jetbrains.buildServer.RunBuildException;
-import jetbrains.buildServer.agent.*;
-import jetbrains.buildServer.log.Loggers;
+import jetbrains.buildServer.agent.AgentBuildRunner;
+import jetbrains.buildServer.agent.AgentBuildRunnerInfo;
+import jetbrains.buildServer.agent.AgentRunningBuild;
+import jetbrains.buildServer.agent.BuildAgentConfiguration;
+import jetbrains.buildServer.agent.BuildProcess;
+import jetbrains.buildServer.agent.BuildRunnerContext;
 import octopus.teamcity.common.OctopusConstants;
 import org.jetbrains.annotations.NotNull;
 
 public class OctopusPushPackageRunner implements AgentBuildRunner {
-    private static final Logger LOG = Loggers.SERVER;
     protected final ExtensionHolder myExtensionHolder;
 
     public OctopusPushPackageRunner(@NotNull final ExtensionHolder extensionHolder) {
         myExtensionHolder = extensionHolder;
     }
 
+    @Override
     @NotNull
     public BuildProcess createBuildProcess(@NotNull AgentRunningBuild runningBuild, @NotNull BuildRunnerContext context) throws RunBuildException {
         return new OctopusPushPackageBuildProcess(runningBuild, context, myExtensionHolder);
