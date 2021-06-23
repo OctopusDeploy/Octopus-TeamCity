@@ -177,18 +177,4 @@ public class OctopusBuildInformationBuildProcess extends OctopusBuildProcess {
                 .create();
         return gson.toJson(commits);
     }
-
-    private String getBranch(final Build build) {
-        final String reportedBranch = build.getBranch().getName();
-        return build.fetchRevisions().stream().findFirst().map(Revision::getVcsBranchName).orElse(
-                reportedBranch == null ? "" : reportedBranch);
-    }
-
-    private String getVcsType(final String vcsRoot) {
-        return vcsRoot.startsWith("git") ? "git" : "unknown";
-    }
-
-    private String getVcsRoot(final Optional<Revision> revision) {
-        return revision.map(r -> r.getVcsRoot().getName()).orElse("uknown");
-    }
 }
