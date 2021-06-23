@@ -74,16 +74,11 @@ public class OctopusBuildInformationBuildProcess extends OctopusBuildProcess {
             final TeamCityInstance teamCityServer = TeamCityInstance.httpAuth(teamCityServerUrl, build.getAccessUser(), build.getAccessCode());
             final Build restfulBuild = teamCityServer.build(new BuildId(buildIdString));
 
-            final Optional<Revision> revision = restfulBuild.fetchRevisions().stream().findFirst();
-            final String reportedBranch = restfulBuild.getBranch().getName();
-            final String vcsRoot = sharedConfigParameters.get("vcsroot.url");
-            final String vcsType = getVcsType(vcsRoot);
-
             final OctopusBuildInformation buildInformation = builder.build(
-                    vcsType,
-                    vcsRoot,
+                    sharedConfigParameters.get("octopus_vcstype"),
+                    sharedConfigParameters.get("vcsroot.url"),
                     sharedConfigParameters.get("build.vcs.number"),
-                    revision.map(Revision::getVcsBranchName).orElse(reportedBranch != null ? reportedBranch  : ""),
+                    restfulBuild.getBranch().getName(),
                     createJsonCommitHistory(restfulBuild),
                     teamCityServerUrl,
                     buildIdString,
