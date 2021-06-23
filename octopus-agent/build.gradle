@@ -32,12 +32,13 @@ distZip {
 
 distributions {
     main {
-        distributionBaseName = "Octopus.TeamCity"
         contents {
-            into('lib/') {
+            into '/'
+            into('/lib/') {
                 from configurations.runtimeClasspath
                 from jar
             }
+            from file("teamcity-plugin.xml")
         }
     }
 }

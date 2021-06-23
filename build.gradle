@@ -169,3 +169,26 @@ distributions {
     }
   }
 }
+
+
+task deployLocal(type: Copy) {
+  def teamCityDataDir = System.getenv("TEAMCITY_DATA_DIR") ?: System.getenv("HOME") + "/.BuildServer"
+
+  into(teamCityDataDir + "/plugins")
+  from tasks.findByPath(":distZip")
+}
+
+task updateJsp(type: Copy) {
+  def teamCityDataDir = System.getenv("TEAMCITY_INSTALL_DIR")
+  def subPath = "/webapps/ROOT/plugins/Octopus.TeamCity"
+
+  doFirst() {
+    if(${teamCityData} == null) {
+      throw new GradleException("TEAMCITY_INSTALL_DIR env var not set, unable to copy jsps")
+    }
+  }
+
+  outputs.upToDateWhen { false }
+  into(teamCityDataDir + subPath)
+  from project(":octopus-server").absoluteProjectPath("src/main/resources/buildServerResources")
+}
