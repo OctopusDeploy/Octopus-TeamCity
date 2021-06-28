@@ -32,11 +32,14 @@ distZip {
 
 distributions {
     main {
-        distributionBaseName = "Octopus.TeamCity"
         contents {
-            into('lib/') {
+            into '/'
+            into('/lib/') {
                 from configurations.runtimeClasspath
                 from jar
+            }
+            from file("build-agent-plug-Octopus.TeamCity.xml"), {
+                filter(org.apache.tools.ant.filters.ReplaceTokens, tokens:[version: version])
             }
         }
     }
