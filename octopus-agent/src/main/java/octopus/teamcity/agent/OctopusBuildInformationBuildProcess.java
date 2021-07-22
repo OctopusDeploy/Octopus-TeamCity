@@ -71,7 +71,8 @@ public class OctopusBuildInformationBuildProcess extends OctopusBuildProcess {
             final OctopusBuildInformationBuilder builder = new OctopusBuildInformationBuilder();
 
             final String buildIdString = Long.toString(build.getBuildId());
-            final TeamCityInstance teamCityServer = TeamCityInstance.httpAuth(teamCityServerUrl, build.getAccessUser(), build.getAccessCode());
+            final TeamCityInstance teamCityServer = TeamCityInstanceFactory.httpAuth(teamCityServerUrl, build.getAccessUser(),
+                build.getAccessCode());
             final Build restfulBuild = teamCityServer.build(new BuildId(buildIdString));
 
             final OctopusBuildInformation buildInformation = builder.build(
