@@ -80,8 +80,9 @@ public class OctopusOsUtils {
                 output.append(line + "\n");
             }
 
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error("Failed to execute command " + command);
+            LOGGER.error(e);
         }
 
         return output.toString();
