@@ -39,6 +39,11 @@ distributions {
                 from jar
             }
             from file("teamcity-plugin.xml")
+
+            // teamcity-rest-client pulls in slf4j-api which then conflicts with the literal TeamCity agent's class
+            // loader - only solution seems to be to explicitly exclude this file (ideally here, rather than in
+            // the API wrapper)
+            exclude("**/slf4j-api*")
         }
     }
 }
