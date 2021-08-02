@@ -65,7 +65,6 @@ class OctopusCommandBuilderTest {
   public void commaDelimitedProtectsCommasInStrings() {
     checkCommaSeparatedValues("\"a,b\",c", Lists.newArrayList("\"a,b\"", "c"));
     checkCommaSeparatedValues("\"a,b,c", Lists.newArrayList("\"a", "b", "c"));
-    checkCommaSeparatedValues(
-        "a,b\",c\"", Lists.newArrayList("a", "b\",c\"")); // IS THIS EXPECTED BEHAVIOUR
+    checkCommaSeparatedValues("a,b\",c\"", Lists.newArrayList("a", "b\",c\"")); // IS THIS EXPECTED BEHAVIOUR
   }
 }

@@ -17,8 +17,7 @@ import org.jetbrains.annotations.Nullable;
 public class OctopusCreateReleaseRunType extends RunType {
   private final PluginDescriptor pluginDescriptor;
 
-  public OctopusCreateReleaseRunType(
-      final RunTypeRegistry runTypeRegistry, final PluginDescriptor pluginDescriptor) {
+  public OctopusCreateReleaseRunType(final RunTypeRegistry runTypeRegistry, final PluginDescriptor pluginDescriptor) {
     this.pluginDescriptor = pluginDescriptor;
     runTypeRegistry.registerRunType(this);
   }

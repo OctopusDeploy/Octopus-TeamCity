@@ -48,7 +48,9 @@ public abstract class OctopusCommandBuilder {
     Matcher m = Pattern.compile("(-[\\w-]*=?|[^\"]\\S*|\".+?\")\\s*").matcher(text);
     while (m.find()) {
       String item = m.group(1).replace("\"", "");
-      if (item.startsWith("-") && item.endsWith("=")) item = item.substring(0, item.length() - 1);
+      if (item.startsWith("-") && item.endsWith("=")) {
+        item = item.substring(0, item.length() - 1);
+      }
 
       if (item != null && !item.isEmpty()) {
         results.add(item);
@@ -64,8 +66,7 @@ public abstract class OctopusCommandBuilder {
       return results;
     }
 
-    final Iterable<String> tokens =
-        Splitter.onPattern(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)").split(text);
+        final Iterable<String> tokens = Splitter.onPattern(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)").split(text);
 
     for (String t : tokens) {
       String trimmed = t.trim();

@@ -48,7 +48,9 @@ public class EmbeddedResourceExtractor {
 
       try {
         File file = new File(destinationName);
-        if (file.exists()) return;
+        if (file.exists()) {
+          return;
+        }
 
         InputStream is = getClass().getResourceAsStream(resourceName);
         OutputStream os = new FileOutputStream(destinationName, false);
@@ -72,7 +74,9 @@ public class EmbeddedResourceExtractor {
 
   private void ensureDirectory(String destinationPath, String version) {
     File extractedTo = new File(destinationPath, version);
-    if (extractedTo.exists()) return;
+    if (extractedTo.exists()) {
+      return;
+    }
 
     if (!extractedTo.mkdirs())
       throw new RuntimeException("Unable to create temp output directory " + extractedTo);

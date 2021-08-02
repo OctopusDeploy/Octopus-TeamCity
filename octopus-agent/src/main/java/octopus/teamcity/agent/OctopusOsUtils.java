@@ -40,8 +40,7 @@ public class OctopusOsUtils {
           LOGGER.info(String.format("Octopus can run on agent with %s and octo", os));
           return true;
         } else {
-          LOGGER.info(
-              String.format("Octopus can not run on agent with %s and without octo or DotNET", os));
+           LOGGER.info(String.format("Octopus can not run on agent with %s and without octo or DotNET", os));
           return false;
         }
       }
@@ -73,8 +72,7 @@ public class OctopusOsUtils {
     try {
       p = Runtime.getRuntime().exec(command);
       p.waitFor();
-      final BufferedReader reader =
-          new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8));
+      final BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8));
 
       String line = "";
       while ((line = reader.readLine()) != null) {

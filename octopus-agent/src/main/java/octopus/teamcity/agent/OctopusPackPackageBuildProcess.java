@@ -61,21 +61,21 @@ public class OctopusPackPackageBuildProcess extends OctopusBuildProcess {
     final String packageFormat = parameters.get(constants.getPackageFormatKey()).toLowerCase();
     final String packageVersion = parameters.get(constants.getPackageVersionKey());
     final String outputPath = parameters.get(constants.getPackageOutputPathKey());
-    final boolean publishArtifacts =
-        Boolean.parseBoolean(parameters.get(constants.getPublishArtifactsKey()));
+    final boolean publishArtifacts = Boolean.parseBoolean(parameters.get(constants.getPublishArtifactsKey()));
 
-    if (!publishArtifacts) return status;
+    if (!publishArtifacts) {
+      return status;
+    }
 
     String packagePath = outputPath;
-    if (!packagePath.endsWith(File.separator)) packagePath += File.separator;
+    if (!packagePath.endsWith(File.separator)) {
+      packagePath += File.separator;
+    }
     packagePath += packageId + "." + packageVersion + "." + packageFormat;
 
     BuildProgressLogger logger = myRunningBuild.getBuildLogger();
 
-    String message =
-        ServiceMessage.asString(
-            "publishArtifacts",
-            myRunningBuild.getCheckoutDirectory() + File.separator + packagePath);
+    String message = ServiceMessage.asString("publishArtifacts", myRunningBuild.getCheckoutDirectory() + File.separator + packagePath);
     logger.message(message);
 
     return status;

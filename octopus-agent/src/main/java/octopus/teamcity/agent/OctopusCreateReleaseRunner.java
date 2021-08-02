@@ -30,9 +30,7 @@ public class OctopusCreateReleaseRunner implements AgentBuildRunner {
 
   @Override
   @NotNull
-  public BuildProcess createBuildProcess(
-      @NotNull AgentRunningBuild runningBuild, @NotNull BuildRunnerContext context)
-      throws RunBuildException {
+    public BuildProcess createBuildProcess(@NotNull AgentRunningBuild runningBuild, @NotNull BuildRunnerContext context) throws RunBuildException {
     return new OctopusCreateReleaseBuildProcess(runningBuild, context);
   }
 

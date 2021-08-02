@@ -34,7 +34,7 @@ public class OctopusBuildInformationWriter {
         buildLogger.message("Serialized Octopus build information - " + jsonData);
       }
 
-      OutputStreamWriter bw =
+      final OutputStreamWriter bw =
           new OutputStreamWriter(new FileOutputStream(dataFile), StandardCharsets.UTF_16);
       bw.write(jsonData);
       bw.close();

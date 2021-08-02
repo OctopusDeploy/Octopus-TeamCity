@@ -65,11 +65,9 @@ public class OctopusBuildInformationBuildProcess extends OctopusBuildProcess {
 
     final Map<String, String> parameters = getContext().getRunnerParameters();
     final OctopusConstants constants = OctopusConstants.Instance;
-    final Boolean verboseLogging =
-        Boolean.parseBoolean(parameters.get(constants.getVerboseLoggingKey()));
+    final Boolean verboseLogging = Boolean.parseBoolean(parameters.get(constants.getVerboseLoggingKey()));
 
-    final String dataFile =
-        Paths.get(checkoutDir.getPath(), "octopus.buildinfo").toAbsolutePath().toString();
+    final String dataFile = Paths.get(checkoutDir.getPath(), "octopus.buildinfo").toAbsolutePath().toString();
 
     try {
       AgentRunningBuild build = getContext().getBuild();
@@ -77,13 +75,11 @@ public class OctopusBuildInformationBuildProcess extends OctopusBuildProcess {
       final OctopusBuildInformationBuilder builder = new OctopusBuildInformationBuilder();
 
       final String buildIdString = Long.toString(build.getBuildId());
-      final TeamCityInstance teamCityServer =
-          TeamCityInstanceFactory.httpAuth(
+      final TeamCityInstance teamCityServer = TeamCityInstanceFactory.httpAuth(
               teamCityServerUrl, build.getAccessUser(), build.getAccessCode());
       final Build restfulBuild = teamCityServer.build(new BuildId(buildIdString));
 
-      final OctopusBuildInformation buildInformation =
-          builder.build(
+      final OctopusBuildInformation buildInformation = builder.build(
               sharedConfigParameters.get("octopus_vcstype"),
               sharedConfigParameters.get("vcsroot.url"),
               sharedConfigParameters.get("build.vcs.number"),
@@ -97,8 +93,7 @@ public class OctopusBuildInformationBuildProcess extends OctopusBuildProcess {
         buildLogger.message("Creating " + dataFile);
       }
 
-      final OctopusBuildInformationWriter writer =
-          new OctopusBuildInformationWriter(buildLogger, verboseLogging);
+      final OctopusBuildInformationWriter writer = new OctopusBuildInformationWriter(buildLogger, verboseLogging);
       writer.writeToFile(buildInformation, dataFile);
 
     } catch (Exception ex) {

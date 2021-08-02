@@ -25,8 +25,7 @@ import octopus.teamcity.common.OctopusConstants;
 import org.jetbrains.annotations.NotNull;
 
 public class OctopusDeployReleaseBuildProcess extends OctopusBuildProcess {
-  public OctopusDeployReleaseBuildProcess(
-      @NotNull AgentRunningBuild runningBuild, @NotNull BuildRunnerContext context) {
+   public OctopusDeployReleaseBuildProcess(@NotNull AgentRunningBuild runningBuild, @NotNull BuildRunnerContext context) {
     super(runningBuild, context);
   }
 
@@ -53,11 +52,9 @@ public class OctopusDeployReleaseBuildProcess extends OctopusBuildProcess {
         final String tenants = parameters.get(constants.getTenantsKey());
         final String tenanttags = parameters.get(constants.getTenantTagsKey());
         final String projectName = parameters.get(constants.getProjectNameKey());
-        final boolean wait =
-            Boolean.parseBoolean(parameters.get(constants.getWaitForDeployments()));
+        final boolean wait = Boolean.parseBoolean(parameters.get(constants.getWaitForDeployments()));
         final String deploymentTimeout = parameters.get(constants.getDeploymentTimeout());
-        final boolean cancelOnTimeout =
-            Boolean.parseBoolean(parameters.get(constants.getCancelDeploymentOnTimeout()));
+        final boolean cancelOnTimeout = Boolean.parseBoolean(parameters.get(constants.getCancelDeploymentOnTimeout()));
 
         commands.add("deploy-release");
         commands.add("--server");

@@ -49,8 +49,7 @@ public abstract class OctopusBuildProcess implements BuildProcess {
   private boolean isFinished;
   private final BuildProgressLogger logger;
 
-  protected OctopusBuildProcess(
-      @NotNull AgentRunningBuild runningBuild, @NotNull BuildRunnerContext context) {
+  protected OctopusBuildProcess(@NotNull AgentRunningBuild runningBuild, @NotNull BuildRunnerContext context) {
     this.runningBuild = runningBuild;
     this.context = context;
 
@@ -89,8 +88,7 @@ public abstract class OctopusBuildProcess implements BuildProcess {
       EmbeddedResourceExtractor extractor = new EmbeddedResourceExtractor();
       extractor.extractTo(extractedTo.getAbsolutePath());
     } catch (Exception e) {
-      final String message =
-          "Unable to create temporary file in " + tempDirectory + " for Octopus: " + e.getMessage();
+      final String message = "Unable to create temporary file in " + tempDirectory + " for Octopus: " + e.getMessage();
       Logger.getInstance(getClass().getName()).error(message, e);
       throw new RunBuildException(message);
     }
@@ -107,16 +105,11 @@ public abstract class OctopusBuildProcess implements BuildProcess {
 
     logger.activityStarted("Octopus Deploy", DefaultMessagesInfo.BLOCK_TYPE_INDENTATION);
     if (useExe) {
-      logger.message(
-          "Running command:   octo.exe "
-              + StringUtils.arrayToDelimitedString(userVisibleCommand, " "));
+      logger.message("Running command:   octo.exe " + StringUtils.arrayToDelimitedString(userVisibleCommand, " "));
     } else if (useOcto) {
-      logger.message(
-          "Running command:   octo " + StringUtils.arrayToDelimitedString(userVisibleCommand, " "));
+      logger.message("Running command:   octo " + StringUtils.arrayToDelimitedString(userVisibleCommand, " "));
     } else {
-      logger.message(
-          "Running command:   dotnet octo.dll "
-              + StringUtils.arrayToDelimitedString(userVisibleCommand, " "));
+      logger.message("Running command:   dotnet octo.dll " + StringUtils.arrayToDelimitedString(userVisibleCommand, " "));
     }
     logger.progressMessage(getLogMessage());
 
@@ -140,8 +133,7 @@ public abstract class OctopusBuildProcess implements BuildProcess {
 
       final ProcessBuilder builder = new ProcessBuilder();
 
-      Map<String, String> programEnvironmentVariables =
-          context.getBuildParameters().getEnvironmentVariables();
+            Map<String, String> programEnvironmentVariables = context.getBuildParameters().getEnvironmentVariables();
       Map<String, String> environment = builder.environment();
       environment.put("OCTOEXTENSION", extensionVersion);
       environment.putAll(programEnvironmentVariables);
@@ -220,12 +212,13 @@ public abstract class OctopusBuildProcess implements BuildProcess {
       throw new RunBuildException(message);
     }
 
-    if (exitCode == 0) return BuildFinishedStatus.FINISHED_SUCCESS;
+    if (exitCode == 0) {
+      return BuildFinishedStatus.FINISHED_SUCCESS;
+    }
 
     runningBuild.getBuildLogger().progressFinished();
 
-    String message =
-        "Unable to create or deploy release. Please check the build log for details on the error.";
+        String message = "Unable to create or deploy release. Please check the build log for details on the error.";
 
     if (runningBuild.getFailBuildOnExitCode()) {
       runningBuild.getBuildLogger().buildFailureDescription(message);
