@@ -28,31 +28,34 @@ import octopus.teamcity.common.OctopusConstants;
 import org.jetbrains.annotations.NotNull;
 
 public class OctopusPushPackageRunner implements AgentBuildRunner {
-    protected final ExtensionHolder myExtensionHolder;
+  protected final ExtensionHolder myExtensionHolder;
 
-    public OctopusPushPackageRunner(@NotNull final ExtensionHolder extensionHolder) {
-        myExtensionHolder = extensionHolder;
-    }
+  public OctopusPushPackageRunner(@NotNull final ExtensionHolder extensionHolder) {
+    myExtensionHolder = extensionHolder;
+  }
 
-    @Override
-    @NotNull
-    public BuildProcess createBuildProcess(@NotNull AgentRunningBuild runningBuild, @NotNull BuildRunnerContext context) throws RunBuildException {
-        return new OctopusPushPackageBuildProcess(runningBuild, context, myExtensionHolder);
-    }
-    @Override
-    @NotNull
-    public AgentBuildRunnerInfo getRunnerInfo() {
-        return new AgentBuildRunnerInfo() {
-            @Override
-            @NotNull
-            public String getType() {
-                return OctopusConstants.PUSH_PACKAGE_RUNNER_TYPE;
-            }
+  @Override
+  @NotNull
+  public BuildProcess createBuildProcess(
+      @NotNull AgentRunningBuild runningBuild, @NotNull BuildRunnerContext context)
+      throws RunBuildException {
+    return new OctopusPushPackageBuildProcess(runningBuild, context, myExtensionHolder);
+  }
 
-            @Override
-            public boolean canRun(@NotNull BuildAgentConfiguration agentConfiguration) {
-                return OctopusOsUtils.CanRunOcto(agentConfiguration);
-            }
-        };
-    }
+  @Override
+  @NotNull
+  public AgentBuildRunnerInfo getRunnerInfo() {
+    return new AgentBuildRunnerInfo() {
+      @Override
+      @NotNull
+      public String getType() {
+        return OctopusConstants.PUSH_PACKAGE_RUNNER_TYPE;
+      }
+
+      @Override
+      public boolean canRun(@NotNull BuildAgentConfiguration agentConfiguration) {
+        return OctopusOsUtils.CanRunOcto(agentConfiguration);
+      }
+    };
+  }
 }

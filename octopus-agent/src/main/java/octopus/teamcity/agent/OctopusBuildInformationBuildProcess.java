@@ -16,6 +16,12 @@
 
 package octopus.teamcity.agent;
 
+import java.io.File;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import jetbrains.buildServer.agent.AgentRunningBuild;
@@ -29,160 +35,151 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.teamcity.rest.Build;
 import org.jetbrains.teamcity.rest.BuildId;
 import org.jetbrains.teamcity.rest.Change;
-import org.jetbrains.teamcity.rest.Revision;
 import org.jetbrains.teamcity.rest.TeamCityInstance;
 import org.jetbrains.teamcity.rest.TeamCityInstanceFactory;
 
-import java.io.File;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 public class OctopusBuildInformationBuildProcess extends OctopusBuildProcess {
 
-    private final File checkoutDir;
-    private final Map<String, String> sharedConfigParameters;
-    private final String teamCityServerUrl;
+  private final File checkoutDir;
+  private final Map<String, String> sharedConfigParameters;
+  private final String teamCityServerUrl;
 
-    public OctopusBuildInformationBuildProcess(@NotNull AgentRunningBuild runningBuild, @NotNull BuildRunnerContext context) {
-        super(runningBuild, context);
+  public OctopusBuildInformationBuildProcess(
+      @NotNull AgentRunningBuild runningBuild, @NotNull BuildRunnerContext context) {
+    super(runningBuild, context);
 
-        checkoutDir = runningBuild.getCheckoutDirectory();
-        sharedConfigParameters = runningBuild.getSharedConfigParameters();
-        teamCityServerUrl = runningBuild.getAgentConfiguration().getServerUrl();
+    checkoutDir = runningBuild.getCheckoutDirectory();
+    sharedConfigParameters = runningBuild.getSharedConfigParameters();
+    teamCityServerUrl = runningBuild.getAgentConfiguration().getServerUrl();
+  }
 
+  @Override
+  protected String getLogMessage() {
+    return "Pushing build information to Octopus server";
+  }
+
+  @Override
+  protected OctopusCommandBuilder createCommand() {
+
+    final BuildProgressLogger buildLogger = getLogger();
+
+    final Map<String, String> parameters = getContext().getRunnerParameters();
+    final OctopusConstants constants = OctopusConstants.Instance;
+    final Boolean verboseLogging =
+        Boolean.parseBoolean(parameters.get(constants.getVerboseLoggingKey()));
+
+    final String dataFile =
+        Paths.get(checkoutDir.getPath(), "octopus.buildinfo").toAbsolutePath().toString();
+
+    try {
+      AgentRunningBuild build = getContext().getBuild();
+
+      final OctopusBuildInformationBuilder builder = new OctopusBuildInformationBuilder();
+
+      final String buildIdString = Long.toString(build.getBuildId());
+      final TeamCityInstance teamCityServer =
+          TeamCityInstanceFactory.httpAuth(
+              teamCityServerUrl, build.getAccessUser(), build.getAccessCode());
+      final Build restfulBuild = teamCityServer.build(new BuildId(buildIdString));
+
+      final OctopusBuildInformation buildInformation =
+          builder.build(
+              sharedConfigParameters.get("octopus_vcstype"),
+              sharedConfigParameters.get("vcsroot.url"),
+              sharedConfigParameters.get("build.vcs.number"),
+              restfulBuild.getBranch().getName(),
+              createJsonCommitHistory(restfulBuild),
+              teamCityServerUrl,
+              buildIdString,
+              build.getBuildNumber());
+
+      if (verboseLogging) {
+        buildLogger.message("Creating " + dataFile);
+      }
+
+      final OctopusBuildInformationWriter writer =
+          new OctopusBuildInformationWriter(buildLogger, verboseLogging);
+      writer.writeToFile(buildInformation, dataFile);
+
+    } catch (Exception ex) {
+      buildLogger.error("Error processing comment messages " + ex);
+      return null;
     }
 
-    @Override
-    protected String getLogMessage() {
-        return "Pushing build information to Octopus server";
-    }
+    return new OctopusCommandBuilder() {
+      @Override
+      protected String[] buildCommand(boolean masked) {
+        final ArrayList<String> commands = new ArrayList<String>();
+        final String serverUrl = parameters.get(constants.getServerKey());
+        final String apiKey = parameters.get(constants.getApiKey());
+        final String spaceName = parameters.get(constants.getSpaceName());
+        final String packageIds = parameters.get(constants.getPackageIdKey());
+        final String packageVersion = parameters.get(constants.getPackageVersionKey());
+        final String commandLineArguments = parameters.get(constants.getCommandLineArgumentsKey());
 
-    @Override
-    protected OctopusCommandBuilder createCommand() {
-
-        final BuildProgressLogger buildLogger = getLogger();
-
-        final Map<String, String> parameters = getContext().getRunnerParameters();
-        final OctopusConstants constants = OctopusConstants.Instance;
-        final Boolean verboseLogging = Boolean.parseBoolean(parameters.get(constants.getVerboseLoggingKey()));
-
-        final String dataFile = Paths.get(checkoutDir.getPath(), "octopus.buildinfo").toAbsolutePath().toString();
-
-        try {
-            AgentRunningBuild build = getContext().getBuild();
-
-            final OctopusBuildInformationBuilder builder = new OctopusBuildInformationBuilder();
-
-            final String buildIdString = Long.toString(build.getBuildId());
-            final TeamCityInstance teamCityServer = TeamCityInstanceFactory.httpAuth(teamCityServerUrl, build.getAccessUser(),
-                build.getAccessCode());
-            final Build restfulBuild = teamCityServer.build(new BuildId(buildIdString));
-
-            final OctopusBuildInformation buildInformation = builder.build(
-                    sharedConfigParameters.get("octopus_vcstype"),
-                    sharedConfigParameters.get("vcsroot.url"),
-                    sharedConfigParameters.get("build.vcs.number"),
-                    restfulBuild.getBranch().getName(),
-                    createJsonCommitHistory(restfulBuild),
-                    teamCityServerUrl,
-                    buildIdString,
-                    build.getBuildNumber());
-
-            if (verboseLogging) {
-                buildLogger.message("Creating " + dataFile);
-            }
-
-            final OctopusBuildInformationWriter writer = new OctopusBuildInformationWriter(buildLogger, verboseLogging);
-            writer.writeToFile(buildInformation, dataFile);
-
-        } catch (Exception ex) {
-            buildLogger.error("Error processing comment messages " + ex);
-            return null;
+        final String forcePush = parameters.get(constants.getForcePushKey());
+        OverwriteMode overwriteMode = OverwriteMode.FailIfExists;
+        if ("true".equals(forcePush)) {
+          overwriteMode = OverwriteMode.OverwriteExisting;
+        } else if (OverwriteMode.IgnoreIfExists.name().equals(forcePush)) {
+          overwriteMode = OverwriteMode.IgnoreIfExists;
         }
 
-        return new OctopusCommandBuilder() {
-            @Override
-            protected String[] buildCommand(boolean masked) {
-                final ArrayList<String> commands = new ArrayList<String>();
-                final String serverUrl = parameters.get(constants.getServerKey());
-                final String apiKey = parameters.get(constants.getApiKey());
-                final String spaceName = parameters.get(constants.getSpaceName());
-                final String packageIds = parameters.get(constants.getPackageIdKey());
-                final String packageVersion = parameters.get(constants.getPackageVersionKey());
-                final String commandLineArguments = parameters.get(constants.getCommandLineArgumentsKey());
-
-                final String forcePush = parameters.get(constants.getForcePushKey());
-                OverwriteMode overwriteMode = OverwriteMode.FailIfExists;
-                if ("true".equals(forcePush)) {
-                    overwriteMode = OverwriteMode.OverwriteExisting;
-                }
-                else if (OverwriteMode.IgnoreIfExists.name().equals(forcePush)) {
-                    overwriteMode = OverwriteMode.IgnoreIfExists;
-                }
-
-                if (verboseLogging) {
-                    buildLogger.message("ForcePush: " + forcePush);
-                    buildLogger.message("OverwriteMode: " + overwriteMode.name());
-                }
-
-                commands.add("build-information");
-                commands.add("--server");
-                commands.add(serverUrl);
-                commands.add("--apikey");
-                commands.add(masked ? "SECRET" : apiKey);
-
-                if (spaceName != null && !spaceName.isEmpty()) {
-                    commands.add("--space");
-                    commands.add(spaceName);
-                }
-
-                for(String packageId : StringUtil.split(packageIds, "\n")) {
-                    commands.add("--package-id");
-                    commands.add(packageId);
-                }
-
-                commands.add("--version");
-                commands.add(packageVersion);
-
-                commands.add("--file");
-                commands.add(dataFile);
-
-                if (overwriteMode != OverwriteMode.FailIfExists) {
-                    commands.add("--overwrite-mode");
-                    commands.add(overwriteMode.name());
-                }
-
-                if (commandLineArguments != null && !commandLineArguments.isEmpty()) {
-                    commands.addAll(splitSpaceSeparatedValues(commandLineArguments));
-                }
-
-                return commands.toArray(new String[commands.size()]);
-            }
-        };
-    }
-
-    private String createJsonCommitHistory(final Build build) {
-        final List<Change> changes = build.fetchChanges();
-
-
-        final List<Commit> commits = new ArrayList<>();
-        for (Change change : changes) {
-
-            final Commit c = new Commit();
-            c.Id = change.getVersion();
-            c.Comment = change.getComment();
-
-            commits.add(c);
+        if (verboseLogging) {
+          buildLogger.message("ForcePush: " + forcePush);
+          buildLogger.message("OverwriteMode: " + overwriteMode.name());
         }
 
-        final Gson gson = new GsonBuilder()
-                .setPrettyPrinting()
-                .disableHtmlEscaping()
-                .create();
-        return gson.toJson(commits);
+        commands.add("build-information");
+        commands.add("--server");
+        commands.add(serverUrl);
+        commands.add("--apikey");
+        commands.add(masked ? "SECRET" : apiKey);
+
+        if (spaceName != null && !spaceName.isEmpty()) {
+          commands.add("--space");
+          commands.add(spaceName);
+        }
+
+        for (String packageId : StringUtil.split(packageIds, "\n")) {
+          commands.add("--package-id");
+          commands.add(packageId);
+        }
+
+        commands.add("--version");
+        commands.add(packageVersion);
+
+        commands.add("--file");
+        commands.add(dataFile);
+
+        if (overwriteMode != OverwriteMode.FailIfExists) {
+          commands.add("--overwrite-mode");
+          commands.add(overwriteMode.name());
+        }
+
+        if (commandLineArguments != null && !commandLineArguments.isEmpty()) {
+          commands.addAll(splitSpaceSeparatedValues(commandLineArguments));
+        }
+
+        return commands.toArray(new String[commands.size()]);
+      }
+    };
+  }
+
+  private String createJsonCommitHistory(final Build build) {
+    final List<Change> changes = build.fetchChanges();
+
+    final List<Commit> commits = new ArrayList<>();
+    for (Change change : changes) {
+
+      final Commit c = new Commit();
+      c.Id = change.getVersion();
+      c.Comment = change.getComment();
+
+      commits.add(c);
     }
+
+    final Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+    return gson.toJson(commits);
+  }
 }

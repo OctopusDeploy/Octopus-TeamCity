@@ -16,6 +16,8 @@
 
 package octopus.teamcity.agent;
 
+import java.util.Map;
+
 import jetbrains.buildServer.agent.AgentLifeCycleAdapter;
 import jetbrains.buildServer.agent.AgentLifeCycleListener;
 import jetbrains.buildServer.agent.BuildProgressLogger;
@@ -25,45 +27,41 @@ import jetbrains.buildServer.util.StringUtil;
 import octopus.teamcity.common.OctopusConstants;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Map;
-
 public class OctopusBuildListener extends AgentLifeCycleAdapter {
-    public OctopusBuildListener(@NotNull final EventDispatcher<AgentLifeCycleListener> agentDispatcher) {
-        agentDispatcher.addListener(this);
+  public OctopusBuildListener(
+      @NotNull final EventDispatcher<AgentLifeCycleListener> agentDispatcher) {
+    agentDispatcher.addListener(this);
+  }
+
+  @Override
+  public void beforeRunnerStart(@NotNull BuildRunnerContext runner) {
+    Map<String, String> params = runner.getRunnerParameters();
+
+    BuildProgressLogger logger = runner.getBuild().getBuildLogger();
+
+    OctopusConstants c = new OctopusConstants();
+
+    String runOctoPackString = params.get(c.getRunOctoPack());
+    String octoPackVersion = params.get(c.getOctoPackPackageVersion());
+    String publishUrl = params.get(c.getOctoPackPublishPackageToHttp());
+    String publishApiKey = params.get(c.getOctoPackPublishApiKey());
+    String appendToPackageId = params.get(c.getOctoPackAppendToPackageId());
+
+    if (StringUtil.isEmptyOrSpaces(runOctoPackString)) {
+      return;
     }
 
-    @Override
-    public void beforeRunnerStart(@NotNull BuildRunnerContext runner) {
-        Map<String, String> params = runner.getRunnerParameters();
+    logger.message("Enabling OctoPack");
+    runner.addSystemProperty("RunOctoPack", "true");
+    runner.addSystemProperty("OctoPackPackageVersion", octoPackVersion);
 
-        BuildProgressLogger logger = runner.getBuild().getBuildLogger();
-
-        OctopusConstants c = new OctopusConstants();
-
-        String runOctoPackString = params.get(c.getRunOctoPack());
-        String octoPackVersion = params.get(c.getOctoPackPackageVersion());
-        String publishUrl = params.get(c.getOctoPackPublishPackageToHttp());
-        String publishApiKey = params.get(c.getOctoPackPublishApiKey());
-        String appendToPackageId = params.get(c.getOctoPackAppendToPackageId());
-
-        if (StringUtil.isEmptyOrSpaces(runOctoPackString))
-        {
-            return;
-        }
-
-        logger.message("Enabling OctoPack");
-        runner.addSystemProperty("RunOctoPack", "true");
-        runner.addSystemProperty("OctoPackPackageVersion", octoPackVersion);
-
-        if (!StringUtil.isEmptyOrSpaces(appendToPackageId))
-        {
-            runner.addSystemProperty("OctoPackAppendToPackageId", appendToPackageId);
-        }
-
-        if (!StringUtil.isEmptyOrSpaces(publishUrl))
-        {
-            runner.addSystemProperty("OctoPackPublishPackageToHttp", publishUrl);
-            runner.addSystemProperty("OctoPackPublishApiKey", publishApiKey);
-        }
+    if (!StringUtil.isEmptyOrSpaces(appendToPackageId)) {
+      runner.addSystemProperty("OctoPackAppendToPackageId", appendToPackageId);
     }
+
+    if (!StringUtil.isEmptyOrSpaces(publishUrl)) {
+      runner.addSystemProperty("OctoPackPublishPackageToHttp", publishUrl);
+      runner.addSystemProperty("OctoPackPublishApiKey", publishApiKey);
+    }
+  }
 }

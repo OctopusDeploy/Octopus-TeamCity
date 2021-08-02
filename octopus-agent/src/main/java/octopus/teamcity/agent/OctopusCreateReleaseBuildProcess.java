@@ -16,113 +16,115 @@
 
 package octopus.teamcity.agent;
 
+import java.util.ArrayList;
+import java.util.Map;
+
 import jetbrains.buildServer.agent.AgentRunningBuild;
 import jetbrains.buildServer.agent.BuildRunnerContext;
 import octopus.teamcity.common.OctopusConstants;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Map;
-
 public class OctopusCreateReleaseBuildProcess extends OctopusBuildProcess {
-    protected OctopusCreateReleaseBuildProcess(@NotNull AgentRunningBuild runningBuild, @NotNull BuildRunnerContext context) {
-        super(runningBuild, context);
-    }
+  protected OctopusCreateReleaseBuildProcess(
+      @NotNull AgentRunningBuild runningBuild, @NotNull BuildRunnerContext context) {
+    super(runningBuild, context);
+  }
 
-    @Override
-    protected String getLogMessage() {
-        return "Creating Octopus Deploy release";
-    }
+  @Override
+  protected String getLogMessage() {
+    return "Creating Octopus Deploy release";
+  }
 
-    @Override
-    protected OctopusCommandBuilder createCommand() {
-        final Map<String, String> parameters = getContext().getRunnerParameters();
-        final OctopusConstants constants = OctopusConstants.Instance;
+  @Override
+  protected OctopusCommandBuilder createCommand() {
+    final Map<String, String> parameters = getContext().getRunnerParameters();
+    final OctopusConstants constants = OctopusConstants.Instance;
 
-        return new OctopusCommandBuilder() {
-            @Override
-            protected String[] buildCommand(boolean masked) {
-                final ArrayList<String> commands = new ArrayList<String>();
-                final String serverUrl = parameters.get(constants.getServerKey());
-                final String apiKey = parameters.get(constants.getApiKey());
-                final String spaceName = parameters.get(constants.getSpaceName());
-                final String commandLineArguments = parameters.get(constants.getCommandLineArgumentsKey());
-                final String releaseNumber = parameters.get(constants.getReleaseNumberKey());
-                final String channelName = parameters.get(constants.getChannelNameKey());
-                final String deployTo = parameters.get(constants.getDeployToKey());
-                final String projectName = parameters.get(constants.getProjectNameKey());
-                final String tenants = parameters.get(constants.getTenantsKey());
-                final String tenanttags = parameters.get(constants.getTenantTagsKey());
-                final boolean wait = Boolean.parseBoolean(parameters.get(constants.getWaitForDeployments()));
-                final String deploymentTimeout = parameters.get(constants.getDeploymentTimeout());
-                final boolean cancelOnTimeout = Boolean.parseBoolean(parameters.get(constants.getCancelDeploymentOnTimeout()));
-                final String gitRef = parameters.get(constants.getGitRefKey());
+    return new OctopusCommandBuilder() {
+      @Override
+      protected String[] buildCommand(boolean masked) {
+        final ArrayList<String> commands = new ArrayList<String>();
+        final String serverUrl = parameters.get(constants.getServerKey());
+        final String apiKey = parameters.get(constants.getApiKey());
+        final String spaceName = parameters.get(constants.getSpaceName());
+        final String commandLineArguments = parameters.get(constants.getCommandLineArgumentsKey());
+        final String releaseNumber = parameters.get(constants.getReleaseNumberKey());
+        final String channelName = parameters.get(constants.getChannelNameKey());
+        final String deployTo = parameters.get(constants.getDeployToKey());
+        final String projectName = parameters.get(constants.getProjectNameKey());
+        final String tenants = parameters.get(constants.getTenantsKey());
+        final String tenanttags = parameters.get(constants.getTenantTagsKey());
+        final boolean wait =
+            Boolean.parseBoolean(parameters.get(constants.getWaitForDeployments()));
+        final String deploymentTimeout = parameters.get(constants.getDeploymentTimeout());
+        final boolean cancelOnTimeout =
+            Boolean.parseBoolean(parameters.get(constants.getCancelDeploymentOnTimeout()));
+        final String gitRef = parameters.get(constants.getGitRefKey());
 
+        commands.add("create-release");
+        commands.add("--server");
+        commands.add(serverUrl);
+        commands.add("--apikey");
+        commands.add(masked ? "SECRET" : apiKey);
 
-                commands.add("create-release");
-                commands.add("--server");
-                commands.add(serverUrl);
-                commands.add("--apikey");
-                commands.add(masked ? "SECRET" : apiKey);
+        if (spaceName != null && !spaceName.isEmpty()) {
+          commands.add("--space");
+          commands.add(spaceName);
+        }
 
-                if (spaceName != null && !spaceName.isEmpty()) {
-                    commands.add("--space");
-                    commands.add(spaceName);
-                }
+        commands.add("--project");
+        commands.add(projectName);
+        commands.add("--enableservicemessages");
 
-                commands.add("--project");
-                commands.add(projectName);
-                commands.add("--enableservicemessages");
+        if (releaseNumber != null && !releaseNumber.isEmpty()) {
+          commands.add("--version");
+          commands.add(releaseNumber);
+        }
 
-                if (releaseNumber != null && !releaseNumber.isEmpty()) {
-                    commands.add("--version");
-                    commands.add(releaseNumber);
-                }
+        if (channelName != null && !channelName.isEmpty()) {
+          commands.add("--channel");
+          commands.add(channelName);
+        }
 
-                if (channelName != null && !channelName.isEmpty()) {
-                    commands.add("--channel");
-                    commands.add(channelName);
-                }
+        for (String env : splitCommaSeparatedValues(deployTo)) {
+          commands.add("--deployto");
+          commands.add(env);
+        }
 
-                for (String env : splitCommaSeparatedValues(deployTo)) {
-                    commands.add("--deployto");
-                    commands.add(env);
-                }
+        if (wait && deployTo != null && !deployTo.isEmpty()) {
+          commands.add("--progress");
 
-                if (wait && deployTo != null && !deployTo.isEmpty()) {
-                    commands.add("--progress");
+          if (deploymentTimeout != null && !deploymentTimeout.isEmpty()) {
+            commands.add("--deploymenttimeout");
+            commands.add(deploymentTimeout);
+          }
 
-                    if (deploymentTimeout != null && !deploymentTimeout.isEmpty()) {
-                        commands.add("--deploymenttimeout");
-                        commands.add(deploymentTimeout);
-                    }
+          if (cancelOnTimeout) {
+            commands.add("--cancelontimeout");
+          }
+        }
 
-                    if (cancelOnTimeout) {
-                        commands.add("--cancelontimeout");
-                    }
-                }
+        for (String tenant : splitCommaSeparatedValues(tenants)) {
+          commands.add("--tenant");
+          commands.add(tenant);
+        }
 
-                for(String tenant : splitCommaSeparatedValues(tenants)) {
-                    commands.add("--tenant");
-                    commands.add(tenant);
-                }
+        for (String tenanttag : splitCommaSeparatedValues(tenanttags)) {
+          commands.add("--tenanttag");
+          commands.add(tenanttag);
+        }
 
-                for(String tenanttag : splitCommaSeparatedValues(tenanttags)) {
-                    commands.add("--tenanttag");
-                    commands.add(tenanttag);
-                }
+        if (gitRef != null && !gitRef.isEmpty()) {
+          commands.add("--gitRef");
+          commands.add(gitRef);
+        }
 
-                if (gitRef != null && !gitRef.isEmpty()) {
-                    commands.add("--gitRef");
-                    commands.add(gitRef);
-                }
+        if (commandLineArguments != null && !commandLineArguments.isEmpty()) {
+          commands.addAll(splitSpaceSeparatedValues(commandLineArguments));
+        }
 
-                if (commandLineArguments != null && !commandLineArguments.isEmpty()) {
-                    commands.addAll(splitSpaceSeparatedValues(commandLineArguments));
-                }
-
-                return commands.toArray(new String[commands.size()]);
-            }
-        };
-    }
+        return commands.toArray(new String[commands.size()]);
+      }
+    };
+  }
 }

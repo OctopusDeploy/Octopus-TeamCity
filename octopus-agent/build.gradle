@@ -1,49 +1,49 @@
 apply plugin: 'distribution'
 
 tasks.named('jar') {
-    archiveBaseName = 'octopus-teamcity-agent'
-    manifest {
-        attributes(
-                'Specification-Title': archiveBaseName,
-                'Specification-Version': project.version,
-                'Implementation-Title': archiveBaseName,
-                'Implementation-Version': project.version
-        )
-    }
+  archiveBaseName = 'octopus-teamcity-agent'
+  manifest {
+    attributes(
+      'Specification-Title': archiveBaseName,
+      'Specification-Version': project.version,
+      'Implementation-Title': archiveBaseName,
+      'Implementation-Version': project.version
+      )
+  }
 }
 
 dependencies {
-    implementation project(':octopus-common')
-    implementation 'org.jetbrains.teamcity:teamcity-rest-client'
-    implementation 'com.google.code.gson:gson'
-    implementation 'com.google.guava:guava'
-    provided files('./libs/agent.jar')
-    provided 'org.jetbrains.teamcity:agent-api'
+  implementation project(':octopus-common')
+  implementation 'org.jetbrains.teamcity:teamcity-rest-client'
+  implementation 'com.google.code.gson:gson'
+  implementation 'com.google.guava:guava'
+  provided files('./libs/agent.jar')
+  provided 'org.jetbrains.teamcity:agent-api'
 
-    testImplementation 'org.junit.jupiter:junit-jupiter-api'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
-    testImplementation 'org.junit.jupiter:junit-jupiter-params'
-    testImplementation 'org.assertj:assertj-core'
+  testImplementation 'org.junit.jupiter:junit-jupiter-api'
+  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+  testImplementation 'org.junit.jupiter:junit-jupiter-params'
+  testImplementation 'org.assertj:assertj-core'
 }
 
 distZip {
-    archiveFileName = "Octopus.TeamCity.zip"
+  archiveFileName = "Octopus.TeamCity.zip"
 }
 
 distributions {
-    main {
-        contents {
-            into '/'
-            into('/lib/') {
-                from configurations.runtimeClasspath
-                from jar
-            }
-            from file("teamcity-plugin.xml")
+  main {
+    contents {
+      into '/'
+      into('/lib/') {
+        from configurations.runtimeClasspath
+        from jar
+      }
+      from file("teamcity-plugin.xml")
 
-            // teamcity-rest-client pulls in slf4j-api which then conflicts with the literal TeamCity agent's class
-            // loader - only solution seems to be to explicitly exclude this file (ideally here, rather than in
-            // the API wrapper)
-            exclude("**/slf4j-api*")
-        }
+      // teamcity-rest-client pulls in slf4j-api which then conflicts with the literal TeamCity agent's class
+      // loader - only solution seems to be to explicitly exclude this file (ideally here, rather than in
+      // the API wrapper)
+      exclude("**/slf4j-api*")
     }
+  }
 }

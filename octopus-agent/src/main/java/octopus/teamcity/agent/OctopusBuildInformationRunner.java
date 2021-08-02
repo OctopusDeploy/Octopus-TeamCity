@@ -27,26 +27,27 @@ import org.jetbrains.annotations.NotNull;
 
 public class OctopusBuildInformationRunner implements AgentBuildRunner {
 
-    @Override
-    @NotNull
-    public BuildProcess createBuildProcess(@NotNull AgentRunningBuild runningBuild, @NotNull BuildRunnerContext context) {
-        return new OctopusBuildInformationBuildProcess(runningBuild, context);
-    }
+  @Override
+  @NotNull
+  public BuildProcess createBuildProcess(
+      @NotNull AgentRunningBuild runningBuild, @NotNull BuildRunnerContext context) {
+    return new OctopusBuildInformationBuildProcess(runningBuild, context);
+  }
 
-    @Override
-    @NotNull
-    public AgentBuildRunnerInfo getRunnerInfo() {
-        return new AgentBuildRunnerInfo() {
-            @Override
-            @NotNull
-            public String getType() {
-                return OctopusConstants.METADATA_RUNNER_TYPE;
-            }
+  @Override
+  @NotNull
+  public AgentBuildRunnerInfo getRunnerInfo() {
+    return new AgentBuildRunnerInfo() {
+      @Override
+      @NotNull
+      public String getType() {
+        return OctopusConstants.METADATA_RUNNER_TYPE;
+      }
 
-            @Override
-            public boolean canRun(@NotNull BuildAgentConfiguration agentConfiguration) {
-                return true;
-            }
-        };
-    }
+      @Override
+      public boolean canRun(@NotNull BuildAgentConfiguration agentConfiguration) {
+        return true;
+      }
+    };
+  }
 }

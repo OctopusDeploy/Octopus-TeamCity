@@ -27,26 +27,28 @@ import octopus.teamcity.common.OctopusConstants;
 import org.jetbrains.annotations.NotNull;
 
 public class OctopusDeployReleaseRunner implements AgentBuildRunner {
-    @Override
-    @NotNull
-    public BuildProcess createBuildProcess(@NotNull AgentRunningBuild runningBuild, @NotNull BuildRunnerContext context) throws RunBuildException {
-        return new OctopusDeployReleaseBuildProcess(runningBuild, context);
-    }
+  @Override
+  @NotNull
+  public BuildProcess createBuildProcess(
+      @NotNull AgentRunningBuild runningBuild, @NotNull BuildRunnerContext context)
+      throws RunBuildException {
+    return new OctopusDeployReleaseBuildProcess(runningBuild, context);
+  }
 
-    @Override
-    @NotNull
-    public AgentBuildRunnerInfo getRunnerInfo() {
-        return new AgentBuildRunnerInfo() {
-            @Override
-            @NotNull
-            public String getType() {
-                return OctopusConstants.DEPLOY_RELEASE_RUNNER_TYPE;
-            }
+  @Override
+  @NotNull
+  public AgentBuildRunnerInfo getRunnerInfo() {
+    return new AgentBuildRunnerInfo() {
+      @Override
+      @NotNull
+      public String getType() {
+        return OctopusConstants.DEPLOY_RELEASE_RUNNER_TYPE;
+      }
 
-            @Override
-            public boolean canRun(@NotNull BuildAgentConfiguration agentConfiguration) {
-                return OctopusOsUtils.CanRunOcto(agentConfiguration);
-            }
-        };
-    }
+      @Override
+      public boolean canRun(@NotNull BuildAgentConfiguration agentConfiguration) {
+        return OctopusOsUtils.CanRunOcto(agentConfiguration);
+      }
+    };
+  }
 }

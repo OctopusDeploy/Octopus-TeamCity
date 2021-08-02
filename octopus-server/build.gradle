@@ -1,28 +1,28 @@
 apply plugin: 'distribution'
 
 tasks.named('jar') {
-    archiveBaseName = 'octopus-teamcity-server'
-    manifest {
-        attributes(
-                'Specification-Title': archiveBaseName,
-                'Specification-Version': project.version,
-                'Implementation-Title': archiveBaseName,
-                'Implementation-Version': project.version
-        )
-    }
+  archiveBaseName = 'octopus-teamcity-server'
+  manifest {
+    attributes(
+      'Specification-Title': archiveBaseName,
+      'Specification-Version': project.version,
+      'Implementation-Title': archiveBaseName,
+      'Implementation-Version': project.version
+      )
+  }
 }
 
 dependencies {
-    implementation project(':octopus-common')
-    provided 'org.jetbrains.teamcity:server-api'
+  implementation project(':octopus-common')
+  provided 'org.jetbrains.teamcity:server-api'
 }
 
 distributions {
-    main {
-        distributionBaseName = "server"
-        contents {
-                from configurations.runtimeClasspath
-                from jar
-        }
+  main {
+    distributionBaseName = "server"
+    contents {
+      from configurations.runtimeClasspath
+      from jar
     }
+  }
 }

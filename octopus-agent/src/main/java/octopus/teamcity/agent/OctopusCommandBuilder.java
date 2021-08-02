@@ -16,64 +16,64 @@
 
 package octopus.teamcity.agent;
 
-import com.google.common.base.Splitter;
-import jetbrains.buildServer.util.StringUtil;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.google.common.base.Splitter;
+import jetbrains.buildServer.util.StringUtil;
+
 public abstract class OctopusCommandBuilder {
-    public String[] buildCommand() {
-        return buildCommand(false);
+  public String[] buildCommand() {
+    return buildCommand(false);
+  }
+
+  public String[] buildMaskedCommand() {
+    return buildCommand(true);
+  }
+
+  protected abstract String[] buildCommand(boolean masked);
+
+  protected String Quote(String value) {
+    return "\"" + value + "\"";
+  }
+
+  public static List<String> splitSpaceSeparatedValues(String text) {
+    List<String> results = new ArrayList<String>();
+    if (text == null || StringUtil.isEmptyOrSpaces(text)) {
+      return results;
     }
 
-    public String[] buildMaskedCommand() {
-        return buildCommand(true);
+    Matcher m = Pattern.compile("(-[\\w-]*=?|[^\"]\\S*|\".+?\")\\s*").matcher(text);
+    while (m.find()) {
+      String item = m.group(1).replace("\"", "");
+      if (item.startsWith("-") && item.endsWith("=")) item = item.substring(0, item.length() - 1);
+
+      if (item != null && !item.isEmpty()) {
+        results.add(item);
+      }
     }
 
-    protected abstract String[] buildCommand(boolean masked);
+    return results;
+  }
 
-    protected String Quote(String value) {
-        return "\"" + value + "\"";
+  public static List<String> splitCommaSeparatedValues(final String text) {
+    List<String> results = new ArrayList<String>();
+    if (text == null || StringUtil.isEmptyOrSpaces(text)) {
+      return results;
     }
 
-    public static List<String> splitSpaceSeparatedValues(String text) {
-        List<String> results = new ArrayList<String>();
-        if (text == null || StringUtil.isEmptyOrSpaces(text)) {
-            return results;
-        }
+    final Iterable<String> tokens =
+        Splitter.onPattern(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)").split(text);
 
-        Matcher m = Pattern.compile("(-[\\w-]*=?|[^\"]\\S*|\".+?\")\\s*").matcher(text);
-        while (m.find()) {
-            String item = m.group(1).replace("\"", "");
-            if(item.startsWith("-") && item.endsWith("="))
-                item = item.substring(0, item.length() - 1);
-
-            if (item != null && !item.isEmpty()) {
-                results.add(item);
-            }
-        }
-
-        return results;
+    for (String t : tokens) {
+      String trimmed = t.trim();
+      if (trimmed.length() > 0) {
+        results.add(trimmed);
+      }
     }
 
-    public static List<String> splitCommaSeparatedValues(final String text) {
-        List<String> results = new ArrayList<String>();
-        if (text == null || StringUtil.isEmptyOrSpaces(text)) {
-            return results;
-        }
-
-        final Iterable<String> tokens = Splitter.onPattern(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)").split(text);
-
-        for (String t : tokens) {
-            String trimmed = t.trim();
-            if (trimmed.length() > 0) {
-                results.add(trimmed);
-            }
-        }
-
-        return results;
-    }
+    return results;
+  }
 }
