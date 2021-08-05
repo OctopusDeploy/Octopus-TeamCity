@@ -14,12 +14,16 @@
 
     function showHideGitRefField() {
         const gitRefRow  = document.getElementById("gitRefRow");
+        const gitCommitRow  = document.getElementById("gitCommitRow");
         let previewIsSelected = document.getElementById("${keys.octopusVersion}").value === "${keys.previewVersion}";
         if (previewIsSelected) {
             gitRefRow.style.display = "table-row";
+            gitCommitRow.style.display = "table-row";
         } else {
             gitRefRow.style.display = "none";
+            gitCommitRow.style.display = "none";
             document.getElementById("${keys.gitRefKey}").value = null
+            document.getElementById("${keys.gitCommitKey}").value = null
         }
     }
 
@@ -110,10 +114,19 @@
     <td>
         <props:textProperty name="${keys.gitRefKey}" className="longField"/>
         <span class="error" id="error_${keys.gitRefKey}"></span>
-        <span class="smallNote">The git reference to use when creating the release, e.g. commit hash, tag, branch name.</span>
+        <span class="smallNote">The git reference to use when creating the release, e.g. branch name or tag.</span>
         <span class="smallNote">Ignored for non-version controlled projects.</span>
     </td>
 </tr>
+    <tr id="gitCommitRow">
+        <th>Git Commit:</th>
+        <td>
+            <props:textProperty name="${keys.gitCommitKey}" className="longField"/>
+            <span class="error" id="error_${keys.gitCommitKey}"></span>
+            <span class="smallNote">The git commit to use when creating the release.</span>
+            <span class="smallNote">Ignored for non-version controlled projects.</span>
+        </td>
+    </tr>
 </l:settingsGroup>
 
 <l:settingsGroup title="Deployment">

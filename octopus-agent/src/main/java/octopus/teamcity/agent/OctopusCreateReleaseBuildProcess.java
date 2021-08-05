@@ -53,10 +53,11 @@ public class OctopusCreateReleaseBuildProcess extends OctopusBuildProcess {
         final String projectName = parameters.get(constants.getProjectNameKey());
         final String tenants = parameters.get(constants.getTenantsKey());
         final String tenanttags = parameters.get(constants.getTenantTagsKey());
-                final boolean wait = Boolean.parseBoolean(parameters.get(constants.getWaitForDeployments()));
+        final boolean wait = Boolean.parseBoolean(parameters.get(constants.getWaitForDeployments()));
         final String deploymentTimeout = parameters.get(constants.getDeploymentTimeout());
-                final boolean cancelOnTimeout = Boolean.parseBoolean(parameters.get(constants.getCancelDeploymentOnTimeout()));
+        final boolean cancelOnTimeout = Boolean.parseBoolean(parameters.get(constants.getCancelDeploymentOnTimeout()));
         final String gitRef = parameters.get(constants.getGitRefKey());
+        final String gitCommit = parameters.get(constants.getGitCommitKey());
 
         commands.add("create-release");
         commands.add("--server");
@@ -115,6 +116,11 @@ public class OctopusCreateReleaseBuildProcess extends OctopusBuildProcess {
           commands.add("--gitRef");
           commands.add(gitRef);
         }
+
+          if (gitCommit != null && !gitCommit.isEmpty()) {
+              commands.add("--gitCommit");
+              commands.add(gitCommit);
+          }
 
         if (commandLineArguments != null && !commandLineArguments.isEmpty()) {
           commands.addAll(splitSpaceSeparatedValues(commandLineArguments));
