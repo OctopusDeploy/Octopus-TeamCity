@@ -1,12 +1,10 @@
 version: '3.8'
 services:
     gradle:
-        build:
-            context: .
-            dockerfile: Dockerfile-gradle-with-tc
+        image: gradle:6.9.0-jdk8
         command: >
             sh -c "cd /Octopus &&
-            ./gradlew -Dteamcity.distribution=/teamcity clean distZip &&
+            ./gradlew clean distZip &&
             chmod 777 /Octopus/build/distributions/* && 
             cp /Octopus/build/distributions/*.zip /Octopus/docker_data/teamcity-server/datadir/plugins"
         volumes:

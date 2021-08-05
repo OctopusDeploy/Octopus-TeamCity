@@ -1,2 +1,0 @@
-FROM gradle:6.9.0-jdk8 AS gradle-build
-COPY --from=jetbrains/teamcity-server:2021.1.2 /opt/teamcity /teamcity
