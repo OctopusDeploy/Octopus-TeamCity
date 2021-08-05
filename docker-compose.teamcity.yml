@@ -1,0 +1,20 @@
+version: '3.8'
+services:
+    teamcity-server:
+        image: "jetbrains/teamcity-server:2021.1.2" #https://hub.docker.com/r/jetbrains/teamcity-server
+        ports:
+            - 8111:8111
+        volumes:
+            - ./docker_data/teamcity-server/datadir:/data/teamcity_server/datadir
+            #- ./build/distributions:/data/teamcity_server/datadir/plugins
+    teamcity-agent:
+        image: jetbrains/teamcity-agent:2021.1.2 #https://hub.docker.com/r/jetbrains/teamcity-agent
+        environment:
+            SERVER_URL: "http://teamcity-server:8111"
+        depends_on:
+            - teamcity-server
+#D:/Temp/teamcity3:/data/teamcity_server/datadir     -p 8111:8111     jetbrains/teamcity-server    
+
+# Start - Create Login
+# Authorize Agent
+# Can use url http://host.docker.internal:8065 for octopus Url
