@@ -1,7 +1,7 @@
 version: '3.8'
 services:
     gradle:
-        image: gradle:7.1.1-jdk11
+        image: gradle:7.1-jdk8
         command: >
             sh -c "cd /Octopus &&
             ./gradlew clean distZip &&
