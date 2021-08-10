@@ -49,8 +49,8 @@ through the plugin code as it is executed by TeamCity.
 If the Octopus CLI has changed such that we need to update the version we embed with the plugin the steps are as follows:
 
 - Locate the build in TeamCity and navigate to the Artifacts tab
-- Expand the OctopusTools.Zips.*version*.zip file
-- Download `octo.exe` from the OctopusTools.*version*.zip file. Also download the OctopusTools.*version*.portable.zip file
+- Expand the OctopusTools.*version*.nupkg file
+- Download `octo.exe` from the `tools` directory. Also download the OctopusTools.*version*.portable.zip file
   ![Artifacts](artifacts.png)
 - Rename the latter to `OctopusTools.portable.zip` and then copy them into the `\octopus-agent\src\main\resources\resources\3\0` folder, over the existing files
 
