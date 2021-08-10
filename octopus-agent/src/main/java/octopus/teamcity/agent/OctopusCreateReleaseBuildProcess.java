@@ -25,7 +25,8 @@ import octopus.teamcity.common.OctopusConstants;
 import org.jetbrains.annotations.NotNull;
 
 public class OctopusCreateReleaseBuildProcess extends OctopusBuildProcess {
-    protected OctopusCreateReleaseBuildProcess(@NotNull AgentRunningBuild runningBuild, @NotNull BuildRunnerContext context) {
+  protected OctopusCreateReleaseBuildProcess(
+      @NotNull AgentRunningBuild runningBuild, @NotNull BuildRunnerContext context) {
     super(runningBuild, context);
   }
 
@@ -53,9 +54,11 @@ public class OctopusCreateReleaseBuildProcess extends OctopusBuildProcess {
         final String projectName = parameters.get(constants.getProjectNameKey());
         final String tenants = parameters.get(constants.getTenantsKey());
         final String tenanttags = parameters.get(constants.getTenantTagsKey());
-        final boolean wait = Boolean.parseBoolean(parameters.get(constants.getWaitForDeployments()));
+        final boolean wait =
+            Boolean.parseBoolean(parameters.get(constants.getWaitForDeployments()));
         final String deploymentTimeout = parameters.get(constants.getDeploymentTimeout());
-        final boolean cancelOnTimeout = Boolean.parseBoolean(parameters.get(constants.getCancelDeploymentOnTimeout()));
+        final boolean cancelOnTimeout =
+            Boolean.parseBoolean(parameters.get(constants.getCancelDeploymentOnTimeout()));
         final String gitRef = parameters.get(constants.getGitRefKey());
         final String gitCommit = parameters.get(constants.getGitCommitKey());
 
@@ -117,10 +120,10 @@ public class OctopusCreateReleaseBuildProcess extends OctopusBuildProcess {
           commands.add(gitRef);
         }
 
-          if (gitCommit != null && !gitCommit.isEmpty()) {
-              commands.add("--gitCommit");
-              commands.add(gitCommit);
-          }
+        if (gitCommit != null && !gitCommit.isEmpty()) {
+          commands.add("--gitCommit");
+          commands.add(gitCommit);
+        }
 
         if (commandLineArguments != null && !commandLineArguments.isEmpty()) {
           commands.addAll(splitSpaceSeparatedValues(commandLineArguments));

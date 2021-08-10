@@ -29,7 +29,9 @@ import org.jetbrains.annotations.NotNull;
 public class OctopusPromoteReleaseRunner implements AgentBuildRunner {
   @Override
   @NotNull
-  public BuildProcess createBuildProcess(@NotNull AgentRunningBuild runningBuild, @NotNull BuildRunnerContext context) throws RunBuildException {
+  public BuildProcess createBuildProcess(
+      @NotNull AgentRunningBuild runningBuild, @NotNull BuildRunnerContext context)
+      throws RunBuildException {
     return new OctopusPromoteReleaseBuildProcess(runningBuild, context);
   }
 

@@ -37,7 +37,9 @@ public class OctopusPackPackageRunner implements AgentBuildRunner {
 
   @Override
   @NotNull
-  public BuildProcess createBuildProcess(@NotNull AgentRunningBuild runningBuild, @NotNull BuildRunnerContext context) throws RunBuildException {
+  public BuildProcess createBuildProcess(
+      @NotNull AgentRunningBuild runningBuild, @NotNull BuildRunnerContext context)
+      throws RunBuildException {
     return new OctopusPackPackageBuildProcess(runningBuild, context, myExtensionHolder);
   }
 

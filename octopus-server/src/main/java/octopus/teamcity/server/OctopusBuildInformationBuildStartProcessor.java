@@ -14,7 +14,8 @@ public class OctopusBuildInformationBuildStartProcessor implements BuildStartCon
 
   private final ExtensionHolder extensionHolder;
 
-  public OctopusBuildInformationBuildStartProcessor(@NotNull final ExtensionHolder extensionHolder, @NotNull final WebLinks webLinks) {
+  public OctopusBuildInformationBuildStartProcessor(
+      @NotNull final ExtensionHolder extensionHolder, @NotNull final WebLinks webLinks) {
     this.extensionHolder = extensionHolder;
   }
 
@@ -29,7 +30,8 @@ public class OctopusBuildInformationBuildStartProcessor implements BuildStartCon
     }
 
     boolean buildContainsBuildInformationStep =
-        buildStartContext.getRunnerContexts().stream().anyMatch(rc -> rc.getRunType() instanceof OctopusBuildInformationRunType);
+        buildStartContext.getRunnerContexts().stream()
+            .anyMatch(rc -> rc.getRunType() instanceof OctopusBuildInformationRunType);
 
     if (buildContainsBuildInformationStep) {
       final VcsRootInstanceEntry vcsRoot = vcsRoots.get(0);
@@ -42,6 +44,7 @@ public class OctopusBuildInformationBuildStartProcessor implements BuildStartCon
   }
 
   public void register() {
-    extensionHolder.registerExtension(BuildStartContextProcessor.class, this.getClass().getName(), this);
+    extensionHolder.registerExtension(
+        BuildStartContextProcessor.class, this.getClass().getName(), this);
   }
 }

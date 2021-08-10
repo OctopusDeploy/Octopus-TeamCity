@@ -58,12 +58,14 @@ public class OctopusPushPackageBuildProcess extends OctopusBuildProcess {
 
   @Override
   public void start() throws RunBuildException {
-    final Collection<ArtifactsPreprocessor> preprocessors = myExtensionHolder.getExtensions(ArtifactsPreprocessor.class);
+    final Collection<ArtifactsPreprocessor> preprocessors =
+        myExtensionHolder.getExtensions(ArtifactsPreprocessor.class);
 
     final Map<String, String> parameters = getContext().getRunnerParameters();
     final OctopusConstants constants = OctopusConstants.Instance;
     final String packagePaths = parameters.get(constants.getPackagePathsKey());
-    final boolean publishArtifacts = Boolean.parseBoolean(parameters.get(constants.getPublishArtifactsKey()));
+    final boolean publishArtifacts =
+        Boolean.parseBoolean(parameters.get(constants.getPublishArtifactsKey()));
 
     final ArtifactsBuilder builder = new ArtifactsBuilder();
     builder.setPreprocessors(preprocessors);

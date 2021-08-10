@@ -21,6 +21,6 @@ jobs:
           java-version: '11'
           distribution: 'adopt'
       - name: Build with gradle
-        run: ./gradlew test
+        run: ./gradlew build test
       - name: Create Plugin Zip Deployment
         run: ./gradlew distZip

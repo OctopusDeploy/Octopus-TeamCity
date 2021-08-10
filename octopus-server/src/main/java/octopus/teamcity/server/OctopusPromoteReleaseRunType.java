@@ -33,7 +33,8 @@ import org.jetbrains.annotations.Nullable;
 public class OctopusPromoteReleaseRunType extends RunType {
   private final PluginDescriptor pluginDescriptor;
 
-  public OctopusPromoteReleaseRunType(final RunTypeRegistry runTypeRegistry, final PluginDescriptor pluginDescriptor) {
+  public OctopusPromoteReleaseRunType(
+      final RunTypeRegistry runTypeRegistry, final PluginDescriptor pluginDescriptor) {
     this.pluginDescriptor = pluginDescriptor;
     runTypeRegistry.registerRunType(this);
   }
@@ -78,7 +79,8 @@ public class OctopusPromoteReleaseRunType extends RunType {
         checkNotEmpty(p, c.getApiKey(), "API key must be specified", result);
         checkNotEmpty(p, c.getServerKey(), "Server must be specified", result);
         checkNotEmpty(p, c.getProjectNameKey(), "Project name must be specified", result);
-        checkNotEmpty(p, c.getPromoteFromKey(), "Environment to promote from must be specified", result);
+        checkNotEmpty(
+            p, c.getPromoteFromKey(), "Environment to promote from must be specified", result);
         checkNotEmpty(p, c.getDeployToKey(), "Deploy to must be specified", result);
 
         return result;

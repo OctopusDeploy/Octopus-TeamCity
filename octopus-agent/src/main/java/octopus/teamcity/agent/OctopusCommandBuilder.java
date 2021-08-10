@@ -66,7 +66,8 @@ public abstract class OctopusCommandBuilder {
       return results;
     }
 
-        final Iterable<String> tokens = Splitter.onPattern(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)").split(text);
+    final Iterable<String> tokens =
+        Splitter.onPattern(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)").split(text);
 
     for (String t : tokens) {
       String trimmed = t.trim();
