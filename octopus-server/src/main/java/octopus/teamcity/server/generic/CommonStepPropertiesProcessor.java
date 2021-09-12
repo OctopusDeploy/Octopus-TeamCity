@@ -21,10 +21,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.google.common.collect.Lists;
 import jetbrains.buildServer.serverSide.InvalidProperty;
 import jetbrains.buildServer.serverSide.PropertiesProcessor;
 import octopus.teamcity.common.commonstep.CommonStepPropertyKeys;
-import org.apache.commons.compress.utils.Lists;
 
 public class CommonStepPropertiesProcessor implements PropertiesProcessor {
   private static final CommonStepPropertyKeys KEYS = new CommonStepPropertyKeys();

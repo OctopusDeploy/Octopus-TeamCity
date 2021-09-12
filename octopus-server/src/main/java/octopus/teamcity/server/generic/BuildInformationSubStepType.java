@@ -3,10 +3,10 @@ package octopus.teamcity.server.generic;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.collect.Lists;
 import jetbrains.buildServer.serverSide.InvalidProperty;
 import octopus.teamcity.common.OverwriteMode;
 import octopus.teamcity.common.buildinfo.BuildInfoKeys;
-import org.apache.commons.compress.utils.Lists;
 
 public class BuildInformationSubStepType extends SubStepType {
 
