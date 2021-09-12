@@ -55,6 +55,13 @@ public class CommonStepPropertiesProcessor implements PropertiesProcessor {
             .orElseThrow(
                 () -> new IllegalArgumentException("No matching validation for selected command")));
 
+    // TODO:tmm Prevent usage of the Step Vnext until agent-side is complete (this can then be
+    // removed
+    result.add(
+        new InvalidProperty(
+            KEYS.getStepTypeKey(),
+            "Octopus' generic build runner is not yet ready for use in a build process"));
+
     return result;
   }
 
@@ -87,11 +94,11 @@ public class CommonStepPropertiesProcessor implements PropertiesProcessor {
     if (apiKey == null) {
       return Optional.of(new InvalidProperty(propertyId, "API key must be specified"));
     } else {
-      if (!apiKey.startsWith("API-") || apiKey.length() != 34) {
+      if (!apiKey.startsWith("API-") || apiKey.length() < 29 || apiKey.length() > 36) {
         return Optional.of(
             new InvalidProperty(
                 propertyId,
-                "API does not conform to expected convention (API-XXXX), and be of 34 characters in total."));
+                "API does not conform to expected convention (API-XXXX), and between 29 and 36 characters in total."));
       }
     }
     return Optional.empty();
