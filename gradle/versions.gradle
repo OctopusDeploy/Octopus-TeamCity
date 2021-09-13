@@ -1,19 +1,20 @@
 dependencyManagement {
 
     dependencies {
-    dependency 'com.octopus:octopus-sdk:0.0.1-SNAPSHOT'
 
-    dependencySet(group: 'org.apache.logging.log4j', version: '2.14.1') {
-      entry 'log4j-api'
-      entry 'log4j-core'
-      entry 'log4j-slf4j-impl'
-    }
+        dependency 'com.octopus:octopus-sdk:0.0.1-SNAPSHOT'
 
-    dependencySet(group: 'org.junit.jupiter', version: '5.6.0') {
-      entry 'junit-jupiter-api'
-      entry 'junit-jupiter-engine'
-      entry 'junit-jupiter-params'
-    }
+        dependencySet(group: 'org.apache.logging.log4j', version: '2.14.1') {
+            entry 'log4j-api'
+            entry 'log4j-core'
+            entry 'log4j-slf4j-impl'
+        }
+
+        dependencySet(group: 'org.junit.jupiter', version: '5.6.0') {
+            entry 'junit-jupiter-api'
+            entry 'junit-jupiter-engine'
+            entry 'junit-jupiter-params'
+        }
         dependency 'org.assertj:assertj-core:3.18.1'
 
         dependency 'com.google.code.gson:gson:2.2.2'
@@ -22,7 +23,7 @@ dependencyManagement {
             entry 'common-api'
             entry 'server-api'
         }
-    dependency 'org.jetbrains.teamcity:teamcity-rest-client:1.15.9999-SNAPSHOT'
+        dependency 'org.jetbrains.teamcity:teamcity-rest-client:1.15.9999-SNAPSHOT'
 
         dependency 'com.google.guava:guava:30.1.1-jre'
 
