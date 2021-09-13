@@ -44,6 +44,12 @@ allprojects {
     provided
   }
 
+  // this ensures SNAPSHOT versions are always pulled from maven repo (rather than using past
+  // cached version)
+  configurations.all {
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+  }
+
   sourceSets {
     main { compileClasspath += configurations.provided }
   }
@@ -66,7 +72,7 @@ allprojects {
   repositories {
     mavenCentral()
     maven { url "https://download.jetbrains.com/teamcity-repository" }
-    maven { url "https://packages.jetbrains.team/maven/p/teamcity-rest-client/teamcity-rest-client" }
+    maven { url "https://packages.octopushq.com/artifactory/maven" }
   }
 
   dependencies {
