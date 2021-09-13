@@ -36,11 +36,11 @@ public class CommonStepPropertyKeys {
     return STEP_TYPE;
   }
 
-  public String getServerKey() {
+  public String getServerUrlKey() {
     return SERVER_URL;
   }
 
-  public String getApiKey() {
+  public String getApiKeyKey() {
     return API_KEY;
   }
 
@@ -48,7 +48,7 @@ public class CommonStepPropertyKeys {
     return SPACE_NAME;
   }
 
-  public String getProxyRequired() {
+  public String getProxyRequiredKey() {
     return PROXY_REQUIRED;
   }
 

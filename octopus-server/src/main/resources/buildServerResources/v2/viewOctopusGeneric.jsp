@@ -15,7 +15,7 @@
 
 <div class="parameter">
     Octopus URL:
-    <strong><props:displayValue name="${keys.serverKey}" emptyValue="not specified"/></strong>
+    <strong><props:displayValue name="${keys.serverUrlKey}" emptyValue="not specified"/></strong>
 </div>
 
 <div class="parameter">

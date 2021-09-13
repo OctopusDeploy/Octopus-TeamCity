@@ -1,6 +1,7 @@
 package octopus.teamcity.server;
 
 import java.io.File;
+import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -63,28 +64,33 @@ public class OctopusGenericRunType extends RunType {
     if (!result.isPresent()) {
       return "No build command corresponds to supplied build step name";
     } else {
-
-      final String space = commonStepUserData.getSpaceName();
       final StringBuilder builder = new StringBuilder(result.get().getDescription());
-      builder.append("\n");
-      builder.append("Server: ");
-      builder.append(commonStepUserData.getServerUrl());
-      builder.append("\n");
-      builder.append("Space: ");
-      builder.append(space.isEmpty() ? "<default space>" : space);
-      builder.append("\n");
+      try {
+        final Optional<String> space = commonStepUserData.getSpaceName();
+        builder.append("\n");
+        builder.append("Server: ");
+        builder.append(commonStepUserData.getServerUrl().toString());
+        builder.append("\n");
+        builder.append("Space: ");
+        builder.append(space.isPresent() ? "<default space>" : space);
+        builder.append("\n");
 
-      if (commonStepUserData.getProxyRequired()) {
-        builder.append("Use Proxy: true\n");
-        builder.append("Proxy Server: ");
-        builder.append(commonStepUserData.getProxyServerUrl());
-        builder.append("\n");
-        builder.append("Username: ");
-        builder.append(commonStepUserData.getProxyUsername());
-        builder.append("\n");
-        builder.append("Passsword: *****");
-      } else {
-        builder.append("Use Proxy: false\n");
+        if (commonStepUserData.getProxyRequired()) {
+          builder.append("Use Proxy: true\n");
+          builder.append("Proxy Server: ");
+          builder.append(commonStepUserData.getProxyServerUrl());
+          builder.append("\n");
+          builder.append("Username: ");
+          builder.append(commonStepUserData.getProxyUsername());
+          builder.append("\n");
+          builder.append("Passsword: *****");
+        } else {
+          builder.append("Use Proxy: false\n");
+        }
+      } catch (final MalformedURLException e) {
+        return "Failed to parse provided URL - contact octopus support ("
+            + e.getLocalizedMessage()
+            + ")";
       }
 
       builder.append(result.get().describeParameters(parameters));

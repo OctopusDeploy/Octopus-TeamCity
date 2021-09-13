@@ -33,16 +33,16 @@
     <tr>
         <th>Octopus URL:<l:star/></th>
         <td>
-            <props:textProperty name="${keys.serverKey}" className="longField"/>
-            <span class="error" id="error_${keys.serverKey}"></span>
+            <props:textProperty name="${keys.serverUrlKey}" className="longField"/>
+            <span class="error" id="error_${keys.serverUrlKey}"></span>
             <span class="smallNote">Specify Octopus web portal URL</span>
         </td>
     </tr>
     <tr>
         <th>API key:<l:star/></th>
         <td>
-            <props:passwordProperty name="${keys.apiKey}" className="longField"/>
-            <span class="error" id="error_${keys.apiKey}"></span>
+            <props:passwordProperty name="${keys.apiKeyKey}" className="longField"/>
+            <span class="error" id="error_${keys.apiKeyKey}"></span>
             <span class="smallNote">Specify Octopus API key. You can get this from your user page in the Octopus web portal.</span>
         </td>
     </tr>
@@ -66,7 +66,7 @@
 </l:settingsGroup>
 
 <l:settingsGroup title="Proxy Server">
-    <props:selectSectionProperty name="${keys.proxyRequired}" title="Proxy Server Requried" note="">
+    <props:selectSectionProperty name="${keys.proxyRequiredKey}" title="Proxy Server Requried" note="">
         <props:selectSectionPropertyContent value="false" caption="<No Proxy Required>"/>
             <props:selectSectionPropertyContent value="true" caption="Use Proxy Server">
                 <jsp:include page="${teamcityPluginResourcesPath}/v2/subpages/editProxyParameters.jsp"/>

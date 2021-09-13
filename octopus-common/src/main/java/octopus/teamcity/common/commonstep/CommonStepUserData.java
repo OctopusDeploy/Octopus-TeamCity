@@ -15,32 +15,37 @@
 
 package octopus.teamcity.common.commonstep;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Map;
 import java.util.Optional;
+
+import octopus.teamcity.common.BaseUserData;
 
 /**
  * Assumes that the params passed in are correctly formatted and can be immediate converted to the
  * appropriate types (URL/Boolean), as the map was verified as part of the TeamCity
  * PropertiesValidator
  */
-public class CommonStepUserData {
+public class CommonStepUserData extends BaseUserData {
+
   private static final CommonStepPropertyKeys KEYS = new CommonStepPropertyKeys();
-  private final Map<String, String> params;
 
   public CommonStepUserData(final Map<String, String> params) {
-    this.params = params;
+    super(params);
   }
 
   public String getStepType() {
-    return params.getOrDefault(KEYS.getStepTypeKey(), "");
+    return fetchRaw(KEYS.getStepTypeKey());
   }
 
-  public String getServerUrl() {
-    return params.getOrDefault(KEYS.getServerKey(), "");
+  public URL getServerUrl() throws MalformedURLException {
+    final String rawInput = fetchRaw(KEYS.getServerUrlKey());
+    return new URL(rawInput);
   }
 
   public String getApiKey() {
-    return params.getOrDefault(KEYS.getApiKey(), "");
+    return fetchRaw(KEYS.getApiKeyKey());
   }
 
   public Optional<String> getSpaceName() {
@@ -48,22 +53,25 @@ public class CommonStepUserData {
   }
 
   public boolean getProxyRequired() {
-    return Boolean.getBoolean(params.get(KEYS.getProxyRequired()));
+    final String rawInput = fetchRaw(KEYS.getProxyRequiredKey());
+    return Boolean.getBoolean(rawInput);
   }
 
-  public String getProxyServerUrl() {
-    return params.get(KEYS.getProxyServerUrlKey());
+  public URL getProxyServerUrl() throws MalformedURLException {
+    final String rawInput = fetchRaw(KEYS.getProxyServerUrlKey());
+    return new URL(rawInput);
   }
 
   public String getProxyUsername() {
-    return params.get(KEYS.getProxyUsernameKey());
+    return fetchRaw(KEYS.getProxyUsernameKey());
   }
 
   public String getProxyPassword() {
-    return params.get(KEYS.getProxyPasswordKey());
+    return fetchRaw(KEYS.getProxyPasswordKey());
   }
 
   public boolean getVerboseLogging() {
-    return Boolean.getBoolean(params.get(KEYS.getVerboseLoggingKey()));
+    final String rawInput = fetchRaw(KEYS.getVerboseLoggingKey());
+    return Boolean.getBoolean(rawInput);
   }
 }

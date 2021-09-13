@@ -19,27 +19,28 @@ import java.util.List;
 import java.util.Map;
 
 import jetbrains.buildServer.util.StringUtil;
+import octopus.teamcity.common.BaseUserData;
 import octopus.teamcity.common.OverwriteMode;
 
-public class BuildInfoUserData {
+public class BuildInfoUserData extends BaseUserData {
 
   private static final BuildInfoKeys KEYS = new BuildInfoKeys();
-  private final Map<String, String> params;
 
   public BuildInfoUserData(final Map<String, String> params) {
-    this.params = params;
+    super(params);
   }
 
   public List<String> getPackageIds() {
-    final String rawData = params.get(KEYS.getPackageIdKey());
-    return StringUtil.split(rawData, "\n");
+    final String rawInput = fetchRaw(KEYS.getPackageIdKey());
+    return StringUtil.split(rawInput, "\n");
   }
 
   public String getPackageVersion() {
-    return params.get(KEYS.getPackageVersionKey());
+    return fetchRaw(KEYS.getPackageVersionKey());
   }
 
   public OverwriteMode getOverwriteMode() {
-    return OverwriteMode.fromString(params.get(KEYS.getOverwriteModeKey()));
+    final String rawInput = fetchRaw(KEYS.getOverwriteModeKey());
+    return OverwriteMode.fromString(rawInput);
   }
 }

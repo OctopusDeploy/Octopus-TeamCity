@@ -42,14 +42,14 @@ public abstract class SubStepType implements Serializable {
     return editPage;
   }
 
+  public String getViewPage() {
+    return viewPage;
+  }
+
   public abstract Collection<InvalidProperty> validateProperties(
       final Map<String, String> properties);
 
   public abstract String describeParameters(final Map<String, String> parameters);
-
-  public String getViewPage() {
-    return viewPage;
-  }
 
   protected Optional<InvalidProperty> validateOverwriteMode(
       final Map<String, String> properties, final String key) {
@@ -64,7 +64,7 @@ public abstract class SubStepType implements Serializable {
             new InvalidProperty(
                 key,
                 "OverwriteMode does not contain a recognised a valid value ("
-                    + OverwriteMode.validEntryString()
+                    + OverwriteMode.validEntriesString()
                     + ")"));
       }
     }

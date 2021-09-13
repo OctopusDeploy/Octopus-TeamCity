@@ -42,7 +42,7 @@ public enum OverwriteMode {
         .orElseThrow(() -> new IllegalArgumentException(value + " is not a valid Overwrite mode"));
   }
 
-  public static String validEntryString() {
+  public static String validEntriesString() {
     final StringJoiner joiner = new StringJoiner(", ");
     Arrays.stream(OverwriteMode.values()).forEach(e -> joiner.add(e.toString()));
     return joiner.toString();

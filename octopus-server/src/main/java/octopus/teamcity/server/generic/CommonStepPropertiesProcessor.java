@@ -42,8 +42,8 @@ public class CommonStepPropertiesProcessor implements PropertiesProcessor {
 
     final List<InvalidProperty> result = Lists.newArrayList();
 
-    validateServerUrl(properties, KEYS.getServerKey()).ifPresent(result::add);
-    validateApiKey(properties, KEYS.getApiKey()).ifPresent(result::add);
+    validateServerUrl(properties, KEYS.getServerUrlKey()).ifPresent(result::add);
+    validateApiKey(properties, KEYS.getApiKeyKey()).ifPresent(result::add);
     result.addAll(validateProxySettings(properties));
 
     final SubStepCollection subStepCollection = new SubStepCollection();
@@ -107,7 +107,7 @@ public class CommonStepPropertiesProcessor implements PropertiesProcessor {
 
   private List<InvalidProperty> validateProxySettings(final Map<String, String> properties) {
     final List<InvalidProperty> result = Lists.newArrayList();
-    final String proxyRequired = properties.get(KEYS.getProxyRequired());
+    final String proxyRequired = properties.get(KEYS.getProxyRequiredKey());
     if (proxyRequired.equals("false")) {
       return result;
     }
