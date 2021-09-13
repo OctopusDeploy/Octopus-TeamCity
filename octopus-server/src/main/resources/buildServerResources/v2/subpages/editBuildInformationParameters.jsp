@@ -33,9 +33,7 @@
             <props:multilineProperty name="${keys.packageIdKey}" rows="5" cols="50" linkTitle="Package IDs"
                                      expanded="true"/>
             <span class="error" id="error_${keys.packageIdKey}"></span>
-            <span class="smallNote">
-        Newline-separated package IDs; e.g.<br/>MyCompany.MyApp<br/>MyCompany.MyApp2
-      </span>
+            <span class="smallNote">Newline-separated package IDs; e.g.<br/>MyCompany.MyApp<br/>MyCompany.MyApp2</span>
         </td>
     </tr>
     <tr>
@@ -43,9 +41,7 @@
         <td>
             <props:textProperty name="${keys.packageVersionKey}" className="longField"/>
             <span class="error" id="error_${keys.packageVersionKey}"></span>
-            <span class="smallNote">
-        The package's version.
-      </span>
+            <span class="smallNote">The package's version.</span>
         </td>
     </tr>
 

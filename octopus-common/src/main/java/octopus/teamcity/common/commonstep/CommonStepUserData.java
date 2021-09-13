@@ -16,6 +16,7 @@
 package octopus.teamcity.common.commonstep;
 
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Assumes that the params passed in are correctly formatted and can be immediate converted to the
@@ -42,8 +43,8 @@ public class CommonStepUserData {
     return params.getOrDefault(KEYS.getApiKey(), "");
   }
 
-  public String getSpaceName() {
-    return params.getOrDefault(KEYS.getSpaceNameKey(), "");
+  public Optional<String> getSpaceName() {
+    return Optional.ofNullable(params.get(KEYS.getSpaceNameKey()));
   }
 
   public boolean getProxyRequired() {
