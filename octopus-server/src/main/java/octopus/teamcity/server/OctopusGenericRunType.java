@@ -44,6 +44,8 @@ public class OctopusGenericRunType extends RunType {
 
   @Override
   public String describeParameters(final Map<String, String> parameters) {
+    // NOTE: This is only called once the values in the map have been validated as being "within
+    // bounds"
     final CommonStepUserData commonStepUserData = new CommonStepUserData(parameters);
 
     final String stepType = commonStepUserData.getStepType();
@@ -62,12 +64,11 @@ public class OctopusGenericRunType extends RunType {
       return "No build command corresponds to supplied build step name";
     } else {
 
-      final String octopusURL = commonStepUserData.getServerUrl();
       final String space = commonStepUserData.getSpaceName();
       final StringBuilder builder = new StringBuilder(result.get().getDescription());
       builder.append("\n");
       builder.append("Server: ");
-      builder.append(octopusURL);
+      builder.append(commonStepUserData.getServerUrl());
       builder.append("\n");
       builder.append("Space: ");
       builder.append(space.isEmpty() ? "<default space>" : space);

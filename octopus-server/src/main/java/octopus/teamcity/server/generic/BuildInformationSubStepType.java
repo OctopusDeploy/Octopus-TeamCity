@@ -5,8 +5,8 @@ import java.util.Map;
 
 import com.google.common.collect.Lists;
 import jetbrains.buildServer.serverSide.InvalidProperty;
-import octopus.teamcity.common.OverwriteMode;
 import octopus.teamcity.common.buildinfo.BuildInfoKeys;
+import octopus.teamcity.common.buildinfo.BuildInfoUserData;
 
 public class BuildInformationSubStepType extends SubStepType {
 
@@ -46,19 +46,17 @@ public class BuildInformationSubStepType extends SubStepType {
 
   @Override
   public String describeParameters(final Map<String, String> parameters) {
-    final String packageId = parameters.get(KEYS.getPackageIdKey());
-    final String packageVersion = parameters.get(KEYS.getPackageVersionKey());
-    final OverwriteMode overWrite =
-        OverwriteMode.valueOf(parameters.get(KEYS.getOverwriteModeKey()));
+    final BuildInfoUserData userData = new BuildInfoUserData(parameters);
+
     final StringBuilder builder = new StringBuilder();
     builder.append("Package Ids: ");
-    builder.append(packageId.replace("\n", ","));
+    builder.append(String.join(",", userData.getPackageIds()));
     builder.append("\n");
     builder.append("Version: ");
-    builder.append(packageVersion);
+    builder.append(userData.getPackageVersion());
     builder.append("\n");
     builder.append("Overwrite Mode: ");
-    builder.append(overWrite.getHumanReadable());
+    builder.append(userData.getOverwriteMode().getHumanReadable());
     return builder.toString();
   }
 }

@@ -30,9 +30,9 @@ class BuildInformationSubStepTypeTest {
 
   private Map<String, String> createValidPropertyMap() {
     final Map<String, String> result = new HashMap<>();
-    result.put(BuildInfoKeys.Keys.PACKAGE_IDS.getKeyString(), "Package1\nPackage2");
-    result.put(BuildInfoKeys.Keys.PACKAGE_VERSION.getKeyString(), "1.2.3");
-    result.put(BuildInfoKeys.Keys.OVERWRITE_MODE.getKeyString(), "FailIfExists");
+    result.put(BuildInfoKeys.PACKAGE_IDS, "Package1\nPackage2");
+    result.put(BuildInfoKeys.PACKAGE_VERSION, "1.2.3");
+    result.put(BuildInfoKeys.OVERWRITE_MODE, "FailIfExists");
 
     return result;
   }
@@ -50,12 +50,11 @@ class BuildInformationSubStepTypeTest {
     final BuildInformationSubStepType buildInfoStepType = new BuildInformationSubStepType();
     final Map<String, String> properties = createValidPropertyMap();
 
-    properties.remove(BuildInfoKeys.Keys.PACKAGE_IDS.getKeyString());
+    properties.remove(BuildInfoKeys.PACKAGE_IDS);
     final List<InvalidProperty> result = buildInfoStepType.validateProperties(properties);
 
     assertThat(result).hasSize(1);
-    assertThat(result.get(0).getPropertyName())
-        .isEqualTo(BuildInfoKeys.Keys.PACKAGE_IDS.getKeyString());
+    assertThat(result.get(0).getPropertyName()).isEqualTo(BuildInfoKeys.PACKAGE_IDS);
   }
 
   @Test
@@ -63,12 +62,11 @@ class BuildInformationSubStepTypeTest {
     final BuildInformationSubStepType buildInfoStepType = new BuildInformationSubStepType();
     final Map<String, String> properties = createValidPropertyMap();
 
-    properties.remove(BuildInfoKeys.Keys.PACKAGE_VERSION.getKeyString());
+    properties.remove(BuildInfoKeys.PACKAGE_VERSION);
     final List<InvalidProperty> result = buildInfoStepType.validateProperties(properties);
 
     assertThat(result).hasSize(1);
-    assertThat(result.get(0).getPropertyName())
-        .isEqualTo(BuildInfoKeys.Keys.PACKAGE_VERSION.getKeyString());
+    assertThat(result.get(0).getPropertyName()).isEqualTo(BuildInfoKeys.PACKAGE_VERSION);
   }
 
   @Test
@@ -76,12 +74,11 @@ class BuildInformationSubStepTypeTest {
     final BuildInformationSubStepType buildInfoStepType = new BuildInformationSubStepType();
     final Map<String, String> properties = createValidPropertyMap();
 
-    properties.remove(BuildInfoKeys.Keys.OVERWRITE_MODE.getKeyString());
+    properties.remove(BuildInfoKeys.OVERWRITE_MODE);
     final List<InvalidProperty> result = buildInfoStepType.validateProperties(properties);
 
     assertThat(result).hasSize(1);
-    assertThat(result.get(0).getPropertyName())
-        .isEqualTo(BuildInfoKeys.Keys.OVERWRITE_MODE.getKeyString());
+    assertThat(result.get(0).getPropertyName()).isEqualTo(BuildInfoKeys.OVERWRITE_MODE);
   }
 
   @Test
@@ -89,8 +86,8 @@ class BuildInformationSubStepTypeTest {
     final BuildInformationSubStepType buildInfoStepType = new BuildInformationSubStepType();
     final Map<String, String> properties = createValidPropertyMap();
 
-    properties.remove(BuildInfoKeys.Keys.PACKAGE_VERSION.getKeyString());
-    properties.remove(BuildInfoKeys.Keys.PACKAGE_IDS.getKeyString());
+    properties.remove(BuildInfoKeys.PACKAGE_VERSION);
+    properties.remove(BuildInfoKeys.PACKAGE_IDS);
     final List<InvalidProperty> result = buildInfoStepType.validateProperties(properties);
 
     assertThat(result).hasSize(2);
@@ -98,9 +95,7 @@ class BuildInformationSubStepTypeTest {
         result.stream().map(InvalidProperty::getPropertyName).collect(Collectors.toList());
 
     assertThat(failedPropertyNames)
-        .containsExactlyInAnyOrder(
-            BuildInfoKeys.Keys.PACKAGE_VERSION.getKeyString(),
-            BuildInfoKeys.Keys.PACKAGE_IDS.getKeyString());
+        .containsExactlyInAnyOrder(BuildInfoKeys.PACKAGE_VERSION, BuildInfoKeys.PACKAGE_IDS);
   }
 
   @Test
@@ -108,11 +103,10 @@ class BuildInformationSubStepTypeTest {
     final BuildInformationSubStepType buildInfoStepType = new BuildInformationSubStepType();
     final Map<String, String> properties = createValidPropertyMap();
 
-    properties.put(BuildInfoKeys.Keys.OVERWRITE_MODE.getKeyString(), "Not Valid Overwrite Mode");
+    properties.put(BuildInfoKeys.OVERWRITE_MODE, "Not Valid Overwrite Mode");
     final List<InvalidProperty> result = buildInfoStepType.validateProperties(properties);
 
     assertThat(result).hasSize(1);
-    assertThat(result.get(0).getPropertyName())
-        .isEqualTo(BuildInfoKeys.Keys.OVERWRITE_MODE.getKeyString());
+    assertThat(result.get(0).getPropertyName()).isEqualTo(BuildInfoKeys.OVERWRITE_MODE);
   }
 }

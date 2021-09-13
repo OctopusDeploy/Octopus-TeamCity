@@ -16,65 +16,55 @@ package octopus.teamcity.common.commonstep;
 
 import jetbrains.buildServer.agent.Constants;
 
+// NOTE: These constants must be accessible via getters to maintain bean-ness, which is used by jsps
 public class CommonStepPropertyKeys {
 
-  public enum Keys {
-    STEP_TYPE("octopus_step_type"),
-    SERVER_URL("octopus_host"),
-    API_KEY(Constants.SECURE_PROPERTY_PREFIX + "octopus_apikey"),
-    SPACE_NAME("octopus_spacename"),
-    PROXY_REQUIRED("octopus_proxyrequired"),
-    PROXY_URL("octopus_proxyurl"),
-    PROXY_USERNAME("octopus_proxyusername"),
-    PROXY_PASSWORD(Constants.SECURE_PROPERTY_PREFIX + "octopus_proxypassword"),
-    VERBOSE_LOGGING("octopus_verboselogging");
-
-    private final String keyString;
-
-    Keys(final String keyString) {
-      this.keyString = keyString;
-    }
-
-    public String getKeyString() {
-      return keyString;
-    }
-  }
+  public static final String STEP_TYPE = "octopus_step_type";
+  public static final String SERVER_URL = "octopus_host";
+  public static final String API_KEY = Constants.SECURE_PROPERTY_PREFIX + "octopus_apikey";
+  public static final String SPACE_NAME = "octopus_spacename";
+  public static final String PROXY_REQUIRED = "octopus_proxyrequired";
+  public static final String PROXY_URL = "octopus_proxyurl";
+  public static final String PROXY_USERNAME = "octopus_proxyusername";
+  public static final String PROXY_PASSWORD =
+      Constants.SECURE_PROPERTY_PREFIX + "octopus_proxypassword";
+  public static final String VERBOSE_LOGGING = "octopus_verboselogging";
 
   public CommonStepPropertyKeys() {}
 
   public String getStepTypeKey() {
-    return Keys.STEP_TYPE.keyString;
+    return STEP_TYPE;
   }
 
   public String getServerKey() {
-    return Keys.SERVER_URL.keyString;
+    return SERVER_URL;
   }
 
   public String getApiKey() {
-    return Keys.API_KEY.keyString;
+    return API_KEY;
   }
 
   public String getSpaceNameKey() {
-    return Keys.SPACE_NAME.keyString;
+    return SPACE_NAME;
   }
 
   public String getProxyRequired() {
-    return Keys.PROXY_REQUIRED.keyString;
+    return PROXY_REQUIRED;
   }
 
   public String getProxyServerUrlKey() {
-    return Keys.PROXY_URL.keyString;
+    return PROXY_URL;
   }
 
   public String getProxyUsernameKey() {
-    return Keys.PROXY_USERNAME.keyString;
+    return PROXY_USERNAME;
   }
 
   public String getProxyPasswordKey() {
-    return Keys.PROXY_PASSWORD.keyString;
+    return PROXY_PASSWORD;
   }
 
   public String getVerboseLoggingKey() {
-    return Keys.VERBOSE_LOGGING.keyString;
+    return VERBOSE_LOGGING;
   }
 }

@@ -65,6 +65,7 @@ public class CommonStepPropertiesProcessor implements PropertiesProcessor {
     return result;
   }
 
+  // TODO(tmm): This needs to be moved into the SDK, such that it can be reused across CI systems
   private Optional<InvalidProperty> validateServerUrl(
       final Map<String, String> properties, final String propertyId) {
     final String serverUrl = properties.get(propertyId);
