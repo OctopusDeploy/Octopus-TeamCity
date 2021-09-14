@@ -27,16 +27,16 @@
 <tr>
     <th>Proxy URL:<l:star/></th>
     <td>
-        <props:textProperty name="${keys.proxyServerUrlKey}" className="longField"/>
-        <span class="error" id="error_${keys.proxyServerUrlKey}"></span>
+        <props:textProperty name="${keys.proxyServerUrlPropertyName}" className="longField"/>
+        <span class="error" id="error_${keys.proxyServerUrlPropertyName}"></span>
         <span class="smallNote">Specify the location of the proxy.</span>
     </td>
 </tr>
 <tr>
     <th>Proxy Username:</th>
     <td>
-        <props:textProperty name="${keys.proxyUsernameKey}" className="longField"/>
-        <span class="error" id="error_${keys.proxyUsernameKey}"></span>
+        <props:textProperty name="${keys.proxyUsernamePropertyName}" className="longField"/>
+        <span class="error" id="error_${keys.proxyUsernamePropertyName}"></span>
         <span class="smallNote">Specify the username required to authenticate to the proxy
             .</span>
     </td>
@@ -44,8 +44,8 @@
 <tr>
     <th>Proxy Password:</th>
     <td>
-        <props:passwordProperty name="${keys.proxyPasswordKey}" className="longField"/>
-        <span class="error" id="error_${keys.proxyPasswordKey}"></span>
+        <props:passwordProperty name="${keys.proxyPasswordPropertyName}" className="longField"/>
+        <span class="error" id="error_${keys.proxyPasswordPropertyName}"></span>
         <span class="smallNote">Specify the password rqeuired to authenticate to the
             proxy.</span>
     </td>
