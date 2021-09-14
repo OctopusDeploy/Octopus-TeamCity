@@ -24,8 +24,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import jetbrains.buildServer.serverSide.InvalidProperty;
-import octopus.teamcity.common.buildinfo.BuildInfoKeys;
-import octopus.teamcity.common.commonstep.CommonStepPropertyKeys;
+import octopus.teamcity.common.buildinfo.BuildInfoPropertyNames;
+import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -38,18 +38,18 @@ class CommonStepPropertiesProcessorTest {
   private Map<String, String> createValidPropertyMap() {
     final Map<String, String> result = new HashMap<>();
 
-    result.put(CommonStepPropertyKeys.SERVER_URL, "http://localhost:8065");
-    result.put(CommonStepPropertyKeys.API_KEY, "API-123456789012345678901234567890");
-    result.put(CommonStepPropertyKeys.SPACE_NAME, "My Space");
-    result.put(CommonStepPropertyKeys.PROXY_REQUIRED, "true");
-    result.put(CommonStepPropertyKeys.PROXY_URL, "http://proxy.url");
-    result.put(CommonStepPropertyKeys.PROXY_USERNAME, "ProxyUsername");
-    result.put(CommonStepPropertyKeys.PROXY_PASSWORD, "ProxyPassword");
-    result.put(CommonStepPropertyKeys.STEP_TYPE, new BuildInformationSubStepType().getName());
-    result.put(CommonStepPropertyKeys.VERBOSE_LOGGING, "false");
+    result.put(CommonStepPropertyNames.SERVER_URL, "http://localhost:8065");
+    result.put(CommonStepPropertyNames.API_KEY, "API-123456789012345678901234567890");
+    result.put(CommonStepPropertyNames.SPACE_NAME, "My Space");
+    result.put(CommonStepPropertyNames.PROXY_REQUIRED, "true");
+    result.put(CommonStepPropertyNames.PROXY_URL, "http://proxy.url");
+    result.put(CommonStepPropertyNames.PROXY_USERNAME, "ProxyUsername");
+    result.put(CommonStepPropertyNames.PROXY_PASSWORD, "ProxyPassword");
+    result.put(CommonStepPropertyNames.STEP_TYPE, new BuildInformationSubStepType().getName());
+    result.put(CommonStepPropertyNames.VERBOSE_LOGGING, "false");
 
-    result.put(BuildInfoKeys.PACKAGE_IDS, "Package1\nPackage2");
-    result.put(BuildInfoKeys.PACKAGE_VERSION, "1.0");
+    result.put(BuildInfoPropertyNames.PACKAGE_IDS, "Package1\nPackage2");
+    result.put(BuildInfoPropertyNames.PACKAGE_VERSION, "1.0");
 
     return result;
   }
@@ -73,7 +73,7 @@ class CommonStepPropertiesProcessorTest {
     final CommonStepPropertiesProcessor processor = new CommonStepPropertiesProcessor();
     final Map<String, String> inputMap = createValidPropertyMap();
 
-    inputMap.remove(CommonStepPropertyKeys.STEP_TYPE);
+    inputMap.remove(CommonStepPropertyNames.STEP_TYPE);
     assertThatThrownBy(() -> processor.process(inputMap))
         .isInstanceOf(IllegalArgumentException.class);
   }
@@ -83,7 +83,7 @@ class CommonStepPropertiesProcessorTest {
     final CommonStepPropertiesProcessor processor = new CommonStepPropertiesProcessor();
     final Map<String, String> inputMap = createValidPropertyMap();
 
-    inputMap.put(CommonStepPropertyKeys.STEP_TYPE, "invalid-step-type");
+    inputMap.put(CommonStepPropertyNames.STEP_TYPE, "invalid-step-type");
     assertThatThrownBy(() -> processor.process(inputMap))
         .isInstanceOf(IllegalArgumentException.class);
   }
@@ -93,15 +93,15 @@ class CommonStepPropertiesProcessorTest {
     final CommonStepPropertiesProcessor processor = new CommonStepPropertiesProcessor();
     final Map<String, String> inputMap = createValidPropertyMap();
 
-    inputMap.remove(CommonStepPropertyKeys.SERVER_URL);
-    inputMap.remove(CommonStepPropertyKeys.API_KEY);
+    inputMap.remove(CommonStepPropertyNames.SERVER_URL);
+    inputMap.remove(CommonStepPropertyNames.API_KEY);
     final List<InvalidProperty> result = processor.process(inputMap);
     assertThat(result).hasSize(2);
     final List<String> missingPropertyNames =
         result.stream().map(InvalidProperty::getPropertyName).collect(Collectors.toList());
     assertThat(missingPropertyNames)
         .containsExactlyInAnyOrder(
-            CommonStepPropertyKeys.SERVER_URL, CommonStepPropertyKeys.API_KEY);
+            CommonStepPropertyNames.SERVER_URL, CommonStepPropertyNames.API_KEY);
   }
 
   @Test
@@ -109,10 +109,10 @@ class CommonStepPropertiesProcessorTest {
     final CommonStepPropertiesProcessor processor = new CommonStepPropertiesProcessor();
     final Map<String, String> inputMap = createValidPropertyMap();
 
-    inputMap.put(CommonStepPropertyKeys.SERVER_URL, "badUrl");
+    inputMap.put(CommonStepPropertyNames.SERVER_URL, "badUrl");
     final List<InvalidProperty> result = processor.process(inputMap);
     assertThat(result).hasSize(1);
-    assertThat(result.get(0).getPropertyName()).isEqualTo(CommonStepPropertyKeys.SERVER_URL);
+    assertThat(result.get(0).getPropertyName()).isEqualTo(CommonStepPropertyNames.SERVER_URL);
   }
 
   @Test
@@ -120,10 +120,10 @@ class CommonStepPropertiesProcessorTest {
     final CommonStepPropertiesProcessor processor = new CommonStepPropertiesProcessor();
     final Map<String, String> inputMap = createValidPropertyMap();
 
-    inputMap.put(CommonStepPropertyKeys.API_KEY, "API-1");
+    inputMap.put(CommonStepPropertyNames.API_KEY, "API-1");
     final List<InvalidProperty> result = processor.process(inputMap);
     assertThat(result).hasSize(1);
-    assertThat(result.get(0).getPropertyName()).isEqualTo(CommonStepPropertyKeys.API_KEY);
+    assertThat(result.get(0).getPropertyName()).isEqualTo(CommonStepPropertyNames.API_KEY);
   }
 
   @Test
@@ -132,7 +132,7 @@ class CommonStepPropertiesProcessorTest {
     final CommonStepPropertiesProcessor processor = new CommonStepPropertiesProcessor();
     final Map<String, String> inputMap = createValidPropertyMap();
 
-    inputMap.remove(CommonStepPropertyKeys.SPACE_NAME);
+    inputMap.remove(CommonStepPropertyNames.SPACE_NAME);
     final List<InvalidProperty> result = processor.process(inputMap);
     assertThat(result).hasSize(0);
   }
@@ -142,8 +142,8 @@ class CommonStepPropertiesProcessorTest {
     final CommonStepPropertiesProcessor processor = new CommonStepPropertiesProcessor();
     final Map<String, String> inputMap = createValidPropertyMap();
 
-    inputMap.remove(CommonStepPropertyKeys.PROXY_PASSWORD);
-    inputMap.remove(CommonStepPropertyKeys.PROXY_USERNAME);
+    inputMap.remove(CommonStepPropertyNames.PROXY_PASSWORD);
+    inputMap.remove(CommonStepPropertyNames.PROXY_USERNAME);
     final List<InvalidProperty> result = processor.process(inputMap);
     assertThat(result).hasSize(0);
   }
@@ -153,10 +153,10 @@ class CommonStepPropertiesProcessorTest {
     final CommonStepPropertiesProcessor processor = new CommonStepPropertiesProcessor();
     final Map<String, String> inputMap = createValidPropertyMap();
 
-    inputMap.remove(CommonStepPropertyKeys.PROXY_USERNAME);
+    inputMap.remove(CommonStepPropertyNames.PROXY_USERNAME);
     final List<InvalidProperty> result = processor.process(inputMap);
     assertThat(result).hasSize(1);
-    assertThat(result.get(0).getPropertyName()).isEqualTo(CommonStepPropertyKeys.PROXY_USERNAME);
+    assertThat(result.get(0).getPropertyName()).isEqualTo(CommonStepPropertyNames.PROXY_USERNAME);
   }
 
   @Test
@@ -164,9 +164,9 @@ class CommonStepPropertiesProcessorTest {
     final CommonStepPropertiesProcessor processor = new CommonStepPropertiesProcessor();
     final Map<String, String> inputMap = createValidPropertyMap();
 
-    inputMap.remove(CommonStepPropertyKeys.PROXY_PASSWORD);
+    inputMap.remove(CommonStepPropertyNames.PROXY_PASSWORD);
     final List<InvalidProperty> result = processor.process(inputMap);
     assertThat(result).hasSize(1);
-    assertThat(result.get(0).getPropertyName()).isEqualTo(CommonStepPropertyKeys.PROXY_PASSWORD);
+    assertThat(result.get(0).getPropertyName()).isEqualTo(CommonStepPropertyNames.PROXY_PASSWORD);
   }
 }

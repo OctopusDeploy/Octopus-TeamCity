@@ -24,23 +24,23 @@ import octopus.teamcity.common.OverwriteMode;
 
 public class BuildInfoUserData extends BaseUserData {
 
-  private static final BuildInfoKeys KEYS = new BuildInfoKeys();
+  private static final BuildInfoPropertyNames KEYS = new BuildInfoPropertyNames();
 
   public BuildInfoUserData(final Map<String, String> params) {
     super(params);
   }
 
   public List<String> getPackageIds() {
-    final String rawInput = fetchRaw(KEYS.getPackageIdKey());
+    final String rawInput = fetchRaw(KEYS.getPackageIdPropertyName());
     return StringUtil.split(rawInput, "\n");
   }
 
   public String getPackageVersion() {
-    return fetchRaw(KEYS.getPackageVersionKey());
+    return fetchRaw(KEYS.getPackageVersionPropertyName());
   }
 
   public OverwriteMode getOverwriteMode() {
-    final String rawInput = fetchRaw(KEYS.getOverwriteModeKey());
+    final String rawInput = fetchRaw(KEYS.getOverwriteModePropertyName());
     return OverwriteMode.fromString(rawInput);
   }
 }

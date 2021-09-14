@@ -24,10 +24,10 @@ import java.util.Optional;
 import com.google.common.collect.Lists;
 import jetbrains.buildServer.serverSide.InvalidProperty;
 import jetbrains.buildServer.serverSide.PropertiesProcessor;
-import octopus.teamcity.common.commonstep.CommonStepPropertyKeys;
+import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
 
 public class CommonStepPropertiesProcessor implements PropertiesProcessor {
-  private static final CommonStepPropertyKeys KEYS = new CommonStepPropertyKeys();
+  private static final CommonStepPropertyNames KEYS = new CommonStepPropertyNames();
 
   @Override
   public List<InvalidProperty> process(final Map<String, String> properties) {
@@ -35,15 +35,15 @@ public class CommonStepPropertiesProcessor implements PropertiesProcessor {
       throw new IllegalArgumentException("Supplied properties list was null");
     }
 
-    final String stepType = properties.getOrDefault(KEYS.getStepTypeKey(), "");
+    final String stepType = properties.getOrDefault(KEYS.getStepTypePropertyName(), "");
     if (stepType.isEmpty()) {
       throw new IllegalArgumentException("No step-type was specified, contact Octopus support");
     }
 
     final List<InvalidProperty> result = Lists.newArrayList();
 
-    validateServerUrl(properties, KEYS.getServerUrlKey()).ifPresent(result::add);
-    validateApiKey(properties, KEYS.getApiKeyKey()).ifPresent(result::add);
+    validateServerUrl(properties, KEYS.getServerUrlPropertyName()).ifPresent(result::add);
+    validateApiKey(properties, KEYS.getApiKeyPropertyName()).ifPresent(result::add);
     result.addAll(validateProxySettings(properties));
 
     final SubStepCollection subStepCollection = new SubStepCollection();
@@ -59,7 +59,7 @@ public class CommonStepPropertiesProcessor implements PropertiesProcessor {
     // removed
     result.add(
         new InvalidProperty(
-            KEYS.getStepTypeKey(),
+            KEYS.getStepTypePropertyName(),
             "Octopus' generic build runner is not yet ready for use in a build process"));
 
     return result;
@@ -107,11 +107,11 @@ public class CommonStepPropertiesProcessor implements PropertiesProcessor {
 
   private List<InvalidProperty> validateProxySettings(final Map<String, String> properties) {
     final List<InvalidProperty> result = Lists.newArrayList();
-    final String proxyRequired = properties.get(KEYS.getProxyRequiredKey());
+    final String proxyRequired = properties.get(KEYS.getProxyRequiredPropertyName());
     if (proxyRequired.equals("false")) {
       return result;
     }
-    validateProxyServerUrl(properties, KEYS.getProxyServerUrlKey()).ifPresent(result::add);
+    validateProxyServerUrl(properties, KEYS.getProxyServerUrlPropertyName()).ifPresent(result::add);
     validateProxyCredentials(properties).ifPresent(result::add);
 
     return result;
@@ -133,19 +133,21 @@ public class CommonStepPropertiesProcessor implements PropertiesProcessor {
   }
 
   private Optional<InvalidProperty> validateProxyCredentials(final Map<String, String> properties) {
-    final String proxyUsername = properties.get(KEYS.getProxyUsernameKey());
-    final String proxyPassword = properties.get(KEYS.getProxyPasswordKey());
+    final String proxyUsername = properties.get(KEYS.getProxyUsernamePropertyName());
+    final String proxyPassword = properties.get(KEYS.getProxyPasswordPropertyName());
 
     if (proxyUsername == null && proxyPassword != null) {
       return Optional.of(
           new InvalidProperty(
-              KEYS.getProxyUsernameKey(), "Proxy username must be set if password is provided"));
+              KEYS.getProxyUsernamePropertyName(),
+              "Proxy username must be set if password is provided"));
     }
 
     if (proxyUsername != null && proxyPassword == null) {
       return Optional.of(
           new InvalidProperty(
-              KEYS.getProxyPasswordKey(), "Proxy password must be set if username is provided"));
+              KEYS.getProxyPasswordPropertyName(),
+              "Proxy password must be set if username is provided"));
     }
 
     return Optional.empty();

@@ -16,23 +16,23 @@
 package octopus.teamcity.common.buildinfo;
 
 // NOTE: These constants must be accessible via getters to maintain bean-ness, which is used by jsps
-public class BuildInfoKeys {
+public class BuildInfoPropertyNames {
 
   public static final String PACKAGE_IDS = "octopus_bi_packageid";
   public static final String PACKAGE_VERSION = "octopus_bi_packageversion";
   public static final String OVERWRITE_MODE = "octopus_bi_overwritemode";
 
-  public BuildInfoKeys() {}
+  public BuildInfoPropertyNames() {}
 
-  public String getPackageIdKey() {
+  public String getPackageIdPropertyName() {
     return PACKAGE_IDS;
   }
 
-  public String getPackageVersionKey() {
+  public String getPackageVersionPropertyName() {
     return PACKAGE_VERSION;
   }
 
-  public String getOverwriteModeKey() {
+  public String getOverwriteModePropertyName() {
     return OVERWRITE_MODE;
   }
 }

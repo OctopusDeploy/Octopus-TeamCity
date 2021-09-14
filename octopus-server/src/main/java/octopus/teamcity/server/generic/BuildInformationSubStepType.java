@@ -5,12 +5,12 @@ import java.util.Map;
 
 import com.google.common.collect.Lists;
 import jetbrains.buildServer.serverSide.InvalidProperty;
-import octopus.teamcity.common.buildinfo.BuildInfoKeys;
+import octopus.teamcity.common.buildinfo.BuildInfoPropertyNames;
 import octopus.teamcity.common.buildinfo.BuildInfoUserData;
 
 public class BuildInformationSubStepType extends SubStepType {
 
-  private final BuildInfoKeys KEYS = new BuildInfoKeys();
+  private final BuildInfoPropertyNames KEYS = new BuildInfoPropertyNames();
 
   public BuildInformationSubStepType() {
     super(
@@ -24,22 +24,24 @@ public class BuildInformationSubStepType extends SubStepType {
   public List<InvalidProperty> validateProperties(final Map<String, String> properties) {
     final List<InvalidProperty> failedProperties = Lists.newArrayList();
 
-    final String packageId = properties.getOrDefault(KEYS.getPackageIdKey(), "");
+    final String packageId = properties.getOrDefault(KEYS.getPackageIdPropertyName(), "");
     if (packageId.isEmpty()) {
       failedProperties.add(
           new InvalidProperty(
-              KEYS.getPackageIdKey(), "Package IDs must be specified, and cannot be whitespace."));
+              KEYS.getPackageIdPropertyName(),
+              "Package IDs must be specified, and cannot be whitespace."));
     }
 
-    final String packageVersion = properties.getOrDefault(KEYS.getPackageVersionKey(), "");
+    final String packageVersion = properties.getOrDefault(KEYS.getPackageVersionPropertyName(), "");
     if (packageVersion.isEmpty()) {
       failedProperties.add(
           new InvalidProperty(
-              KEYS.getPackageVersionKey(),
+              KEYS.getPackageVersionPropertyName(),
               "Package Version must be specified, and cannot be whitespace"));
     }
 
-    validateOverwriteMode(properties, KEYS.getOverwriteModeKey()).ifPresent(failedProperties::add);
+    validateOverwriteMode(properties, KEYS.getOverwriteModePropertyName())
+        .ifPresent(failedProperties::add);
 
     return failedProperties;
   }

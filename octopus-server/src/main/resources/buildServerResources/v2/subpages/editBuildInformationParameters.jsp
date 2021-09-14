@@ -21,7 +21,7 @@
   --%>
 
 <jsp:useBean id="params" class="octopus.teamcity.server.generic.SubStepCollection"/>
-<jsp:useBean id="keys" class="octopus.teamcity.common.buildinfo.BuildInfoKeys"/>
+<jsp:useBean id="keys" class="octopus.teamcity.common.buildinfo.BuildInfoPropertyNames"/>
 <jsp:useBean id="propertiesBean" scope="request" type="jetbrains.buildServer.controllers.BasePropertiesBean"/>
 
 
@@ -30,17 +30,17 @@
     <tr>
         <th>Package IDs:<l:star/></th>a
         <td>
-            <props:multilineProperty name="${keys.packageIdKey}" rows="5" cols="50" linkTitle="Package IDs"
+            <props:multilineProperty name="${keys.packageIdPropertyName}" rows="5" cols="50" linkTitle="Package IDs"
                                      expanded="true"/>
-            <span class="error" id="error_${keys.packageIdKey}"></span>
+            <span class="error" id="error_${keys.packageIdPropertyName}"></span>
             <span class="smallNote">Newline-separated package IDs; e.g.<br/>MyCompany.MyApp<br/>MyCompany.MyApp2</span>
         </td>
     </tr>
     <tr>
         <th>Package version:<l:star/></th>
         <td>
-            <props:textProperty name="${keys.packageVersionKey}" className="longField"/>
-            <span class="error" id="error_${keys.packageVersionKey}"></span>
+            <props:textProperty name="${keys.packageVersionPropertyName}" className="longField"/>
+            <span class="error" id="error_${keys.packageVersionPropertyName}"></span>
             <span class="smallNote">The package's version.</span>
         </td>
     </tr>
@@ -48,12 +48,12 @@
     <tr class="advancedSetting">
         <th>Overwrite Mode:</th>
         <td>
-            <props:selectProperty name="${keys.overwriteModeKey}">
+            <props:selectProperty name="${keys.overwriteModePropertyName}">
                 <c:forEach items="${params.overwriteModes}" var="item">
                     <props:option value="${item.key}">${item.value}</props:option>
                 </c:forEach>
             </props:selectProperty>
-            <span class="error" id="error_${keys.overwriteModeKey}"></span>
+            <span class="error" id="error_${keys.overwriteModePropertyName}"></span>
             <span class="smallNote">Normally, if the same build information already exists on the server, the server will reject the build information push. This is a good practice as it ensures build information isn't accidentally overwritten or ignored. Use this setting to override this behavior.</span>
         </td>
     </tr>

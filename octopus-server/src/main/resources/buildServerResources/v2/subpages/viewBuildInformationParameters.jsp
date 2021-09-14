@@ -20,22 +20,22 @@
   ~ limitations under the License.
   --%>
 
-<jsp:useBean id="keys" class="octopus.teamcity.common.buildinfo.BuildInfoKeys"/>
+<jsp:useBean id="keys" class="octopus.teamcity.common.buildinfo.BuildInfoPropertyNames"/>
 <jsp:useBean id="propertiesBean" scope="request" type="jetbrains.buildServer.controllers.BasePropertiesBean"/>
 
 <div class="parameter">
   Package IDs:
-  <strong><props:displayValue name="${keys.packageIdKey}" emptyValue="not specified"/></strong>
+  <strong><props:displayValue name="${keys.packageIdPropertyName}" emptyValue="not specified"/></strong>
 </div>
 
 <div class="parameter">
   Package version:
-  <strong><props:displayValue name="${keys.packageVersionKey}" emptyValue="not specified"/></strong>
+  <strong><props:displayValue name="${keys.packageVersionPropertyName}" emptyValue="not specified"/></strong>
 </div>
 
 <div class="parameter">
   Overwrite Mode:
-  <strong><props:displayValue name="${keys.overwriteModeKey}" emptyValue="not specified"/></strong>
+  <strong><props:displayValue name="${keys.overwriteModePropertyName}" emptyValue="not specified"/></strong>
 </div>
 
 <div class="parameter">

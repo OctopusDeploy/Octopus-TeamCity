@@ -29,49 +29,49 @@ import octopus.teamcity.common.BaseUserData;
  */
 public class CommonStepUserData extends BaseUserData {
 
-  private static final CommonStepPropertyKeys KEYS = new CommonStepPropertyKeys();
+  private static final CommonStepPropertyNames KEYS = new CommonStepPropertyNames();
 
   public CommonStepUserData(final Map<String, String> params) {
     super(params);
   }
 
   public String getStepType() {
-    return fetchRaw(KEYS.getStepTypeKey());
+    return fetchRaw(KEYS.getStepTypePropertyName());
   }
 
   public URL getServerUrl() throws MalformedURLException {
-    final String rawInput = fetchRaw(KEYS.getServerUrlKey());
+    final String rawInput = fetchRaw(KEYS.getServerUrlPropertyName());
     return new URL(rawInput);
   }
 
   public String getApiKey() {
-    return fetchRaw(KEYS.getApiKeyKey());
+    return fetchRaw(KEYS.getApiKeyPropertyName());
   }
 
   public Optional<String> getSpaceName() {
-    return Optional.ofNullable(params.get(KEYS.getSpaceNameKey()));
+    return Optional.ofNullable(params.get(KEYS.getSpaceNamePropertyName()));
   }
 
   public boolean getProxyRequired() {
-    final String rawInput = fetchRaw(KEYS.getProxyRequiredKey());
+    final String rawInput = fetchRaw(KEYS.getProxyRequiredPropertyName());
     return Boolean.getBoolean(rawInput);
   }
 
   public URL getProxyServerUrl() throws MalformedURLException {
-    final String rawInput = fetchRaw(KEYS.getProxyServerUrlKey());
+    final String rawInput = fetchRaw(KEYS.getProxyServerUrlPropertyName());
     return new URL(rawInput);
   }
 
   public String getProxyUsername() {
-    return fetchRaw(KEYS.getProxyUsernameKey());
+    return fetchRaw(KEYS.getProxyUsernamePropertyName());
   }
 
   public String getProxyPassword() {
-    return fetchRaw(KEYS.getProxyPasswordKey());
+    return fetchRaw(KEYS.getProxyPasswordPropertyName());
   }
 
   public boolean getVerboseLogging() {
-    final String rawInput = fetchRaw(KEYS.getVerboseLoggingKey());
+    final String rawInput = fetchRaw(KEYS.getVerboseLoggingPropertyName());
     return Boolean.getBoolean(rawInput);
   }
 }

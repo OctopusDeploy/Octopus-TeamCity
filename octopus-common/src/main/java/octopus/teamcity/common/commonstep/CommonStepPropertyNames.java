@@ -17,7 +17,7 @@ package octopus.teamcity.common.commonstep;
 import jetbrains.buildServer.agent.Constants;
 
 // NOTE: These constants must be accessible via getters to maintain bean-ness, which is used by jsps
-public class CommonStepPropertyKeys {
+public class CommonStepPropertyNames {
 
   public static final String STEP_TYPE = "octopus_step_type";
   public static final String SERVER_URL = "octopus_host";
@@ -30,41 +30,41 @@ public class CommonStepPropertyKeys {
       Constants.SECURE_PROPERTY_PREFIX + "octopus_proxypassword";
   public static final String VERBOSE_LOGGING = "octopus_verboselogging";
 
-  public CommonStepPropertyKeys() {}
+  public CommonStepPropertyNames() {}
 
-  public String getStepTypeKey() {
+  public String getStepTypePropertyName() {
     return STEP_TYPE;
   }
 
-  public String getServerUrlKey() {
+  public String getServerUrlPropertyName() {
     return SERVER_URL;
   }
 
-  public String getApiKeyKey() {
+  public String getApiKeyPropertyName() {
     return API_KEY;
   }
 
-  public String getSpaceNameKey() {
+  public String getSpaceNamePropertyName() {
     return SPACE_NAME;
   }
 
-  public String getProxyRequiredKey() {
+  public String getProxyRequiredPropertyName() {
     return PROXY_REQUIRED;
   }
 
-  public String getProxyServerUrlKey() {
+  public String getProxyServerUrlPropertyName() {
     return PROXY_URL;
   }
 
-  public String getProxyUsernameKey() {
+  public String getProxyUsernamePropertyName() {
     return PROXY_USERNAME;
   }
 
-  public String getProxyPasswordKey() {
+  public String getProxyPasswordPropertyName() {
     return PROXY_PASSWORD;
   }
 
-  public String getVerboseLoggingKey() {
+  public String getVerboseLoggingPropertyName() {
     return VERBOSE_LOGGING;
   }
 }
