@@ -56,46 +56,57 @@ public class OctopusGenericRunType extends RunType {
 
     final BuildStepCollection buildStepCollection = new BuildStepCollection();
 
-    final Optional<OctopusBuildStep> result =
+    final Optional<OctopusBuildStep> buildStep =
         buildStepCollection.getSubSteps().stream()
             .filter(cmd -> cmd.getName().equals(stepType))
             .findFirst();
 
-    if (!result.isPresent()) {
+    if (!buildStep.isPresent()) {
       return "No build command corresponds to supplied build step name";
-    } else {
-      final StringBuilder builder = new StringBuilder(result.get().getDescription());
-      try {
-        final Optional<String> space = commonStepUserData.getSpaceName();
-        builder.append("\n");
-        builder.append("Server: ");
-        builder.append(commonStepUserData.getServerUrl().toString());
-        builder.append("\n");
-        builder.append("Space: ");
-        builder.append(space.isPresent() ? "<default space>" : space);
-        builder.append("\n");
-
-        if (commonStepUserData.getProxyRequired()) {
-          builder.append("Use Proxy: true\n");
-          builder.append("Proxy Server: ");
-          builder.append(commonStepUserData.getProxyServerUrl());
-          builder.append("\n");
-          builder.append("Username: ");
-          builder.append(commonStepUserData.getProxyUsername());
-          builder.append("\n");
-          builder.append("Passsword: *****");
-        } else {
-          builder.append("Use Proxy: false\n");
-        }
-      } catch (final MalformedURLException e) {
-        return "Failed to parse provided URL - contact octopus support ("
-            + e.getLocalizedMessage()
-            + ")";
-      }
-
-      builder.append(result.get().describeParameters(parameters));
-      return builder.toString();
     }
+
+    final StringBuilder builder = new StringBuilder(buildStep.get().getDescription());
+    builder.append("\n");
+    try {
+      final String commonStepDescription = describeCommonParameters(commonStepUserData);
+      builder.append(commonStepDescription);
+      builder.append("\n");
+    } catch (final MalformedURLException e) {
+      return "Failed to parse provided URL - contact octopus support ("
+          + e.getLocalizedMessage()
+          + ")";
+    }
+
+    builder.append(buildStep.get().describeParameters(parameters));
+    return builder.toString();
+  }
+
+  private String describeCommonParameters(final CommonStepUserData commonStepUserData)
+      throws MalformedURLException {
+    final StringBuilder builder = new StringBuilder();
+    builder.append("Server: ");
+    builder.append(commonStepUserData.getServerUrl().toString());
+    builder.append("\n");
+
+    final Optional<String> space = commonStepUserData.getSpaceName();
+    builder.append("Space: ");
+    builder.append(space.isPresent() ? "<default space>" : space);
+    builder.append("\n");
+
+    if (commonStepUserData.getProxyRequired()) {
+      builder.append("Use Proxy: true\n");
+      builder.append("Proxy Server: ");
+      builder.append(commonStepUserData.getProxyServerUrl());
+      builder.append("\n");
+      builder.append("Username: ");
+      builder.append(commonStepUserData.getProxyUsername());
+      builder.append("\n");
+      builder.append("Password: *****");
+    } else {
+      builder.append("Use Proxy: false\n");
+    }
+
+    return builder.toString();
   }
 
   @Nullable
