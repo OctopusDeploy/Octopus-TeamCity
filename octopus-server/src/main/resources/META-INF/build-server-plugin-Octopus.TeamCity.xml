@@ -13,4 +13,5 @@
     <bean class="octopus.teamcity.server.OctopusPromoteReleaseRunType"/>
     <bean class="octopus.teamcity.server.OctopusPushPackageRunType"/>
     <bean class="octopus.teamcity.server.OctopusPackPackageRunType"/>
+    <bean class="octopus.teamcity.server.OctopusGenericRunType"/>
 </beans>

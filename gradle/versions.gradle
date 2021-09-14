@@ -45,5 +45,8 @@ dependencyManagement {
             entry 'mockserver-netty'
             entry 'mockserver-client-java'
         }
+
+        // required for log4j to parse config file.
+        dependency 'xerces:xercesImpl:2.12.1'
     }
 }
