@@ -12,9 +12,9 @@ import jetbrains.buildServer.serverSide.RunTypeRegistry;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import octopus.teamcity.common.OctopusConstants;
 import octopus.teamcity.common.commonstep.CommonStepUserData;
-import octopus.teamcity.server.generic.CommonStepPropertiesProcessor;
-import octopus.teamcity.server.generic.SubStepCollection;
-import octopus.teamcity.server.generic.SubStepType;
+import octopus.teamcity.server.generic.BuildStepCollection;
+import octopus.teamcity.server.generic.OctopusBuildStep;
+import octopus.teamcity.server.generic.OctopusBuildStepPropertiesProcessor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,10 +54,10 @@ public class OctopusGenericRunType extends RunType {
       return "No build step specified";
     }
 
-    final SubStepCollection subStepCollection = new SubStepCollection();
+    final BuildStepCollection buildStepCollection = new BuildStepCollection();
 
-    final Optional<SubStepType> result =
-        subStepCollection.getSubSteps().stream()
+    final Optional<OctopusBuildStep> result =
+        buildStepCollection.getSubSteps().stream()
             .filter(cmd -> cmd.getName().equals(stepType))
             .findFirst();
 
@@ -101,7 +101,7 @@ public class OctopusGenericRunType extends RunType {
   @Nullable
   @Override
   public PropertiesProcessor getRunnerPropertiesProcessor() {
-    return new CommonStepPropertiesProcessor();
+    return new OctopusBuildStepPropertiesProcessor();
   }
 
   @Nullable

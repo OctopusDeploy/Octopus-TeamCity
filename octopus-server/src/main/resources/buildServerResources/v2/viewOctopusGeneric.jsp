@@ -6,7 +6,7 @@
 
 <jsp:useBean id="teamcityPluginResourcesPath" scope="request" type="java.lang.String"/>
 <jsp:useBean id="keys" class="octopus.teamcity.common.commonstep.CommonStepPropertyNames"/>
-<jsp:useBean id="params" class="octopus.teamcity.server.generic.SubStepCollection"/>
+<jsp:useBean id="params" class="octopus.teamcity.server.generic.BuildStepCollection"/>
 <jsp:useBean id="propertiesBean" scope="request"
              type="jetbrains.buildServer.controllers.BasePropertiesBean"/>
 

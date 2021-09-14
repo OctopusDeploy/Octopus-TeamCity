@@ -1,28 +1,28 @@
 package octopus.teamcity.server.generic;
 
 import java.io.Serializable;
-import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import jetbrains.buildServer.serverSide.InvalidProperty;
 import octopus.teamcity.common.OverwriteMode;
 
-public abstract class SubStepType implements Serializable {
+public abstract class OctopusBuildStep implements Serializable {
 
   private final String name;
   private final String description;
   private final String editPage;
   private final String viewPage;
 
-  public SubStepType() {
+  public OctopusBuildStep() {
     name = "unset";
     description = "unset";
     editPage = "unset";
     viewPage = "unset";
   }
 
-  public SubStepType(
+  public OctopusBuildStep(
       final String name, final String description, final String editPage, final String viewPage) {
     this.name = name;
     this.description = description;
@@ -46,10 +46,9 @@ public abstract class SubStepType implements Serializable {
     return viewPage;
   }
 
-  public abstract Collection<InvalidProperty> validateProperties(
-      final Map<String, String> properties);
-
   public abstract String describeParameters(final Map<String, String> parameters);
+
+  public abstract List<InvalidProperty> validateProperties(final Map<String, String> parameters);
 
   protected Optional<InvalidProperty> validateOverwriteMode(
       final Map<String, String> properties, final String key) {

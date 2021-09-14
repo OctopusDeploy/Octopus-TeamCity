@@ -33,7 +33,7 @@ import org.junit.jupiter.api.Test;
  * thus, a Server URL of " " - will be reduced to an empty string, which is then reduced to a
  * null/missing entry
  */
-class CommonStepPropertiesProcessorTest {
+class OctopusBuildStepPropertiesProcessorTest {
 
   private Map<String, String> createValidPropertyMap() {
     final Map<String, String> result = new HashMap<>();
@@ -45,7 +45,7 @@ class CommonStepPropertiesProcessorTest {
     result.put(CommonStepPropertyNames.PROXY_URL, "http://proxy.url");
     result.put(CommonStepPropertyNames.PROXY_USERNAME, "ProxyUsername");
     result.put(CommonStepPropertyNames.PROXY_PASSWORD, "ProxyPassword");
-    result.put(CommonStepPropertyNames.STEP_TYPE, new BuildInformationSubStepType().getName());
+    result.put(CommonStepPropertyNames.STEP_TYPE, new BuildInformationStep().getName());
     result.put(CommonStepPropertyNames.VERBOSE_LOGGING, "false");
 
     result.put(BuildInfoPropertyNames.PACKAGE_IDS, "Package1\nPackage2");
@@ -56,7 +56,7 @@ class CommonStepPropertiesProcessorTest {
 
   @Test
   public void aValidInputMapProducesNoInvalidEntries() {
-    final CommonStepPropertiesProcessor processor = new CommonStepPropertiesProcessor();
+    final OctopusBuildStepPropertiesProcessor processor = new OctopusBuildStepPropertiesProcessor();
     final Map<String, String> inputMap = createValidPropertyMap();
 
     assertThat(processor.process(inputMap)).hasSize(0);
@@ -64,13 +64,13 @@ class CommonStepPropertiesProcessorTest {
 
   @Test
   public void anEmptyListThrowsException() {
-    final CommonStepPropertiesProcessor processor = new CommonStepPropertiesProcessor();
+    final OctopusBuildStepPropertiesProcessor processor = new OctopusBuildStepPropertiesProcessor();
     assertThatThrownBy(() -> processor.process(null)).isInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
   public void missingStepTypeFieldThrowsIllegalArgumentException() {
-    final CommonStepPropertiesProcessor processor = new CommonStepPropertiesProcessor();
+    final OctopusBuildStepPropertiesProcessor processor = new OctopusBuildStepPropertiesProcessor();
     final Map<String, String> inputMap = createValidPropertyMap();
 
     inputMap.remove(CommonStepPropertyNames.STEP_TYPE);
@@ -80,7 +80,7 @@ class CommonStepPropertiesProcessorTest {
 
   @Test
   public void stepTypeWhichDoesNotAlignWithAvailableBuildProcessesThrowsIllegalArgument() {
-    final CommonStepPropertiesProcessor processor = new CommonStepPropertiesProcessor();
+    final OctopusBuildStepPropertiesProcessor processor = new OctopusBuildStepPropertiesProcessor();
     final Map<String, String> inputMap = createValidPropertyMap();
 
     inputMap.put(CommonStepPropertyNames.STEP_TYPE, "invalid-step-type");
@@ -90,7 +90,7 @@ class CommonStepPropertiesProcessorTest {
 
   @Test
   public void mandatoryFieldsMustBePopulated() {
-    final CommonStepPropertiesProcessor processor = new CommonStepPropertiesProcessor();
+    final OctopusBuildStepPropertiesProcessor processor = new OctopusBuildStepPropertiesProcessor();
     final Map<String, String> inputMap = createValidPropertyMap();
 
     inputMap.remove(CommonStepPropertyNames.SERVER_URL);
@@ -106,7 +106,7 @@ class CommonStepPropertiesProcessorTest {
 
   @Test
   public void illegallyFormattedServerUrlReturnsASingleInvalidProperty() {
-    final CommonStepPropertiesProcessor processor = new CommonStepPropertiesProcessor();
+    final OctopusBuildStepPropertiesProcessor processor = new OctopusBuildStepPropertiesProcessor();
     final Map<String, String> inputMap = createValidPropertyMap();
 
     inputMap.put(CommonStepPropertyNames.SERVER_URL, "badUrl");
@@ -117,7 +117,7 @@ class CommonStepPropertiesProcessorTest {
 
   @Test
   public void illegallyFormattedApiKeyReturnsASingleInvalidProperty() {
-    final CommonStepPropertiesProcessor processor = new CommonStepPropertiesProcessor();
+    final OctopusBuildStepPropertiesProcessor processor = new OctopusBuildStepPropertiesProcessor();
     final Map<String, String> inputMap = createValidPropertyMap();
 
     inputMap.put(CommonStepPropertyNames.API_KEY, "API-1");
@@ -129,7 +129,7 @@ class CommonStepPropertiesProcessorTest {
   @Test
   public void spaceNameCanBeNull() {
     // Implies the default space should be used
-    final CommonStepPropertiesProcessor processor = new CommonStepPropertiesProcessor();
+    final OctopusBuildStepPropertiesProcessor processor = new OctopusBuildStepPropertiesProcessor();
     final Map<String, String> inputMap = createValidPropertyMap();
 
     inputMap.remove(CommonStepPropertyNames.SPACE_NAME);
@@ -139,7 +139,7 @@ class CommonStepPropertiesProcessorTest {
 
   @Test
   public void proxyUsernameAndPasswordCanBothBeNull() {
-    final CommonStepPropertiesProcessor processor = new CommonStepPropertiesProcessor();
+    final OctopusBuildStepPropertiesProcessor processor = new OctopusBuildStepPropertiesProcessor();
     final Map<String, String> inputMap = createValidPropertyMap();
 
     inputMap.remove(CommonStepPropertyNames.PROXY_PASSWORD);
@@ -150,7 +150,7 @@ class CommonStepPropertiesProcessorTest {
 
   @Test
   public void invalidPropertyIsReturnedIfProxyPasswordIsSetWithoutUsername() {
-    final CommonStepPropertiesProcessor processor = new CommonStepPropertiesProcessor();
+    final OctopusBuildStepPropertiesProcessor processor = new OctopusBuildStepPropertiesProcessor();
     final Map<String, String> inputMap = createValidPropertyMap();
 
     inputMap.remove(CommonStepPropertyNames.PROXY_USERNAME);
@@ -161,7 +161,7 @@ class CommonStepPropertiesProcessorTest {
 
   @Test
   public void invalidPropertyIsReturnedIfProxyUsernameIsSetWithoutPassword() {
-    final CommonStepPropertiesProcessor processor = new CommonStepPropertiesProcessor();
+    final OctopusBuildStepPropertiesProcessor processor = new OctopusBuildStepPropertiesProcessor();
     final Map<String, String> inputMap = createValidPropertyMap();
 
     inputMap.remove(CommonStepPropertyNames.PROXY_PASSWORD);

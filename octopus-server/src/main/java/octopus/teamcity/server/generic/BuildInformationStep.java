@@ -8,11 +8,11 @@ import jetbrains.buildServer.serverSide.InvalidProperty;
 import octopus.teamcity.common.buildinfo.BuildInfoPropertyNames;
 import octopus.teamcity.common.buildinfo.BuildInfoUserData;
 
-public class BuildInformationSubStepType extends SubStepType {
+public class BuildInformationStep extends OctopusBuildStep {
 
   private final BuildInfoPropertyNames KEYS = new BuildInfoPropertyNames();
 
-  public BuildInformationSubStepType() {
+  public BuildInformationStep() {
     super(
         "build-information",
         "Create Build Information entry",

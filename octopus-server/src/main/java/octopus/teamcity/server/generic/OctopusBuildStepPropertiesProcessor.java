@@ -15,6 +15,8 @@
 
 package octopus.teamcity.server.generic;
 
+import com.octopus.sdk.utils.ApiKeyValidator;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
@@ -26,7 +28,7 @@ import jetbrains.buildServer.serverSide.InvalidProperty;
 import jetbrains.buildServer.serverSide.PropertiesProcessor;
 import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
 
-public class CommonStepPropertiesProcessor implements PropertiesProcessor {
+public class OctopusBuildStepPropertiesProcessor implements PropertiesProcessor {
   private static final CommonStepPropertyNames KEYS = new CommonStepPropertyNames();
 
   @Override
@@ -35,8 +37,8 @@ public class CommonStepPropertiesProcessor implements PropertiesProcessor {
       throw new IllegalArgumentException("Supplied properties list was null");
     }
 
-    final String stepType = properties.getOrDefault(KEYS.getStepTypePropertyName(), "");
-    if (stepType.isEmpty()) {
+    final String stepType = properties.get(KEYS.getStepTypePropertyName());
+    if (stepType == null) {
       throw new IllegalArgumentException("No step-type was specified, contact Octopus support");
     }
 
@@ -46,9 +48,9 @@ public class CommonStepPropertiesProcessor implements PropertiesProcessor {
     validateApiKey(properties, KEYS.getApiKeyPropertyName()).ifPresent(result::add);
     result.addAll(validateProxySettings(properties));
 
-    final SubStepCollection subStepCollection = new SubStepCollection();
+    final BuildStepCollection buildStepCollection = new BuildStepCollection();
     result.addAll(
-        subStepCollection.getSubSteps().stream()
+        buildStepCollection.getSubSteps().stream()
             .filter(cmd -> cmd.getName().equals(stepType))
             .findFirst()
             .map(cmd -> cmd.validateProperties(properties))
@@ -65,7 +67,6 @@ public class CommonStepPropertiesProcessor implements PropertiesProcessor {
     return result;
   }
 
-  // TODO(tmm): This needs to be moved into the SDK, such that it can be reused across CI systems
   private Optional<InvalidProperty> validateServerUrl(
       final Map<String, String> properties, final String propertyId) {
     final String serverUrl = properties.get(propertyId);
@@ -94,13 +95,12 @@ public class CommonStepPropertiesProcessor implements PropertiesProcessor {
     final String apiKey = properties.get(propertyId);
     if (apiKey == null) {
       return Optional.of(new InvalidProperty(propertyId, "API key must be specified"));
-    } else {
-      if (!apiKey.startsWith("API-") || apiKey.length() < 29 || apiKey.length() > 36) {
-        return Optional.of(
-            new InvalidProperty(
-                propertyId,
-                "API does not conform to expected convention (API-XXXX), and between 29 and 36 characters in total."));
-      }
+    }
+
+    try {
+      ApiKeyValidator.validate(apiKey);
+    } catch (final IllegalArgumentException e) {
+      return Optional.of(new InvalidProperty(propertyId, e.getMessage()));
     }
     return Optional.empty();
   }

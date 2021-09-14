@@ -26,7 +26,7 @@ import jetbrains.buildServer.serverSide.InvalidProperty;
 import octopus.teamcity.common.buildinfo.BuildInfoPropertyNames;
 import org.junit.jupiter.api.Test;
 
-class BuildInformationSubStepTypeTest {
+class BuildInformationStepTypeTest {
 
   private Map<String, String> createValidPropertyMap() {
     final Map<String, String> result = new HashMap<>();
@@ -39,7 +39,7 @@ class BuildInformationSubStepTypeTest {
 
   @Test
   public void noInvalidPropertiesFromValidPropertyMap() {
-    final BuildInformationSubStepType buildInfoStepType = new BuildInformationSubStepType();
+    final BuildInformationStep buildInfoStepType = new BuildInformationStep();
     final Map<String, String> properties = createValidPropertyMap();
 
     assertThat(buildInfoStepType.validateProperties(properties)).hasSize(0);
@@ -47,7 +47,7 @@ class BuildInformationSubStepTypeTest {
 
   @Test
   public void missingPackageIdsProducesSingleInvalidEntry() {
-    final BuildInformationSubStepType buildInfoStepType = new BuildInformationSubStepType();
+    final BuildInformationStep buildInfoStepType = new BuildInformationStep();
     final Map<String, String> properties = createValidPropertyMap();
 
     properties.remove(BuildInfoPropertyNames.PACKAGE_IDS);
@@ -59,7 +59,7 @@ class BuildInformationSubStepTypeTest {
 
   @Test
   public void missingPackageVersionProducesSingleInvalidEntry() {
-    final BuildInformationSubStepType buildInfoStepType = new BuildInformationSubStepType();
+    final BuildInformationStep buildInfoStepType = new BuildInformationStep();
     final Map<String, String> properties = createValidPropertyMap();
 
     properties.remove(BuildInfoPropertyNames.PACKAGE_VERSION);
@@ -71,7 +71,7 @@ class BuildInformationSubStepTypeTest {
 
   @Test
   public void missingOverwriteModeResultsInInvalidEntry() {
-    final BuildInformationSubStepType buildInfoStepType = new BuildInformationSubStepType();
+    final BuildInformationStep buildInfoStepType = new BuildInformationStep();
     final Map<String, String> properties = createValidPropertyMap();
 
     properties.remove(BuildInfoPropertyNames.OVERWRITE_MODE);
@@ -83,7 +83,7 @@ class BuildInformationSubStepTypeTest {
 
   @Test
   public void missingBothVersionAndPackageIdsProducesTwoInvalidEntries() {
-    final BuildInformationSubStepType buildInfoStepType = new BuildInformationSubStepType();
+    final BuildInformationStep buildInfoStepType = new BuildInformationStep();
     final Map<String, String> properties = createValidPropertyMap();
 
     properties.remove(BuildInfoPropertyNames.PACKAGE_VERSION);
@@ -101,7 +101,7 @@ class BuildInformationSubStepTypeTest {
 
   @Test
   public void invalidOverwriteModeTextProducesInvalidEntry() {
-    final BuildInformationSubStepType buildInfoStepType = new BuildInformationSubStepType();
+    final BuildInformationStep buildInfoStepType = new BuildInformationStep();
     final Map<String, String> properties = createValidPropertyMap();
 
     properties.put(BuildInfoPropertyNames.OVERWRITE_MODE, "Not Valid Overwrite Mode");

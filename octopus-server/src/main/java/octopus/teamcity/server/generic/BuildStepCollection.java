@@ -8,15 +8,15 @@ import java.util.stream.Stream;
 
 import octopus.teamcity.common.OverwriteMode;
 
-public class SubStepCollection implements Serializable {
+public class BuildStepCollection implements Serializable {
 
-  private final List<SubStepType> subStepTypes =
-      Stream.of(new BuildInformationSubStepType()).collect(Collectors.toList());
+  private final List<OctopusBuildStep> octopusBuildSteps =
+      Stream.of(new BuildInformationStep()).collect(Collectors.toList());
 
-  public SubStepCollection() {}
+  public BuildStepCollection() {}
 
-  public List<SubStepType> getSubSteps() {
-    return subStepTypes;
+  public List<OctopusBuildStep> getSubSteps() {
+    return octopusBuildSteps;
   }
 
   public Map<String, String> getOverwriteModes() {

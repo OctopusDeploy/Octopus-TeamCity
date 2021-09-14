@@ -20,7 +20,7 @@
   ~ limitations under the License.
   --%>
 
-<jsp:useBean id="params" class="octopus.teamcity.server.generic.SubStepCollection"/>
+<jsp:useBean id="params" class="octopus.teamcity.server.generic.BuildStepCollection"/>
 <jsp:useBean id="keys" class="octopus.teamcity.common.buildinfo.BuildInfoPropertyNames"/>
 <jsp:useBean id="propertiesBean" scope="request" type="jetbrains.buildServer.controllers.BasePropertiesBean"/>
 
