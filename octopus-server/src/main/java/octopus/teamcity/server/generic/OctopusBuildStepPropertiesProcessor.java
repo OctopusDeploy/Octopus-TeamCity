@@ -15,6 +15,8 @@
 
 package octopus.teamcity.server.generic;
 
+import com.octopus.sdk.utils.ApiKeyValidator;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
@@ -95,11 +97,11 @@ public class OctopusBuildStepPropertiesProcessor implements PropertiesProcessor 
       return Optional.of(new InvalidProperty(propertyId, "API key must be specified"));
     }
 
-    //    try {
-    //      ApiKeyValidator.validate(apiKey);
-    //    } catch (final IllegalArgumentException e) {
-    //      return Optional.of(new InvalidProperty(propertyId, e.getMessage()));
-    //    }
+    try {
+      ApiKeyValidator.validate(apiKey);
+    } catch (final IllegalArgumentException e) {
+      return Optional.of(new InvalidProperty(propertyId, e.getMessage()));
+    }
     return Optional.empty();
   }
 

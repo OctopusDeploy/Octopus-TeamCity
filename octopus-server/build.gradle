@@ -13,10 +13,10 @@ tasks.named('jar') {
 }
 
 dependencies {
-  implementation project(':octopus-common')
-  //implementation 'com.octopus:octopus-sdk'
   provided 'org.jetbrains.teamcity:server-api'
-  //runtimeOnly 'xerces:xercesImpl'
+
+  implementation project(':octopus-common')
+  implementation 'com.octopus:octopus-sdk'
 
   testImplementation 'org.jetbrains.teamcity:server-api'
   testImplementation 'org.junit.jupiter:junit-jupiter-api'
