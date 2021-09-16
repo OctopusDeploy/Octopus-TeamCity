@@ -56,7 +56,7 @@ public class BuildInformationEndToEndTest {
   private final String SPACE_NAME = "My Space";
 
   @Test
-  public void buildInformationStepPublishesToOctopusDeploy(@TempDir Path testDirectory)
+  public void buildInformationStepPublishesToOctopusDeploy(@TempDir Path teamcityDataDir)
       throws InterruptedException, IOException, URISyntaxException {
     final URL projectsImport = Resources.getResource("TeamCity_StepVnext.zip");
 
@@ -76,10 +76,6 @@ public class BuildInformationEndToEndTest {
     spacesOverviewApi.create(newSpace);
 
     // This is required to ensure docker container (run as tcuser) is able to write
-    Path teamcityDataDir = testDirectory.resolve("teamcityDataDir");
-    Set<PosixFilePermission> allRWX = PosixFilePermissions.fromString("rwxrwxrwx");
-    FileAttribute<?> permissions = PosixFilePermissions.asFileAttribute(allRWX);
-    teamcityDataDir = Files.createDirectory(teamcityDataDir, permissions);
     teamcityDataDir.toFile().setWritable(true, false);
 
     final TeamCityFactory tcFactory = new TeamCityFactory(teamcityDataDir, network);
