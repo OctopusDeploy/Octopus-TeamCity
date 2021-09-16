@@ -21,6 +21,6 @@ public class BuildStepCollection implements Serializable {
 
   public Map<String, String> getOverwriteModes() {
     return Stream.of(OverwriteMode.values())
-        .collect(Collectors.toMap(Enum::toString, OverwriteMode::getHumanReadable));
+        .collect(Collectors.toMap(Enum<OverwriteMode>::toString, OverwriteMode::getHumanReadable));
   }
 }

@@ -2,6 +2,7 @@ package octopus.teamcity.e2e.dsl;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -138,10 +139,10 @@ public class TeamCityFactory {
   }
 
   protected void setupDataDir(final Path teamCityDataDir, final Path projectZipToInstall)
-      throws IOException {
+      throws IOException, URISyntaxException {
     LOG.info("starting test - teamcity data dir is at {}", teamCityDataDir);
     final URL teamcityInitialConfig = Resources.getResource("teamcity_config.zip");
-    new ZipFile(new File(teamcityInitialConfig.getFile()).toString())
+    new ZipFile(new File(teamcityInitialConfig.toURI()).toString())
         .extractAll(teamCityDataDir.toAbsolutePath().toString());
 
     new ZipFile(projectZipToInstall.toString())
