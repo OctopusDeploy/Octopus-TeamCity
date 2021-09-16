@@ -32,6 +32,8 @@ import java.util.Map;
 
 import jetbrains.buildServer.RunBuildException;
 import jetbrains.buildServer.agent.AgentRunningBuild;
+import jetbrains.buildServer.agent.BuildAgentConfiguration;
+import jetbrains.buildServer.agent.BuildProgressLogger;
 import jetbrains.buildServer.agent.BuildRunnerContext;
 import octopus.teamcity.common.OverwriteMode;
 import octopus.teamcity.common.buildinfo.BuildInfoPropertyNames;
@@ -44,9 +46,11 @@ class OctopusBuildInformationBuildProcessTest {
   private final BuildInformationUploader uploader = mock(BuildInformationUploader.class);
   private final BuildRunnerContext context = mock(BuildRunnerContext.class);
   private final AgentRunningBuild mockBuild = mock(AgentRunningBuild.class);
+  private final BuildProgressLogger logger = mock(BuildProgressLogger.class);
+  private final BuildAgentConfiguration agentConfig = mock(BuildAgentConfiguration.class);
 
   @Test
-  public void doSomething() throws IOException, RunBuildException {
+  public void pushBuildInfoToOctopusServer() throws IOException, RunBuildException {
     final Map<String, String> userEnteredData = new HashMap<>();
     userEnteredData.put(
         BuildInfoPropertyNames.OVERWRITE_MODE, OverwriteMode.OverwriteExisting.name());
@@ -60,6 +64,9 @@ class OctopusBuildInformationBuildProcessTest {
 
     when(mockBuild.getBuildNumber()).thenReturn("BuildNumber");
     when(mockBuild.getSharedConfigParameters()).thenReturn(sharedConfigParameters);
+    when(mockBuild.getBuildLogger()).thenReturn(logger);
+    when(mockBuild.getAgentConfiguration()).thenReturn(agentConfig);
+    when(agentConfig.getServerUrl()).thenReturn("http://teamcityServer.com");
 
     when(vcsData.getBranchName()).thenReturn("BranchName");
     when(vcsData.getCommits()).thenReturn(Collections.emptyList());

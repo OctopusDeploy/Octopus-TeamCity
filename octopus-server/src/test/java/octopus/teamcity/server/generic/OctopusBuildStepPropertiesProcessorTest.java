@@ -50,6 +50,7 @@ class OctopusBuildStepPropertiesProcessorTest {
 
     result.put(BuildInfoPropertyNames.PACKAGE_IDS, "Package1\nPackage2");
     result.put(BuildInfoPropertyNames.PACKAGE_VERSION, "1.0");
+    result.put(BuildInfoPropertyNames.OVERWRITE_MODE, "OverwriteExisting");
 
     return result;
   }
