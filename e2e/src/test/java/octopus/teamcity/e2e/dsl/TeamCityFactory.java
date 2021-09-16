@@ -43,7 +43,7 @@ public class TeamCityFactory {
 
   public TeamCityContainers createTeamCityServerAndAgent(
       final int octopusServerPort, final String octopusServerApiKey, final Path projectZipToInstall)
-      throws IOException {
+      throws IOException, URISyntaxException {
     final String serverUrl =
         String.format("http://host.testcontainers.internal:%d", octopusServerPort);
     Testcontainers.exposeHostPorts(octopusServerPort);
@@ -55,7 +55,7 @@ public class TeamCityFactory {
       final String octopusServerUrl,
       final String octopusServerApiKey,
       final Path projectZipToInstall)
-      throws IOException {
+      throws IOException, URISyntaxException {
 
     setupDataDir(teamCityDataDir, projectZipToInstall);
 
