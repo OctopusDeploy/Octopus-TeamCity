@@ -100,7 +100,7 @@ public class TeamCityFactory {
             .waitingFor(Wait.forLogMessage(".*Super user authentication token.*", 1))
             .withNetwork(dockerNetwork)
             .withNetworkAliases("server")
-            .withEnv("TEAMCITY_SERVER_OPTS", "-Droot.log.level=TRACE")
+            .withEnv("TEAMCITY_SERVER_OPTS", "-Droot.log.level=TRACE -Dteamcity.development.mode=true")
             .withStartupTimeout(Duration.ofMinutes(2));
     teamCityServer.withFileSystemBind(
         teamCityDataDir.toAbsolutePath().toString(),
