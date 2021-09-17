@@ -20,17 +20,17 @@
   ~ limitations under the License.
   --%>
 
-<jsp:useBean id="keys" class="octopus.teamcity.common.pushpackage.PushPackageKeys"/>
+<jsp:useBean id="keys" class="octopus.teamcity.common.pushpackage.PushPackagePropertyNames"/>
 <jsp:useBean id="propertiesBean" scope="request" type="jetbrains.buildServer.controllers.BasePropertiesBean"/>
 
 <div class="parameter">
     Package paths:
-    <strong><props:displayValue name="${keys.packagePathsKey}" emptyValue="not specified"/></strong>
+    <strong><props:displayValue name="${keys.packagePathsPropertyName}" emptyValue="not specified"/></strong>
 </div>
 
 <div class="parameter">
     Overwrite Mode:
-    <strong><props:displayValue name="${keys.overwriteModeKey}" emptyValue="not specified"/></strong>
+    <strong><props:displayValue name="${keys.overwriteModePropertyName}" emptyValue="not specified"/></strong>
 </div>
 
 <%--

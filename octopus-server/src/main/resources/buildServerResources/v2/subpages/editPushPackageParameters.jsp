@@ -19,8 +19,8 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   --%>
-<jsp:useBean id="params" class="octopus.teamcity.server.generic.SubStepCollection"/>
-<jsp:useBean id="keys" class="octopus.teamcity.common.pushpackage.PushPackageKeys"/>
+<jsp:useBean id="params" class="octopus.teamcity.server.generic.BuildStepCollection"/>
+<jsp:useBean id="keys" class="octopus.teamcity.common.pushpackage.PushPackagePropertyNames"/>
 <jsp:useBean id="propertiesBean" scope="request"
              type="jetbrains.buildServer.controllers.BasePropertiesBean"/>
 
@@ -28,9 +28,9 @@
     <tr>
         <th>Package paths:<l:star/></th>
         <td>
-            <props:multilineProperty name="${keys.packagePathsKey}" rows="5" cols="50"
+            <props:multilineProperty name="${keys.packagePathsPropertyName}" rows="5" cols="50"
                                      linkTitle="Package path patterns" expanded="true"/>
-            <span class="error" id="error_${keys.packagePathsKey}"></span>
+            <span class="error" id="error_${keys.packagePathsPropertyName}"></span>
             <span class="smallNote">
         Newline-separated paths of either package files, or wildcarded globs which match
       packaged files.
@@ -41,12 +41,12 @@
     <tr class="advancedSetting">
         <th>Overwrite Mode:</th>
         <td>
-            <props:selectProperty name="${keys.overwriteModeKey}">
+            <props:selectProperty name="${keys.overwriteModePropertyName}">
                 <c:forEach items="${params.overwriteModes}" var="item">
                     <props:option value="${item.key}">${item.value}</props:option>
                 </c:forEach>
             </props:selectProperty>
-            <span class="error" id="error_${keys.overwriteModeKey}"></span>
+            <span class="error" id="error_${keys.overwriteModePropertyName}"></span>
             <span class="smallNote">Normally, if the same package already exists on the server, the server will reject the package push. This is a good practice as it ensures a package isn't accidentally overwritten or ignored. Use this setting to override this behavior.</span>
         </td>
     </tr>
@@ -55,8 +55,8 @@
 <tr class="advancedSetting">
     <th>Use Delta Compression:</th>
     <td>
-        <props:checkboxProperty name="${keys.deltaComparison}" disabled="true"/>
-        <span class="error" id="error_${keys.deltaComparison}"></span>
+        <props:checkboxProperty name="${keys.deltaComparisonPropertyName}" disabled="true"/>
+        <span class="error" id="error_${keys.deltaComparisonPropertyName}"></span>
         <span class="smallNote">Allows disabling of delta compression when uploading packages to the Octopus Server.</span>
         <span class="smallNote">To be enabled in a future release.</span>
     </td>

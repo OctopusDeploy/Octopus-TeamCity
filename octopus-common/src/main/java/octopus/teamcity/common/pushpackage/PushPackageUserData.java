@@ -25,7 +25,7 @@ import octopus.teamcity.common.OverwriteMode;
  */
 public class PushPackageUserData {
 
-  private static final PushPackageKeys KEYS = new PushPackageKeys();
+  private static final PushPackagePropertyNames KEYS = new PushPackagePropertyNames();
   private final Map<String, String> params;
 
   public PushPackageUserData(final Map<String, String> params) {
@@ -33,14 +33,14 @@ public class PushPackageUserData {
   }
 
   public String getPackagePaths() {
-    return params.get(KEYS.getPackagePathsKey());
+    return params.get(KEYS.getPackagePathsPropertyName());
   }
 
   public OverwriteMode getOverwriteMode() {
-    return OverwriteMode.fromString(params.get(KEYS.getOverwriteModeKey()));
+    return OverwriteMode.fromString(params.get(KEYS.getOverwriteModePropertyName()));
   }
 
   public String getPublishArtifacts() {
-    return params.get(KEYS.getPublishArtifactsKey());
+    return params.get(KEYS.getPublishArtifactsPropertyName());
   }
 }

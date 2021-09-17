@@ -22,17 +22,17 @@ import java.util.List;
 import java.util.Map;
 
 import jetbrains.buildServer.serverSide.InvalidProperty;
-import octopus.teamcity.common.pushpackage.PushPackageKeys;
+import octopus.teamcity.common.pushpackage.PushPackagePropertyNames;
 import org.junit.jupiter.api.Test;
 
 class PushPackageSubStepTypeTest {
 
   private Map<String, String> createValidPropertyMap() {
     final Map<String, String> result = new HashMap<>();
-    result.put(PushPackageKeys.PACKAGE_PATHS, "Package1\nPackage2");
-    result.put(PushPackageKeys.PUBLISH_ARTIFACTS, "false");
-    result.put(PushPackageKeys.OVERWRITE_MODE, "FailIfExists");
-    result.put(PushPackageKeys.USE_DELTA_COMPRESSION, "false");
+    result.put(PushPackagePropertyNames.PACKAGE_PATHS, "Package1\nPackage2");
+    result.put(PushPackagePropertyNames.PUBLISH_ARTIFACTS, "false");
+    result.put(PushPackagePropertyNames.OVERWRITE_MODE, "FailIfExists");
+    result.put(PushPackagePropertyNames.USE_DELTA_COMPRESSION, "false");
 
     return result;
   }
@@ -50,10 +50,10 @@ class PushPackageSubStepTypeTest {
     final PushPackageSubStepType pushPackageSubStepType = new PushPackageSubStepType();
     final Map<String, String> properties = createValidPropertyMap();
 
-    properties.put(PushPackageKeys.OVERWRITE_MODE, "Not Valid Overwrite Mode");
+    properties.put(PushPackagePropertyNames.OVERWRITE_MODE, "Not Valid Overwrite Mode");
     final List<InvalidProperty> result = pushPackageSubStepType.validateProperties(properties);
 
     assertThat(result).hasSize(1);
-    assertThat(result.get(0).getPropertyName()).isEqualTo(PushPackageKeys.OVERWRITE_MODE);
+    assertThat(result.get(0).getPropertyName()).isEqualTo(PushPackagePropertyNames.OVERWRITE_MODE);
   }
 }

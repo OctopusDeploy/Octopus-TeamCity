@@ -15,27 +15,27 @@
 
 package octopus.teamcity.common.pushpackage;
 
-public class PushPackageKeys {
+public class PushPackagePropertyNames {
   public static final String PACKAGE_PATHS = "octopus_pp_package_paths";
   public static final String OVERWRITE_MODE = "octopus_pp_overwrite_mode";
   public static final String USE_DELTA_COMPRESSION = "octopus_pp_use_delta_compression";
   public static final String PUBLISH_ARTIFACTS = "octopus_pp_publish_artifacts";
 
-  public PushPackageKeys() {}
+  public PushPackagePropertyNames() {}
 
-  public String getPackagePathsKey() {
+  public String getPackagePathsPropertyName() {
     return PACKAGE_PATHS;
   }
 
-  public String getOverwriteModeKey() {
+  public String getOverwriteModePropertyName() {
     return OVERWRITE_MODE;
   }
 
-  public String getDeltaComparison() {
+  public String getDeltaComparisonPropertyName() {
     return USE_DELTA_COMPRESSION;
   }
 
-  public String getPublishArtifactsKey() {
+  public String getPublishArtifactsPropertyName() {
     return PUBLISH_ARTIFACTS;
   }
 }
