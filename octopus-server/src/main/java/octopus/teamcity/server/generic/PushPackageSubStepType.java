@@ -32,7 +32,8 @@ public class PushPackageSubStepType extends OctopusBuildStep {
               "Package Paths must be specified, and cannot be whitespace."));
     }
 
-    validateOverwriteMode(properties, KEYS.getOverwriteModePropertyName()).ifPresent(failedProperties::add);
+    validateOverwriteMode(properties, KEYS.getOverwriteModePropertyName())
+        .ifPresent(failedProperties::add);
 
     return failedProperties;
   }
