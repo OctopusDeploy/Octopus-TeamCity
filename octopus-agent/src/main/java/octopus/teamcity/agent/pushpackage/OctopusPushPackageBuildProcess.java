@@ -28,7 +28,6 @@ import java.util.Map;
 
 import com.google.common.collect.Lists;
 import jetbrains.buildServer.RunBuildException;
-import jetbrains.buildServer.agent.AgentRunningBuild;
 import jetbrains.buildServer.agent.BuildFinishedStatus;
 import jetbrains.buildServer.agent.BuildProgressLogger;
 import jetbrains.buildServer.agent.BuildRunnerContext;
@@ -36,7 +35,6 @@ import octopus.teamcity.agent.InterruptableBuildProcess;
 import octopus.teamcity.agent.generic.TypeConverters;
 import octopus.teamcity.common.commonstep.CommonStepUserData;
 import octopus.teamcity.common.pushpackage.PushPackageUserData;
-import org.jetbrains.annotations.NotNull;
 
 public class OctopusPushPackageBuildProcess extends InterruptableBuildProcess {
 
@@ -45,12 +43,10 @@ public class OctopusPushPackageBuildProcess extends InterruptableBuildProcess {
   private final BuildProgressLogger buildLogger;
 
   public OctopusPushPackageBuildProcess(
-      final PushPackageUploader uploader,
-      @NotNull AgentRunningBuild runningBuild,
-      @NotNull BuildRunnerContext context) {
+      final PushPackageUploader uploader, final BuildRunnerContext context) {
     this.uploader = uploader;
     this.context = context;
-    buildLogger = runningBuild.getBuildLogger();
+    this.buildLogger = context.getBuild().getBuildLogger();
   }
 
   @Override

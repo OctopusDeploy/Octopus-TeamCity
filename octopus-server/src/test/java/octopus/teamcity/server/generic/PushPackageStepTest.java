@@ -25,7 +25,7 @@ import jetbrains.buildServer.serverSide.InvalidProperty;
 import octopus.teamcity.common.pushpackage.PushPackagePropertyNames;
 import org.junit.jupiter.api.Test;
 
-class PushPackageSubStepTypeTest {
+class PushPackageStepTest {
 
   private Map<String, String> createValidPropertyMap() {
     final Map<String, String> result = new HashMap<>();
@@ -39,19 +39,19 @@ class PushPackageSubStepTypeTest {
 
   @Test
   public void validPropertySetProducesNoInvalidEntries() {
-    final PushPackageSubStepType pushPackageSubStepType = new PushPackageSubStepType();
+    final PushPackageStep pushPackageStep = new PushPackageStep();
     final Map<String, String> properties = createValidPropertyMap();
 
-    assertThat(pushPackageSubStepType.validateProperties(properties)).hasSize(0);
+    assertThat(pushPackageStep.validateProperties(properties)).hasSize(0);
   }
 
   @Test
   public void invalidOverwriteModeTextProducesInvalidEntry() {
-    final PushPackageSubStepType pushPackageSubStepType = new PushPackageSubStepType();
+    final PushPackageStep pushPackageStep = new PushPackageStep();
     final Map<String, String> properties = createValidPropertyMap();
 
     properties.put(PushPackagePropertyNames.OVERWRITE_MODE, "Not Valid Overwrite Mode");
-    final List<InvalidProperty> result = pushPackageSubStepType.validateProperties(properties);
+    final List<InvalidProperty> result = pushPackageStep.validateProperties(properties);
 
     assertThat(result).hasSize(1);
     assertThat(result.get(0).getPropertyName()).isEqualTo(PushPackagePropertyNames.OVERWRITE_MODE);

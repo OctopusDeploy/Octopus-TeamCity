@@ -8,11 +8,11 @@ import octopus.teamcity.common.OverwriteMode;
 import octopus.teamcity.common.pushpackage.PushPackagePropertyNames;
 import org.apache.commons.compress.utils.Lists;
 
-public class PushPackageSubStepType extends OctopusBuildStep {
+public class PushPackageStep extends OctopusBuildStep {
 
   private final PushPackagePropertyNames KEYS = new PushPackagePropertyNames();
 
-  public PushPackageSubStepType() {
+  public PushPackageStep() {
     super(
         "push-package",
         "Push binary package",

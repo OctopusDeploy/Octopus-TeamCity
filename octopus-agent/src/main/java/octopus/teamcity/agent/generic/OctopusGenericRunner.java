@@ -22,6 +22,7 @@ import com.octopus.sdk.http.ConnectData;
 import com.octopus.sdk.http.OctopusClient;
 import com.octopus.sdk.http.OctopusClientFactory;
 import com.octopus.sdk.operations.buildinformation.BuildInformationUploader;
+import com.octopus.sdk.operations.pushpackage.PushPackageUploader;
 
 import java.net.MalformedURLException;
 
@@ -36,6 +37,7 @@ import jetbrains.buildServer.agent.BuildRunnerContext;
 import octopus.teamcity.agent.buildinformation.BaseBuildVcsData;
 import octopus.teamcity.agent.buildinformation.BuildVcsData;
 import octopus.teamcity.agent.buildinformation.OctopusBuildInformationBuildProcess;
+import octopus.teamcity.agent.pushpackage.OctopusPushPackageBuildProcess;
 import octopus.teamcity.common.OctopusConstants;
 import octopus.teamcity.common.commonstep.CommonStepUserData;
 import org.jetbrains.annotations.NotNull;
@@ -93,11 +95,20 @@ public class OctopusGenericRunner implements AgentBuildRunner {
       final BuildRunnerContext context)
       throws RunBuildException {
 
+    // TODO(tmm): Probably should make these do something nicer than switch on hard-strings, which
+    // are otherwise
+    // available in the OctopusBuildStepCollection
     switch (stepType) {
       case ("build-information"):
-        final BuildInformationUploader uploader = BuildInformationUploader.create(client);
+        final BuildInformationUploader buildInformationUploader =
+            BuildInformationUploader.create(client);
         final BaseBuildVcsData buildVcsData = BuildVcsData.create(runningBuild);
-        return new OctopusBuildInformationBuildProcess(uploader, buildVcsData, context);
+        return new OctopusBuildInformationBuildProcess(
+            buildInformationUploader, buildVcsData, context);
+      case ("push-package"):
+        final PushPackageUploader pushPackageUploader = PushPackageUploader.create(client);
+        return new OctopusPushPackageBuildProcess(pushPackageUploader, context);
+
       default:
         throw new RunBuildException("Unknown build step type " + stepType);
     }
