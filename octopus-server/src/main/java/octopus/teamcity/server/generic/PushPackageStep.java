@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map;
 
 import jetbrains.buildServer.serverSide.InvalidProperty;
-import octopus.teamcity.common.OverwriteMode;
 import octopus.teamcity.common.pushpackage.PushPackagePropertyNames;
 import org.apache.commons.compress.utils.Lists;
 
@@ -41,14 +40,6 @@ public class PushPackageStep extends OctopusBuildStep {
   @Override
   public String describeParameters(final Map<String, String> parameters) {
     final String packagePaths = parameters.get(KEYS.getPackagePathsPropertyName());
-    final OverwriteMode overWrite =
-        OverwriteMode.valueOf(parameters.get(KEYS.getOverwriteModePropertyName()));
-    final StringBuilder builder = new StringBuilder();
-    builder.append("Packages: ");
-    builder.append(packagePaths.replace("\n", ", "));
-    builder.append("\n");
-    builder.append("Overwrite Mode: ");
-    builder.append(overWrite.getHumanReadable());
-    return builder.toString();
+    return "Packages: " + packagePaths.replace("\n", ", ");
   }
 }

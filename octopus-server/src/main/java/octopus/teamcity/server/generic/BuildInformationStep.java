@@ -49,16 +49,6 @@ public class BuildInformationStep extends OctopusBuildStep {
   @Override
   public String describeParameters(final Map<String, String> parameters) {
     final BuildInfoUserData userData = new BuildInfoUserData(parameters);
-
-    final StringBuilder builder = new StringBuilder();
-    builder.append("Package Ids: ");
-    builder.append(String.join(",", userData.getPackageIds()));
-    builder.append("\n");
-    builder.append("Version: ");
-    builder.append(userData.getPackageVersion());
-    builder.append("\n");
-    builder.append("Overwrite Mode: ");
-    builder.append(userData.getOverwriteMode().getHumanReadable());
-    return builder.toString();
+    return "Package Ids: " + String.join(", ", userData.getPackageIds());
   }
 }

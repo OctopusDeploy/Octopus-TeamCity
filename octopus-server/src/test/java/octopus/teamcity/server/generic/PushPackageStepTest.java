@@ -16,6 +16,7 @@
 package octopus.teamcity.server.generic;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.HashMap;
 import java.util.List;
@@ -35,6 +36,15 @@ class PushPackageStepTest {
     result.put(PushPackagePropertyNames.USE_DELTA_COMPRESSION, "false");
 
     return result;
+  }
+
+  @Test
+  public void describeParametersDisplaysViewText() {
+    final PushPackageStep pushPackageStep = new PushPackageStep();
+    final String parameterDescription =
+        pushPackageStep.describeParameters(createValidPropertyMap());
+
+    assertEquals("Packages: Package1, Package2", parameterDescription);
   }
 
   @Test
