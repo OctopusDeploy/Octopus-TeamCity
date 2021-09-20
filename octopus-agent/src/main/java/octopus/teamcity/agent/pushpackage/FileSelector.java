@@ -35,7 +35,13 @@ import org.apache.logging.log4j.Logger;
 public class FileSelector {
   private static final Logger LOG = LogManager.getLogger();
 
-  public static Set<File> getMatchingFiles(final Path rootPath, final List<String> globs) {
+  private final Path rootPath;
+
+  public FileSelector(final Path rootPath) {
+    this.rootPath = rootPath;
+  }
+
+  public Set<File> getMatchingFiles(final List<String> globs) {
     final Set<File> result = new HashSet<>();
     globs.forEach(
         entry -> {

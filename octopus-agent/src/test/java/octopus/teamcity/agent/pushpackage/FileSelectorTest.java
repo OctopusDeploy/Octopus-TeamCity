@@ -42,38 +42,38 @@ class FileSelectorTest {
 
   @BeforeAll
   public static void setup() throws IOException {
-    for(final String filename: filesToCreate) {
+    for (final String filename : filesToCreate) {
       rootPathFiles.add(Files.createFile(testPath.resolve(filename)).toFile());
     }
 
     final Path subDir = Files.createDirectory(testPath.resolve(subDirectoryName));
-    for(final String filename: filesToCreate) {
+    for (final String filename : filesToCreate) {
       subDirectoryFiles.add(Files.createFile(subDir.resolve(filename)).toFile());
     }
   }
 
   @Test
   public void zipFilesInRootDirectoryAreMatchedButNotSubDir() {
-    final Set<File> matchedFiles = FileSelector.getMatchingFiles(testPath, singletonList("*.zip"));
+    final Set<File> matchedFiles = new FileSelector(testPath).getMatchingFiles(singletonList("*.zip"));
     assertThat(matchedFiles).containsExactlyInAnyOrderElementsOf(rootPathFiles);
   }
 
   @Test
   public void zipFilesInSubDirAreMatchedButNotRootDir() {
-    final Set<File> matchedFiles = FileSelector.getMatchingFiles(testPath.resolve(subDirectoryName), singletonList("*.zip"));
+    final Set<File> matchedFiles =
+        new FileSelector(testPath.resolve(subDirectoryName)).getMatchingFiles(singletonList("*.zip"));
     assertThat(matchedFiles).containsExactlyInAnyOrderElementsOf(subDirectoryFiles);
   }
 
   @Test
   public void wrongExtensionResultsInNoFiles() {
-    final Set<File> matchedFiles = FileSelector.getMatchingFiles(testPath, singletonList("*"
-        + ".tar"));
+    final Set<File> matchedFiles = new FileSelector(testPath).getMatchingFiles(singletonList("*.tar"));
     assertThat(matchedFiles).isEmpty();
   }
 
   @Test
   public void exactMatchReturnsOnlyOneFile() {
-    final Set<File> matchedFiles = FileSelector.getMatchingFiles(testPath, singletonList(filesToCreate.get(0)));
+    final Set<File> matchedFiles = new FileSelector(testPath).getMatchingFiles(singletonList(filesToCreate.get(0)));
     assertThat(matchedFiles.size()).isOne();
     final File matchedFile = matchedFiles.iterator().next();
     assertThat(matchedFile.getName()).isEqualTo(filesToCreate.get(0));
@@ -81,11 +81,10 @@ class FileSelectorTest {
 
   @Test
   public void canMatchOnMultipleEntries() {
-    final Set<File> matchedFiles = FileSelector.getMatchingFiles(testPath,
+    final Set<File> matchedFiles = new FileSelector(testPath).getMatchingFiles(
         Lists.newArrayList("*.zip", testPath.resolve(subDirectoryName).resolve("*.zip").toString()));
     final List<File> fullList = Lists.newArrayList(rootPathFiles);
     fullList.addAll(subDirectoryFiles);
     assertThat(matchedFiles).containsExactlyInAnyOrderElementsOf(fullList);
   }
-
 }

@@ -15,19 +15,10 @@
 
 package octopus.teamcity.agent.pushpackage;
 
-import static octopus.teamcity.agent.pushpackage.FileSelector.getMatchingFiles;
-
+import com.google.common.collect.Lists;
 import com.octopus.sdk.operations.pushpackage.PushPackageUploader;
 import com.octopus.sdk.operations.pushpackage.PushPackageUploaderContext;
 import com.octopus.sdk.operations.pushpackage.PushPackageUploaderContextBuilder;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import com.google.common.collect.Lists;
 import jetbrains.buildServer.RunBuildException;
 import jetbrains.buildServer.agent.BuildFinishedStatus;
 import jetbrains.buildServer.agent.BuildProgressLogger;
@@ -37,15 +28,24 @@ import octopus.teamcity.agent.generic.TypeConverters;
 import octopus.teamcity.common.commonstep.CommonStepUserData;
 import octopus.teamcity.common.pushpackage.PushPackageUserData;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 public class OctopusPushPackageBuildProcess extends InterruptableBuildProcess {
 
   private final PushPackageUploader uploader;
   private final BuildRunnerContext context;
   private final BuildProgressLogger buildLogger;
+  private final FileSelector fileSelector;
 
   public OctopusPushPackageBuildProcess(
-      final PushPackageUploader uploader, final BuildRunnerContext context) {
+      final PushPackageUploader uploader, final FileSelector fileSelector,
+      final BuildRunnerContext context) {
     this.uploader = uploader;
+    this.fileSelector = fileSelector;
     this.context = context;
     this.buildLogger = context.getBuild().getBuildLogger();
   }
@@ -114,8 +114,7 @@ public class OctopusPushPackageBuildProcess extends InterruptableBuildProcess {
   }
 
   private Set<File> determineFilesToUpload(final String globs) {
-    final File packageRootPath = context.getWorkingDirectory();
     final List<String> packageFileGlobs = Lists.newArrayList(globs.split("\n"));
-    return getMatchingFiles(packageRootPath.toPath(), packageFileGlobs);
+    return fileSelector.getMatchingFiles(packageFileGlobs);
   }
 }

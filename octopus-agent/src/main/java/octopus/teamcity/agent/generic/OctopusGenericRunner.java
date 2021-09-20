@@ -37,6 +37,7 @@ import jetbrains.buildServer.agent.BuildRunnerContext;
 import octopus.teamcity.agent.buildinformation.BaseBuildVcsData;
 import octopus.teamcity.agent.buildinformation.BuildVcsData;
 import octopus.teamcity.agent.buildinformation.OctopusBuildInformationBuildProcess;
+import octopus.teamcity.agent.pushpackage.FileSelector;
 import octopus.teamcity.agent.pushpackage.OctopusPushPackageBuildProcess;
 import octopus.teamcity.common.OctopusConstants;
 import octopus.teamcity.common.commonstep.CommonStepUserData;
@@ -107,7 +108,8 @@ public class OctopusGenericRunner implements AgentBuildRunner {
             buildInformationUploader, buildVcsData, context);
       case ("push-package"):
         final PushPackageUploader pushPackageUploader = PushPackageUploader.create(client);
-        return new OctopusPushPackageBuildProcess(pushPackageUploader, context);
+        final FileSelector fileSelector = new FileSelector(context.getWorkingDirectory().toPath());
+        return new OctopusPushPackageBuildProcess(pushPackageUploader, fileSelector, context);
 
       default:
         throw new RunBuildException("Unknown build step type " + stepType);
