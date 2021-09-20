@@ -15,10 +15,8 @@
 
 package octopus.teamcity.agent.pushpackage;
 
-import org.assertj.core.util.Lists;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
+import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,18 +25,20 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 
-import static java.util.Collections.singletonList;
-import static org.assertj.core.api.Assertions.assertThat;
+import org.assertj.core.util.Lists;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 class FileSelectorTest {
 
-  private static final List<String> filesToCreate = Lists.newArrayList("firstFile.zip", "secondFile.zip", "third.zip");
+  private static final List<String> filesToCreate =
+      Lists.newArrayList("firstFile.zip", "secondFile.zip", "third.zip");
   private static final String subDirectoryName = "subDir";
   private static final List<File> rootPathFiles = Lists.newArrayList();
   private static final List<File> subDirectoryFiles = Lists.newArrayList();
 
-  @TempDir
-  static Path testPath;
+  @TempDir static Path testPath;
 
   @BeforeAll
   public static void setup() throws IOException {
@@ -54,26 +54,30 @@ class FileSelectorTest {
 
   @Test
   public void zipFilesInRootDirectoryAreMatchedButNotSubDir() {
-    final Set<File> matchedFiles = new FileSelector(testPath).getMatchingFiles(singletonList("*.zip"));
+    final Set<File> matchedFiles =
+        new FileSelector(testPath).getMatchingFiles(singletonList("*.zip"));
     assertThat(matchedFiles).containsExactlyInAnyOrderElementsOf(rootPathFiles);
   }
 
   @Test
   public void zipFilesInSubDirAreMatchedButNotRootDir() {
     final Set<File> matchedFiles =
-        new FileSelector(testPath.resolve(subDirectoryName)).getMatchingFiles(singletonList("*.zip"));
+        new FileSelector(testPath.resolve(subDirectoryName))
+            .getMatchingFiles(singletonList("*.zip"));
     assertThat(matchedFiles).containsExactlyInAnyOrderElementsOf(subDirectoryFiles);
   }
 
   @Test
   public void wrongExtensionResultsInNoFiles() {
-    final Set<File> matchedFiles = new FileSelector(testPath).getMatchingFiles(singletonList("*.tar"));
+    final Set<File> matchedFiles =
+        new FileSelector(testPath).getMatchingFiles(singletonList("*.tar"));
     assertThat(matchedFiles).isEmpty();
   }
 
   @Test
   public void exactMatchReturnsOnlyOneFile() {
-    final Set<File> matchedFiles = new FileSelector(testPath).getMatchingFiles(singletonList(filesToCreate.get(0)));
+    final Set<File> matchedFiles =
+        new FileSelector(testPath).getMatchingFiles(singletonList(filesToCreate.get(0)));
     assertThat(matchedFiles.size()).isOne();
     final File matchedFile = matchedFiles.iterator().next();
     assertThat(matchedFile.getName()).isEqualTo(filesToCreate.get(0));
@@ -81,8 +85,11 @@ class FileSelectorTest {
 
   @Test
   public void canMatchOnMultipleEntries() {
-    final Set<File> matchedFiles = new FileSelector(testPath).getMatchingFiles(
-        Lists.newArrayList("*.zip", testPath.resolve(subDirectoryName).resolve("*.zip").toString()));
+    final Set<File> matchedFiles =
+        new FileSelector(testPath)
+            .getMatchingFiles(
+                Lists.newArrayList(
+                    "*.zip", testPath.resolve(subDirectoryName).resolve("*.zip").toString()));
     final List<File> fullList = Lists.newArrayList(rootPathFiles);
     fullList.addAll(subDirectoryFiles);
     assertThat(matchedFiles).containsExactlyInAnyOrderElementsOf(fullList);

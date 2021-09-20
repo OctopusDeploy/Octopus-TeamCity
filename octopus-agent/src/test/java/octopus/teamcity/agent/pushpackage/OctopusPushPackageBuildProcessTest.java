@@ -15,19 +15,16 @@
 
 package octopus.teamcity.agent.pushpackage;
 
+import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.octopus.sdk.operations.pushpackage.PushPackageUploader;
 import com.octopus.sdk.operations.pushpackage.PushPackageUploaderContext;
-import jetbrains.buildServer.RunBuildException;
-import jetbrains.buildServer.agent.AgentRunningBuild;
-import jetbrains.buildServer.agent.BuildFinishedStatus;
-import jetbrains.buildServer.agent.BuildProgressLogger;
-import jetbrains.buildServer.agent.BuildRunnerContext;
-import octopus.teamcity.common.OverwriteMode;
-import octopus.teamcity.common.pushpackage.PushPackagePropertyNames;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-import org.mockito.ArgumentCaptor;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,13 +38,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static java.util.Collections.singletonList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import jetbrains.buildServer.RunBuildException;
+import jetbrains.buildServer.agent.AgentRunningBuild;
+import jetbrains.buildServer.agent.BuildFinishedStatus;
+import jetbrains.buildServer.agent.BuildProgressLogger;
+import jetbrains.buildServer.agent.BuildRunnerContext;
+import octopus.teamcity.common.OverwriteMode;
+import octopus.teamcity.common.pushpackage.PushPackagePropertyNames;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.mockito.ArgumentCaptor;
 
 class OctopusPushPackageBuildProcessTest {
 
@@ -67,7 +68,8 @@ class OctopusPushPackageBuildProcessTest {
   }
 
   @Test
-  public void pushBuildInfoToOctopusServer(@TempDir Path testDir) throws RunBuildException, IOException {
+  public void pushBuildInfoToOctopusServer(@TempDir Path testDir)
+      throws RunBuildException, IOException {
     final File toUpload = Files.createFile(testDir.resolve("file.zip")).toFile();
     final Set<File> matchedFiles = Collections.singleton(toUpload);
     when(fileSelector.getMatchingFiles(any())).thenReturn(matchedFiles);
@@ -93,16 +95,16 @@ class OctopusPushPackageBuildProcessTest {
     verify(uploader).upload(uploadPayload.capture());
 
     assertThat(uploadPayload.getValue().getFile()).isEqualTo(toUpload);
-    assertThat(uploadPayload.getValue().getOverwriteMode()).isEqualTo(
-        com.octopus.sdk.api.OverwriteMode.OverwriteExisting);
+    assertThat(uploadPayload.getValue().getOverwriteMode())
+        .isEqualTo(com.octopus.sdk.api.OverwriteMode.OverwriteExisting);
   }
 
   @Test
-  public void uploadIsInvokedForEachFileReturnedBySelector(@TempDir Path testDir) throws IOException,
-      RunBuildException {
+  public void uploadIsInvokedForEachFileReturnedBySelector(@TempDir Path testDir)
+      throws IOException, RunBuildException {
     final int fileCount = 3;
     final Set<File> matchedFiles = new HashSet<>();
-    for(int i = 0; i < fileCount; i++) {
+    for (int i = 0; i < fileCount; i++) {
       matchedFiles.add(Files.createFile(testDir.resolve(i + "file.zip")).toFile());
     }
 
@@ -122,7 +124,9 @@ class OctopusPushPackageBuildProcessTest {
     verify(uploader, times(fileCount)).upload(uploadPayload.capture());
 
     final List<File> filesUploaded =
-        uploadPayload.getAllValues().stream().map(PushPackageUploaderContext::getFile).collect(Collectors.toList());
+        uploadPayload.getAllValues().stream()
+            .map(PushPackageUploaderContext::getFile)
+            .collect(Collectors.toList());
 
     assertThat(filesUploaded).containsExactlyInAnyOrderElementsOf(matchedFiles);
   }

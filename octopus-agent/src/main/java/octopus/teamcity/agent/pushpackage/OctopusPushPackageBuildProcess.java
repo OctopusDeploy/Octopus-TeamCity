@@ -15,10 +15,17 @@
 
 package octopus.teamcity.agent.pushpackage;
 
-import com.google.common.collect.Lists;
 import com.octopus.sdk.operations.pushpackage.PushPackageUploader;
 import com.octopus.sdk.operations.pushpackage.PushPackageUploaderContext;
 import com.octopus.sdk.operations.pushpackage.PushPackageUploaderContextBuilder;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import com.google.common.collect.Lists;
 import jetbrains.buildServer.RunBuildException;
 import jetbrains.buildServer.agent.BuildFinishedStatus;
 import jetbrains.buildServer.agent.BuildProgressLogger;
@@ -28,12 +35,6 @@ import octopus.teamcity.agent.generic.TypeConverters;
 import octopus.teamcity.common.commonstep.CommonStepUserData;
 import octopus.teamcity.common.pushpackage.PushPackageUserData;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 public class OctopusPushPackageBuildProcess extends InterruptableBuildProcess {
 
   private final PushPackageUploader uploader;
@@ -42,7 +43,8 @@ public class OctopusPushPackageBuildProcess extends InterruptableBuildProcess {
   private final FileSelector fileSelector;
 
   public OctopusPushPackageBuildProcess(
-      final PushPackageUploader uploader, final FileSelector fileSelector,
+      final PushPackageUploader uploader,
+      final FileSelector fileSelector,
       final BuildRunnerContext context) {
     this.uploader = uploader;
     this.fileSelector = fileSelector;
