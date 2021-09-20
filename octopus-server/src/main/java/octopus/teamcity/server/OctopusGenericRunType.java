@@ -14,8 +14,6 @@ import octopus.teamcity.common.commonstep.CommonStepUserData;
 import octopus.teamcity.server.generic.BuildStepCollection;
 import octopus.teamcity.server.generic.OctopusBuildStep;
 import octopus.teamcity.server.generic.OctopusBuildStepPropertiesProcessor;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class OctopusGenericRunType extends RunType {
   private final PluginDescriptor pluginDescriptor;
@@ -26,27 +24,23 @@ public class OctopusGenericRunType extends RunType {
     runTypeRegistry.registerRunType(this);
   }
 
-  @NotNull
   @Override
   public String getType() {
     return OctopusConstants.GENERIC_RUNNER_TYPE;
   }
 
-  @NotNull
   @Override
   public String getDisplayName() {
     return "OctopusDeploy";
   }
 
-  @NotNull
   @Override
   public String getDescription() {
     return "Execute an operation against an OctopusDeploy server";
   }
 
-  @NotNull
   @Override
-  public String describeParameters(@NotNull final Map<String, String> parameters) {
+  public String describeParameters(final Map<String, String> parameters) {
     // NOTE: This is only called once the values in the map have been validated as being "within
     // bounds"
     final CommonStepUserData commonStepUserData = new CommonStepUserData(parameters);
@@ -72,27 +66,23 @@ public class OctopusGenericRunType extends RunType {
         buildStep.get().getDescription(), buildStep.get().describeParameters(parameters));
   }
 
-  @Nullable
   @Override
   public PropertiesProcessor getRunnerPropertiesProcessor() {
     return new OctopusBuildStepPropertiesProcessor();
   }
 
-  @Nullable
   @Override
   public String getEditRunnerParamsJspFilePath() {
     return pluginDescriptor.getPluginResourcesPath(
         "v2" + File.separator + "editOctopusGeneric.jsp");
   }
 
-  @Nullable
   @Override
   public String getViewRunnerParamsJspFilePath() {
     return pluginDescriptor.getPluginResourcesPath(
         "v2" + File.separator + "viewOctopusGeneric.jsp");
   }
 
-  @Nullable
   @Override
   public Map<String, String> getDefaultRunnerProperties() {
     return new HashMap<>();
