@@ -11,7 +11,7 @@
 
 <l:settingsGroup title="Release Details">
     <tr>
-        <th>Project name:<l:star/></th>a
+        <th>Project name:<l:star/></th>
         <td>
             <props:textProperty name="${keys.projectNamePropertyName}" />
             <span class="error" id="error_${keys.projectNamePropertyName}"></span>
@@ -19,7 +19,7 @@
         </td>
     </tr>
     <tr>
-        <th>Package version:<l:star/></th>a
+        <th>Package version:<l:star/></th>
         <td>
             <props:textProperty name="${keys.packageVersionPropertyName}" />
             <span class="error" id="error_${keys.packageVersionPropertyName}"></span>
@@ -27,7 +27,7 @@
         </td>
     </tr>
     <tr>
-        <th>Release version:</th>a
+        <th>Release version:</th>
         <td>
             <props:textProperty name="${keys.releaseVersionPropertyName}" />
             <span class="error" id="error_${keys.releaseVersionPropertyName}"></span>
@@ -35,7 +35,7 @@
         </td>
     </tr>
     <tr>
-        <th>Channel name:</th>a
+        <th>Channel name:</th>
         <td>
             <props:textProperty name="${keys.channelNamePropertyName}" />
             <span class="error" id="error_${keys.channelNamePropertyName}"></span>
@@ -47,7 +47,7 @@
         <td>
             <props:multilineProperty name="${keys.packagesPropertyName}" rows="5" cols="55" expanded="true" linkTitle="Enter list of package strings"/>
             <span class="error" id="error_${keys.packagesPropertyName}"></span>
-            <span class="smallNote">Newline separated list of packages in the format - <em>PackageID:Version</em> or <em>StepName:PackageName:Version</em>.</span>
+            <span class="smallNote">Newline separated list of packages in the formats: <em>PackageID:Version</em>, <em>StepName:PackageName:Version</em>.</span>
         </td>
     </tr>
 </l:settingsGroup>
