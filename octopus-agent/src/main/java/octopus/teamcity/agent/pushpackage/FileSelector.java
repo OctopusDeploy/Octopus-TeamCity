@@ -24,17 +24,24 @@ import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
-import com.google.common.collect.Lists;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class FileSelector {
   private static final Logger LOG = LogManager.getLogger();
 
-  public static List<File> getMatchingFiles(final Path rootPath, final List<String> globs) {
-    final List<File> result = Lists.newArrayList();
+  private final Path rootPath;
+
+  public FileSelector(final Path rootPath) {
+    this.rootPath = rootPath;
+  }
+
+  public Set<File> getMatchingFiles(final List<String> globs) {
+    final Set<File> result = new HashSet<>();
     globs.forEach(
         entry -> {
           final Path fullPath = rootPath.resolve(entry);

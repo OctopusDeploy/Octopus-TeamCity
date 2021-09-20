@@ -15,8 +15,6 @@
 
 package octopus.teamcity.agent.pushpackage;
 
-import static octopus.teamcity.agent.pushpackage.FileSelector.getMatchingFiles;
-
 import com.octopus.sdk.operations.pushpackage.PushPackageUploader;
 import com.octopus.sdk.operations.pushpackage.PushPackageUploaderContext;
 import com.octopus.sdk.operations.pushpackage.PushPackageUploaderContextBuilder;
@@ -25,6 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.google.common.collect.Lists;
 import jetbrains.buildServer.RunBuildException;
@@ -41,10 +40,14 @@ public class OctopusPushPackageBuildProcess extends InterruptableBuildProcess {
   private final PushPackageUploader uploader;
   private final BuildRunnerContext context;
   private final BuildProgressLogger buildLogger;
+  private final FileSelector fileSelector;
 
   public OctopusPushPackageBuildProcess(
-      final PushPackageUploader uploader, final BuildRunnerContext context) {
+      final PushPackageUploader uploader,
+      final FileSelector fileSelector,
+      final BuildRunnerContext context) {
     this.uploader = uploader;
+    this.fileSelector = fileSelector;
     this.context = context;
     this.buildLogger = context.getBuild().getBuildLogger();
   }
@@ -86,7 +89,7 @@ public class OctopusPushPackageBuildProcess extends InterruptableBuildProcess {
     final CommonStepUserData commonStepUserData = new CommonStepUserData(parameters);
     final PushPackageUserData pushPackageUserData = new PushPackageUserData(parameters);
 
-    final List<File> filesToUpload = determineFilesToUpload(pushPackageUserData.getPackagePaths());
+    final Set<File> filesToUpload = determineFilesToUpload(pushPackageUserData.getPackagePaths());
     if (filesToUpload.isEmpty()) {
       buildLogger.error(
           "Supplied package globs ("
@@ -112,9 +115,8 @@ public class OctopusPushPackageBuildProcess extends InterruptableBuildProcess {
     return result;
   }
 
-  private List<File> determineFilesToUpload(final String globs) {
-    final File packageRootPath = context.getWorkingDirectory();
+  private Set<File> determineFilesToUpload(final String globs) {
     final List<String> packageFileGlobs = Lists.newArrayList(globs.split("\n"));
-    return getMatchingFiles(packageRootPath.toPath(), packageFileGlobs);
+    return fileSelector.getMatchingFiles(packageFileGlobs);
   }
 }
