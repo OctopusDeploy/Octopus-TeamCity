@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.google.common.collect.Lists;
 import jetbrains.buildServer.RunBuildException;
@@ -86,7 +87,7 @@ public class OctopusPushPackageBuildProcess extends InterruptableBuildProcess {
     final CommonStepUserData commonStepUserData = new CommonStepUserData(parameters);
     final PushPackageUserData pushPackageUserData = new PushPackageUserData(parameters);
 
-    final List<File> filesToUpload = determineFilesToUpload(pushPackageUserData.getPackagePaths());
+    final Set<File> filesToUpload = determineFilesToUpload(pushPackageUserData.getPackagePaths());
     if (filesToUpload.isEmpty()) {
       buildLogger.error(
           "Supplied package globs ("
@@ -112,7 +113,7 @@ public class OctopusPushPackageBuildProcess extends InterruptableBuildProcess {
     return result;
   }
 
-  private List<File> determineFilesToUpload(final String globs) {
+  private Set<File> determineFilesToUpload(final String globs) {
     final File packageRootPath = context.getWorkingDirectory();
     final List<String> packageFileGlobs = Lists.newArrayList(globs.split("\n"));
     return getMatchingFiles(packageRootPath.toPath(), packageFileGlobs);
