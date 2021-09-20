@@ -16,7 +16,6 @@
 package octopus.teamcity.server.generic;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.HashMap;
 import java.util.List;
@@ -44,7 +43,7 @@ class BuildInformationStepTypeTest {
     final String parameterDescription =
         buildInfoStepType.describeParameters(createValidPropertyMap());
 
-    assertEquals("Package Ids: Package1, Package2", parameterDescription);
+    assertThat("Package Ids: Package1, Package2").isEqualTo(parameterDescription);
   }
 
   @Test

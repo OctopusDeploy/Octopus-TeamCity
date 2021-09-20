@@ -1,7 +1,6 @@
 package octopus.teamcity.server.generic;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.HashMap;
 import java.util.List;
@@ -17,78 +16,90 @@ class CreateReleaseStepTest {
 
   @Test
   public void describePropertiesProducesExpectedOutput() {
-    String message = step.describeParameters(buildPropertiesMap());
-    assertEquals("Project name: Project-1\nPackage version: 1.0.0", message);
+    final String message = step.describeParameters(buildPropertiesMap());
+    assertThat("Project name: Project-1\nPackage version: 1.0.0").isEqualTo(message);
   }
 
   @Test
   public void validatePropertiesReturnsEmptyInvalidPropertiesListWithValidProperties() {
-    List<InvalidProperty> invalidProperties = step.validateProperties(buildPropertiesMap());
-    assertNotNull(invalidProperties);
-    assertEquals(0, invalidProperties.size());
+    final List<InvalidProperty> invalidProperties = step.validateProperties(buildPropertiesMap());
+    assertThat(invalidProperties).isNotNull();
+    assertThat(invalidProperties).hasSize(0);
   }
 
   @Test
   public void validatePropertiesReturnsSingleInvalidPropertyNullProjectName() {
-    Map<String, String> properties = buildPropertiesMap();
+    final Map<String, String> properties = buildPropertiesMap();
     properties.put(CreateReleasePropertyNames.PROJECT_NAME, null);
 
-    List<InvalidProperty> invalidProperties = step.validateProperties(properties);
-    assertNotNull(invalidProperties);
-    assertEquals(1, invalidProperties.size());
-    assertEquals(
-        "Project name must be specified and cannot be whitespace.",
-        invalidProperties.get(0).getInvalidReason());
+    final List<InvalidProperty> invalidProperties = step.validateProperties(properties);
+    assertThat(invalidProperties).isNotNull();
+    assertThat(invalidProperties).hasSize(1);
+    assertThat(invalidProperties.get(0).getPropertyName())
+        .isEqualTo(CreateReleasePropertyNames.PROJECT_NAME);
+    assertThat(invalidProperties.get(0).getInvalidReason())
+        .isEqualTo("Project name must be specified and cannot be whitespace.");
   }
 
   @Test
   public void validatePropertiesReturnsSingleInvalidPropertyOnEmptyProjectName() {
-    Map<String, String> properties = buildPropertiesMap();
+    final Map<String, String> properties = buildPropertiesMap();
     properties.put(CreateReleasePropertyNames.PROJECT_NAME, "");
 
-    List<InvalidProperty> invalidProperties = step.validateProperties(properties);
-    assertNotNull(invalidProperties);
-    assertEquals(1, invalidProperties.size());
-    assertEquals(
-        "Project name must be specified and cannot be whitespace.",
-        invalidProperties.get(0).getInvalidReason());
+    final List<InvalidProperty> invalidProperties = step.validateProperties(properties);
+    assertThat(invalidProperties).isNotNull();
+    assertThat(invalidProperties).hasSize(1);
+    assertThat(invalidProperties.get(0).getPropertyName())
+        .isEqualTo(CreateReleasePropertyNames.PROJECT_NAME);
+    assertThat(invalidProperties.get(0).getInvalidReason())
+        .isEqualTo("Project name must be specified and cannot be whitespace.");
   }
 
   @Test
   public void validatePropertiesReturnsSingleInvalidPropertyNullPackageVersion() {
-    Map<String, String> properties = buildPropertiesMap();
+    final Map<String, String> properties = buildPropertiesMap();
     properties.put(CreateReleasePropertyNames.PACKAGE_VERSION, null);
 
-    List<InvalidProperty> invalidProperties = step.validateProperties(properties);
-    assertNotNull(invalidProperties);
-    assertEquals(1, invalidProperties.size());
-    assertEquals(
-        "Package version must be specified and cannot be whitespace.",
-        invalidProperties.get(0).getInvalidReason());
+    final List<InvalidProperty> invalidProperties = step.validateProperties(properties);
+    assertThat(invalidProperties).isNotNull();
+    assertThat(invalidProperties).hasSize(1);
+    assertThat(invalidProperties.get(0).getPropertyName())
+        .isEqualTo(CreateReleasePropertyNames.PACKAGE_VERSION);
+    assertThat(invalidProperties.get(0).getInvalidReason())
+        .isEqualTo("Package version must be specified and cannot be whitespace.");
   }
 
   @Test
   public void validatePropertiesReturnsSingleInvalidPropertyOnEmptyPackageVersion() {
-    Map<String, String> properties = buildPropertiesMap();
+    final Map<String, String> properties = buildPropertiesMap();
     properties.put(CreateReleasePropertyNames.PACKAGE_VERSION, "");
 
-    List<InvalidProperty> invalidProperties = step.validateProperties(properties);
-    assertNotNull(invalidProperties);
-    assertEquals(1, invalidProperties.size());
-    assertEquals(
-        "Package version must be specified and cannot be whitespace.",
-        invalidProperties.get(0).getInvalidReason());
+    final List<InvalidProperty> invalidProperties = step.validateProperties(properties);
+    assertThat(invalidProperties).isNotNull();
+    assertThat(invalidProperties).hasSize(1);
+    assertThat(invalidProperties.get(0).getPropertyName())
+        .isEqualTo(CreateReleasePropertyNames.PACKAGE_VERSION);
+    assertThat(invalidProperties.get(0).getInvalidReason())
+        .isEqualTo("Package version must be specified and cannot be whitespace.");
   }
 
   @Test
   public void validatePropertiesReturnsMultipleInvalidProperty() {
-    Map<String, String> properties = buildPropertiesMap();
+    final Map<String, String> properties = buildPropertiesMap();
     properties.put(CreateReleasePropertyNames.PROJECT_NAME, "");
     properties.put(CreateReleasePropertyNames.PACKAGE_VERSION, "");
 
-    List<InvalidProperty> invalidProperties = step.validateProperties(properties);
-    assertNotNull(invalidProperties);
-    assertEquals(2, invalidProperties.size());
+    final List<InvalidProperty> invalidProperties = step.validateProperties(properties);
+    assertThat(invalidProperties).isNotNull();
+    assertThat(invalidProperties).hasSize(2);
+    assertThat(invalidProperties.get(0).getPropertyName())
+        .isEqualTo(CreateReleasePropertyNames.PROJECT_NAME);
+    assertThat(invalidProperties.get(0).getInvalidReason())
+        .isEqualTo("Project name must be specified and cannot be whitespace.");
+    assertThat(invalidProperties.get(1).getPropertyName())
+        .isEqualTo(CreateReleasePropertyNames.PACKAGE_VERSION);
+    assertThat(invalidProperties.get(1).getInvalidReason())
+        .isEqualTo("Package version must be specified and cannot be whitespace.");
   }
 
   private Map<String, String> buildPropertiesMap() {
