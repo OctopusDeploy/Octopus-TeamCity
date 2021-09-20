@@ -37,8 +37,3 @@
   Overwrite Mode:
   <strong><props:displayValue name="${keys.overwriteModePropertyName}" emptyValue="not specified"/></strong>
 </div>
-
-<div class="parameter">
-  Verbose logging:
-  <strong><props:displayValue name="${keys.verboseLoggingKey}" emptyValue="not specified"/></strong>
-</div>
