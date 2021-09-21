@@ -11,7 +11,11 @@ import octopus.teamcity.common.OverwriteMode;
 public class BuildStepCollection implements Serializable {
 
   private final List<OctopusBuildStep> octopusBuildSteps =
-      Stream.of(new BuildInformationStep(), new PushPackageStep(), new CreateReleaseStep())
+      Stream.of(
+              new BuildInformationStep(),
+              new PushPackageStep(),
+              new CreateReleaseStep(),
+              new RunbookRunStep())
           .collect(Collectors.toList());
 
   public BuildStepCollection() {}

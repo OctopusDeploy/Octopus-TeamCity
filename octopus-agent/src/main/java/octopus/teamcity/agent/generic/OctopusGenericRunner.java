@@ -40,6 +40,7 @@ import octopus.teamcity.agent.buildinformation.OctopusBuildInformationBuildProce
 import octopus.teamcity.agent.createrelease.OctopusCreateReleaseBuildProcess;
 import octopus.teamcity.agent.pushpackage.FileSelector;
 import octopus.teamcity.agent.pushpackage.OctopusPushPackageBuildProcess;
+import octopus.teamcity.agent.runbookrun.OctopusRunbookRunBuildProcess;
 import octopus.teamcity.common.OctopusConstants;
 import octopus.teamcity.common.commonstep.CommonStepUserData;
 
@@ -109,6 +110,8 @@ public class OctopusGenericRunner implements AgentBuildRunner {
         return new OctopusPushPackageBuildProcess(pushPackageUploader, fileSelector, context);
       case ("create-release"):
         return new OctopusCreateReleaseBuildProcess(context);
+      case ("runbook-run"):
+        return new OctopusRunbookRunBuildProcess(context);
       default:
         throw new RunBuildException("Unknown build step type " + stepType);
     }
