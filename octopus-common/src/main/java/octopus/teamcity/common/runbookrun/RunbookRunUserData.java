@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.intellij.openapi.util.text.StringUtil;
 import octopus.teamcity.common.BaseUserData;
 
 public class RunbookRunUserData extends BaseUserData {
@@ -24,8 +23,7 @@ public class RunbookRunUserData extends BaseUserData {
   }
 
   public List<String> getEnvironmentNames() {
-    final String rawInput = fetchRaw(KEYS.getEnvironmentNamesPropertyName());
-    return StringUtil.split(rawInput, "\n");
+    return fetchRawFromNewlineDelimited(KEYS.getEnvironmentNamesPropertyName());
   }
 
   public Optional<String> getSnapshotName() {

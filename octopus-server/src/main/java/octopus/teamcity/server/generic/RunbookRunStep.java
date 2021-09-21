@@ -16,7 +16,7 @@ public class RunbookRunStep extends OctopusBuildStep {
   public RunbookRunStep() {
     super(
         "runbook-run",
-        "Runbook run",
+        "Run runbook",
         "editRunbookRunParameters.jsp",
         "viewRunbookRunParameters.jsp");
   }
@@ -33,22 +33,21 @@ public class RunbookRunStep extends OctopusBuildStep {
   public List<InvalidProperty> validateProperties(Map<String, String> properties) {
     final List<InvalidProperty> failedProperties = Lists.newArrayList();
 
-    if (StringUtil.isEmpty(properties.getOrDefault(KEYS.getRunbookNamePropertyName(), ""))) {
+    if (StringUtil.isEmpty(properties.get(KEYS.getRunbookNamePropertyName()))) {
       failedProperties.add(
           new InvalidProperty(
               KEYS.getRunbookNamePropertyName(),
               "Runbook name must be specified and cannot be whitespace."));
     }
 
-    if (StringUtil.isEmpty(properties.getOrDefault(KEYS.getProjectNamePropertyName(), ""))) {
+    if (StringUtil.isEmpty(properties.get(KEYS.getProjectNamePropertyName()))) {
       failedProperties.add(
           new InvalidProperty(
               KEYS.getProjectNamePropertyName(),
               "Project name must be specified and cannot be whitespace."));
     }
 
-    final String environmentIdentifiers =
-        properties.getOrDefault(KEYS.getEnvironmentNamesPropertyName(), "");
+    final String environmentIdentifiers = properties.get(KEYS.getEnvironmentNamesPropertyName());
     if (StringUtil.isEmpty(environmentIdentifiers)) {
       failedProperties.add(
           new InvalidProperty(

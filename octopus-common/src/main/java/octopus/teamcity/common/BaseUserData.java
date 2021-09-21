@@ -15,7 +15,10 @@
 
 package octopus.teamcity.common;
 
+import java.util.List;
 import java.util.Map;
+
+import com.intellij.openapi.util.text.StringUtil;
 
 public class BaseUserData {
   protected final Map<String, String> params;
@@ -30,5 +33,9 @@ public class BaseUserData {
       throw new IllegalArgumentException("Property map does not contain an entry for " + key);
     }
     return mapContent;
+  }
+
+  protected List<String> fetchRawFromNewlineDelimited(final String key) {
+    return StringUtil.split(fetchRaw(key), "\n");
   }
 }
