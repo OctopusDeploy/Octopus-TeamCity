@@ -2,6 +2,7 @@ package octopus.teamcity.common.createrelease;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import com.intellij.openapi.util.text.StringUtil;
 import octopus.teamcity.common.BaseUserData;
@@ -22,12 +23,12 @@ public class CreateReleaseUserData extends BaseUserData {
     return fetchRaw(KEYS.getPackageVersionPropertyName());
   }
 
-  public String getReleaseVersion() {
-    return fetchRaw(KEYS.getReleaseVersionPropertyName());
+  public Optional<String> getReleaseVersion() {
+    return Optional.ofNullable(fetchRaw(KEYS.getReleaseVersionPropertyName()));
   }
 
-  public String getChannelName() {
-    return fetchRaw(KEYS.getChannelNamePropertyName());
+  public Optional<String> getChannelName() {
+    return Optional.ofNullable(fetchRaw(KEYS.getChannelNamePropertyName()));
   }
 
   public List<String> getPackages() {
