@@ -48,12 +48,12 @@ class CreateReleaseStepTest {
 
     final List<InvalidProperty> invalidProperties = step.validateProperties(properties);
     assertThat(invalidProperties)
-            .isNotNull()
-            .hasSize(1)
-            .flatExtracting(InvalidProperty::getPropertyName, InvalidProperty::getInvalidReason)
-            .containsExactly(
-                    CreateReleasePropertyNames.PROJECT_NAME,
-                    "Project name must be specified and cannot be whitespace.");
+        .isNotNull()
+        .hasSize(1)
+        .flatExtracting(InvalidProperty::getPropertyName, InvalidProperty::getInvalidReason)
+        .containsExactly(
+            CreateReleasePropertyNames.PROJECT_NAME,
+            "Project name must be specified and cannot be whitespace.");
   }
 
   @Test
