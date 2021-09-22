@@ -5,10 +5,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import jetbrains.buildServer.serverSide.InvalidProperty;
 import octopus.teamcity.common.createrelease.CreateReleasePropertyNames;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class CreateReleaseStepTest {
 
@@ -26,64 +30,19 @@ class CreateReleaseStepTest {
     assertThat(invalidProperties).isNotNull().hasSize(0);
   }
 
-  @Test
-  public void validatePropertiesReturnsSingleInvalidPropertyNullProjectName() {
+  @ParameterizedTest
+  @MethodSource("provideNullAndEmptyTestArguments")
+  public void validatePropertiesReturnsInvalidPropertyOnNullAndEmptyParams(
+      String paramKey, String testCondition, String invalidReason) {
     final Map<String, String> properties = buildPropertiesMap();
-    properties.put(CreateReleasePropertyNames.PROJECT_NAME, null);
+    properties.put(paramKey, testCondition);
 
     final List<InvalidProperty> invalidProperties = step.validateProperties(properties);
     assertThat(invalidProperties)
         .isNotNull()
         .hasSize(1)
         .flatExtracting(InvalidProperty::getPropertyName, InvalidProperty::getInvalidReason)
-        .containsExactly(
-            CreateReleasePropertyNames.PROJECT_NAME,
-            "Project name must be specified and cannot be whitespace.");
-  }
-
-  @Test
-  public void validatePropertiesReturnsSingleInvalidPropertyOnEmptyProjectName() {
-    final Map<String, String> properties = buildPropertiesMap();
-    properties.put(CreateReleasePropertyNames.PROJECT_NAME, "");
-
-    final List<InvalidProperty> invalidProperties = step.validateProperties(properties);
-    assertThat(invalidProperties)
-        .isNotNull()
-        .hasSize(1)
-        .flatExtracting(InvalidProperty::getPropertyName, InvalidProperty::getInvalidReason)
-        .containsExactly(
-            CreateReleasePropertyNames.PROJECT_NAME,
-            "Project name must be specified and cannot be whitespace.");
-  }
-
-  @Test
-  public void validatePropertiesReturnsSingleInvalidPropertyNullPackageVersion() {
-    final Map<String, String> properties = buildPropertiesMap();
-    properties.put(CreateReleasePropertyNames.PACKAGE_VERSION, null);
-
-    final List<InvalidProperty> invalidProperties = step.validateProperties(properties);
-    assertThat(invalidProperties)
-        .isNotNull()
-        .hasSize(1)
-        .flatExtracting(InvalidProperty::getPropertyName, InvalidProperty::getInvalidReason)
-        .containsExactly(
-            CreateReleasePropertyNames.PACKAGE_VERSION,
-            "Package version must be specified and cannot be whitespace.");
-  }
-
-  @Test
-  public void validatePropertiesReturnsSingleInvalidPropertyOnEmptyPackageVersion() {
-    final Map<String, String> properties = buildPropertiesMap();
-    properties.put(CreateReleasePropertyNames.PACKAGE_VERSION, "");
-
-    final List<InvalidProperty> invalidProperties = step.validateProperties(properties);
-    assertThat(invalidProperties)
-        .isNotNull()
-        .hasSize(1)
-        .flatExtracting(InvalidProperty::getPropertyName, InvalidProperty::getInvalidReason)
-        .containsExactly(
-            CreateReleasePropertyNames.PACKAGE_VERSION,
-            "Package version must be specified and cannot be whitespace.");
+        .containsExactly(paramKey, invalidReason);
   }
 
   @Test
@@ -114,5 +73,26 @@ class CreateReleaseStepTest {
     validMap.put(CreateReleasePropertyNames.CHANNEL_NAME, "Channel-1");
     validMap.put(CreateReleasePropertyNames.PACKAGES, "stepName:PackageName:Version");
     return validMap;
+  }
+
+  @SuppressWarnings("unused")
+  private static Stream<Arguments> provideNullAndEmptyTestArguments() {
+    return Stream.of(
+        Arguments.of(
+            CreateReleasePropertyNames.PROJECT_NAME,
+            null,
+            "Project name must be specified and cannot be whitespace."),
+        Arguments.of(
+            CreateReleasePropertyNames.PROJECT_NAME,
+            "",
+            "Project name must be specified and cannot be whitespace."),
+        Arguments.of(
+            CreateReleasePropertyNames.PACKAGE_VERSION,
+            null,
+            "Package version must be specified and cannot be whitespace."),
+        Arguments.of(
+            CreateReleasePropertyNames.PACKAGE_VERSION,
+            "",
+            "Package version must be specified and cannot be whitespace."));
   }
 }
