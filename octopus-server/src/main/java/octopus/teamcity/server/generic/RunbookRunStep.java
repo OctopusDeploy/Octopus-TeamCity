@@ -54,16 +54,15 @@ public class RunbookRunStep extends OctopusBuildStep {
               KEYS.getEnvironmentNamesPropertyName(),
               "At least one environment name must be specified."));
     } else {
-      List<String> environmentNames = StringUtil.split(environmentIdentifiers, "\n");
-      for (String identifier : environmentNames) {
-        if (StringUtil.isEmpty(identifier.trim())) {
-          failedProperties.add(
-              new InvalidProperty(
-                  KEYS.getEnvironmentNamesPropertyName(),
-                  "An environment name cannot be whitespace."));
-          break;
-        }
-      }
+      StringUtil.split(environmentIdentifiers, "\n").stream()
+          .filter(name -> StringUtil.isEmpty(name.trim()))
+          .findFirst()
+          .ifPresent(
+              emptyName ->
+                  failedProperties.add(
+                      new InvalidProperty(
+                          KEYS.getEnvironmentNamesPropertyName(),
+                          "An environment name cannot be whitespace.")));
     }
 
     return failedProperties;
