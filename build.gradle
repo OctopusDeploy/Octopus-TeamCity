@@ -21,15 +21,6 @@ ext {
   build_timestamp_format = "yyyyMMddHHmm"
 }
 
-def buildAliases = ['dev': [
-    //'spotlessApply',
-    'build',
-    'checkLicenses',
-    'javadoc'
-  ]]
-
-
-
 allprojects {
   apply plugin: 'java-library'
   apply plugin: 'java'
