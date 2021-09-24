@@ -140,7 +140,7 @@ public class BuildInformationEndToEndTest {
     final Duration buildTimeout = Duration.ofSeconds(30);
     final Instant buildStart = Instant.now();
     LOG.info("Waiting for requested build {} to complete", build.getId());
-    while (Duration.between(Instant.now(), buildStart).minus(buildTimeout).isNegative()) {
+    while (Duration.between(buildStart, Instant.now()).minus(buildTimeout).isNegative()) {
       final Build updatedBuild = tcRestApi.build(build.getId());
       if (updatedBuild.getState().equals(BuildState.FINISHED)) {
         return;
