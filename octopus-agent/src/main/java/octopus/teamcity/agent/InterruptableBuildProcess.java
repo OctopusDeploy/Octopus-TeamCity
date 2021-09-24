@@ -15,12 +15,19 @@
 
 package octopus.teamcity.agent;
 
+import static octopus.teamcity.agent.logging.SdkLogAppender.SDK_APPENDER_NAME;
+import static octopus.teamcity.agent.logging.SdkLogAppender.isVerboseLogging;
+
+import com.octopus.sdk.logging.SdkLogAppenderHelper;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import jetbrains.buildServer.RunBuildException;
 import jetbrains.buildServer.agent.BuildFinishedStatus;
 import jetbrains.buildServer.agent.BuildProcess;
+import jetbrains.buildServer.agent.BuildRunnerContext;
+import octopus.teamcity.agent.logging.SdkLogAppender;
 
 public abstract class InterruptableBuildProcess implements BuildProcess {
 
@@ -28,10 +35,26 @@ public abstract class InterruptableBuildProcess implements BuildProcess {
   private final CompletableFuture<BuildFinishedStatus> uploadFinishedFuture =
       new CompletableFuture<>();
 
-  public InterruptableBuildProcess() {}
+  private final BuildRunnerContext context;
+
+  public InterruptableBuildProcess(BuildRunnerContext context) {
+    this.context = context;
+  }
 
   protected void complete(final BuildFinishedStatus status) {
     uploadFinishedFuture.complete(status);
+  }
+
+  public abstract void doStart() throws RunBuildException;
+
+  @Override
+  public void start() throws RunBuildException {
+    try (SdkLogAppenderHelper ignored =
+        SdkLogAppenderHelper.registerLogAppender(
+            SdkLogAppender.createAppender(SDK_APPENDER_NAME, context.getBuild().getBuildLogger()),
+            isVerboseLogging(context.getRunnerParameters()))) {
+      doStart();
+    }
   }
 
   @Override
@@ -50,7 +73,7 @@ public abstract class InterruptableBuildProcess implements BuildProcess {
   }
 
   @Override
-  public BuildFinishedStatus waitFor() throws RunBuildException {
+  public BuildFinishedStatus waitFor() {
     try {
       return uploadFinishedFuture.get();
     } catch (final InterruptedException e) {

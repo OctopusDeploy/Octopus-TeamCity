@@ -11,11 +11,12 @@ public class OctopusRunbookRunBuildProcess extends InterruptableBuildProcess {
   private final BuildProgressLogger buildLogger;
 
   public OctopusRunbookRunBuildProcess(BuildRunnerContext context) {
+    super(context);
     this.buildLogger = context.getBuild().getBuildLogger();
   }
 
   @Override
-  public void start() throws RunBuildException {
+  public void doStart() throws RunBuildException {
     try {
       buildLogger.message("Create release step not implemented");
       complete(BuildFinishedStatus.FINISHED_FAILED);

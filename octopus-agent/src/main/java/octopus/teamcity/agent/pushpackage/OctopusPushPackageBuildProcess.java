@@ -46,6 +46,7 @@ public class OctopusPushPackageBuildProcess extends InterruptableBuildProcess {
       final PushPackageUploader uploader,
       final FileSelector fileSelector,
       final BuildRunnerContext context) {
+    super(context);
     this.uploader = uploader;
     this.fileSelector = fileSelector;
     this.context = context;
@@ -53,7 +54,7 @@ public class OctopusPushPackageBuildProcess extends InterruptableBuildProcess {
   }
 
   @Override
-  public void start() throws RunBuildException {
+  public void doStart() throws RunBuildException {
     try {
       buildLogger.message("Collating data for upload");
       final List<PushPackageUploaderContext> parameters = collateParameters();

@@ -48,6 +48,7 @@ public class OctopusBuildInformationBuildProcess extends InterruptableBuildProce
       final BuildInformationUploader uploader,
       final BaseBuildVcsData buildVcsData,
       final BuildRunnerContext context) {
+    super(context);
     this.uploader = uploader;
     this.buildVcsData = buildVcsData;
     this.buildLogger = context.getBuild().getBuildLogger();
@@ -55,7 +56,7 @@ public class OctopusBuildInformationBuildProcess extends InterruptableBuildProce
   }
 
   @Override
-  public void start() throws RunBuildException {
+  public void doStart() throws RunBuildException {
     try {
       buildLogger.message("Collating data for upload");
       final List<BuildInformationUploaderContext> buildInformationContexts =
