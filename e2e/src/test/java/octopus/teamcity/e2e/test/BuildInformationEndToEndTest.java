@@ -133,7 +133,8 @@ public class BuildInformationEndToEndTest {
     throw new RuntimeException("Build Failed to complete within 30 seconds");
   }
 
-  private void cleanupContainers(final TeamCityContainers teamCityContainers) throws IOException, InterruptedException {
+  private void cleanupContainers(final TeamCityContainers teamCityContainers)
+      throws IOException, InterruptedException {
     teamCityContainers
         .getServerContainer()
         .execInContainer("rm", "-rf", "/data/teamcity_server/datadir/system/buildserver.tmp");
