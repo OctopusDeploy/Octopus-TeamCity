@@ -112,41 +112,47 @@ public class BuildInformationEndToEndTest {
     } finally {
       // Turns out, some files get written to this directory by TC (as the tcuser) - and they need
       // to be destroyed.
-      teamCityContainers
-          .getServerContainer()
-          .execInContainer("rm", "-rf", "/data/teamcity_server/datadir/system/buildserver.tmp");
-      teamCityContainers
-          .getServerContainer()
-          .execInContainer("rm", "-rf", "/data/teamcity_server/datadir/system/artifacts");
-      teamCityContainers
-          .getServerContainer()
-          .execInContainer(
-              "rm", "-rf", "/data/teamcity_server/datadir/system/caches/plugins.unpacked");
-      teamCityContainers
-          .getServerContainer()
-          .execInContainer(
-              "rm", "-rf", "/data/teamcity_server/datadir/system/caches/pluginsDslCache/src");
-      teamCityContainers
-          .getServerContainer()
-          .execInContainer(
-              "rm",
-              "-rf",
-              "/data/teamcity_server/datadir/system/caches/buildsMetadata/metadataDB.tmp");
+      cleanupContainers(teamCityContainers);
     }
   }
 
   private void waitForBuildToFinish(final Build build, final TeamCityInstance tcRestApi)
       throws InterruptedException {
-    final Duration buildTimeout = Duration.ofSeconds(30);
+    final Duration buildTimeout = Duration.ofSeconds(60);
     final Instant buildStart = Instant.now();
     LOG.info("Waiting for requested build {} to complete", build.getId());
     while (Duration.between(buildStart, Instant.now()).minus(buildTimeout).isNegative()) {
       final Build updatedBuild = tcRestApi.build(build.getId());
       if (updatedBuild.getState().equals(BuildState.FINISHED)) {
+        LOG.info("Build {} completed", build.getId());
         return;
       }
       Thread.sleep(1000);
     }
+    LOG.warn("Build {} failed to complete within expected time limit", build.getId());
     throw new RuntimeException("Build Failed to complete within 30 seconds");
+  }
+
+  private void cleanupContainers(final TeamCityContainers teamCityContainers) throws IOException, InterruptedException {
+    teamCityContainers
+        .getServerContainer()
+        .execInContainer("rm", "-rf", "/data/teamcity_server/datadir/system/buildserver.tmp");
+    teamCityContainers
+        .getServerContainer()
+        .execInContainer("rm", "-rf", "/data/teamcity_server/datadir/system/artifacts");
+    teamCityContainers
+        .getServerContainer()
+        .execInContainer(
+            "rm", "-rf", "/data/teamcity_server/datadir/system/caches/plugins.unpacked");
+    teamCityContainers
+        .getServerContainer()
+        .execInContainer(
+            "rm", "-rf", "/data/teamcity_server/datadir/system/caches/pluginsDslCache/src");
+    teamCityContainers
+        .getServerContainer()
+        .execInContainer(
+            "rm",
+            "-rf",
+            "/data/teamcity_server/datadir/system/caches/buildsMetadata/metadataDB.tmp");
   }
 }
