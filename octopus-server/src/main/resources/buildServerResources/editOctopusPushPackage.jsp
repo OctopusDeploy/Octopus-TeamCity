@@ -43,8 +43,8 @@
   <tr>
     <th>Space name:</th>
     <td>
-      <props:textProperty name="${keys.spaceNameKey}" className="longField"/>
-      <span class="error" id="error_${keys.spaceNameKey}"></span>
+      <props:textProperty name="${keys.spaceName}" className="longField"/>
+      <span class="error" id="error_${keys.spaceName}"></span>
       <span class="smallNote">Specify the Octopus Space name to push to. Leave blank to use the default space.</span>
     </td>
   </tr>

@@ -112,7 +112,7 @@ public class OctopusBuildInformationBuildProcess extends OctopusBuildProcess {
         final ArrayList<String> commands = new ArrayList<String>();
         final String serverUrl = parameters.get(constants.getServerKey());
         final String apiKey = parameters.get(constants.getApiKey());
-        final String spaceName = parameters.get(constants.getSpaceNameKey());
+        final String spaceName = parameters.get(constants.getSpaceName());
         final String packageIds = parameters.get(constants.getPackageIdKey());
         final String packageVersion = parameters.get(constants.getPackageVersionKey());
         final String commandLineArguments = parameters.get(constants.getCommandLineArgumentsKey());
