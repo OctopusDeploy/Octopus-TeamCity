@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import com.intellij.openapi.util.text.StringUtil;
 import jetbrains.buildServer.serverSide.PropertiesProcessor;
 import jetbrains.buildServer.serverSide.RunType;
 import jetbrains.buildServer.serverSide.RunTypeRegistry;
@@ -19,9 +20,13 @@ public class OctopusGenericRunType extends RunType {
   private final PluginDescriptor pluginDescriptor;
 
   public OctopusGenericRunType(
-      final RunTypeRegistry runTypeRegistry, final PluginDescriptor pluginDescriptor) {
+      final String enableStepVnext,
+      final RunTypeRegistry runTypeRegistry,
+      final PluginDescriptor pluginDescriptor) {
     this.pluginDescriptor = pluginDescriptor;
-    runTypeRegistry.registerRunType(this);
+    if (!StringUtil.isEmpty(enableStepVnext) && Boolean.parseBoolean(enableStepVnext)) {
+      runTypeRegistry.registerRunType(this);
+    }
   }
 
   @Override

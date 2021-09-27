@@ -101,7 +101,9 @@ public class TeamCityFactory {
             .withNetwork(dockerNetwork)
             .withNetworkAliases("server")
             .withEnv(
-                "TEAMCITY_SERVER_OPTS", "-Droot.log.level=TRACE -Dteamcity.development.mode=true")
+                "TEAMCITY_SERVER_OPTS",
+                "-Droot.log.level=TRACE -Dteamcity.development.mode=true "
+                    + "-Doctopus.enable.step.vnext=true")
             .withStartupTimeout(Duration.ofMinutes(2))
             .withFileSystemBind(
                 teamCityDataDir.toAbsolutePath().toString(),
