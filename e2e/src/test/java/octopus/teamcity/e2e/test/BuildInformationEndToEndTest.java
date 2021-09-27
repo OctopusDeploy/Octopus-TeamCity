@@ -109,6 +109,9 @@ public class BuildInformationEndToEndTest {
 
       assertThat(items.size()).isEqualTo(1);
       assertThat(items.get(0).getPackageId()).isEqualTo("mypackage.noreally");
+    } catch (final Exception e) {
+      LOG.info("Failed to execute build");
+      LOG.info(teamCityContainers.getAgentContainer().getLogs());
     } finally {
       // Turns out, some files get written to this directory by TC (as the tcuser) - and they need
       // to be destroyed.
