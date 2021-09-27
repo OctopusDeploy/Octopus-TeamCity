@@ -13,5 +13,7 @@
     <bean class="octopus.teamcity.server.OctopusPromoteReleaseRunType"/>
     <bean class="octopus.teamcity.server.OctopusPushPackageRunType"/>
     <bean class="octopus.teamcity.server.OctopusPackPackageRunType"/>
-    <bean class="octopus.teamcity.server.OctopusGenericRunType"/>
+    <bean class="octopus.teamcity.server.OctopusGenericRunType">
+        <constructor-arg value="#{ systemProperties['octopus.enable.step.vnext'] }"/>
+    </bean>
 </beans>
