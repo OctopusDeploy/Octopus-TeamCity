@@ -112,6 +112,7 @@ public class BuildInformationEndToEndTest {
     } catch (final Exception e) {
       LOG.info("Failed to execute build");
       LOG.info(teamCityContainers.getAgentContainer().getLogs());
+      throw e;
     } finally {
       // Turns out, some files get written to this directory by TC (as the tcuser) - and they need
       // to be destroyed.
