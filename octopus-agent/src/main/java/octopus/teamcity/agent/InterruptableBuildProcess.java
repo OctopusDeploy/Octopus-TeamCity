@@ -15,11 +15,11 @@
 
 package octopus.teamcity.agent;
 
-import static octopus.teamcity.agent.logging.SdkLogAppender.SDK_APPENDER_NAME;
-import static octopus.teamcity.agent.logging.SdkLogAppender.isVerboseLogging;
+import static octopus.teamcity.agent.logging.BuildLogAppender.BUILD_LOG_APPENDER_NAME;
 
 import com.octopus.sdk.logging.SdkLogAppenderHelper;
 
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -27,7 +27,9 @@ import jetbrains.buildServer.RunBuildException;
 import jetbrains.buildServer.agent.BuildFinishedStatus;
 import jetbrains.buildServer.agent.BuildProcess;
 import jetbrains.buildServer.agent.BuildRunnerContext;
-import octopus.teamcity.agent.logging.SdkLogAppender;
+import octopus.teamcity.agent.logging.BuildLogAppender;
+import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
+import org.apache.logging.log4j.Level;
 
 public abstract class InterruptableBuildProcess implements BuildProcess {
 
@@ -49,9 +51,10 @@ public abstract class InterruptableBuildProcess implements BuildProcess {
 
   @Override
   public void start() throws RunBuildException {
-    try (SdkLogAppenderHelper ignored =
+    try (final SdkLogAppenderHelper ignored =
         SdkLogAppenderHelper.registerLogAppender(
-            SdkLogAppender.createAppender(SDK_APPENDER_NAME, context.getBuild().getBuildLogger()),
+            BuildLogAppender.createAppender(
+                BUILD_LOG_APPENDER_NAME, context.getBuild().getBuildLogger()),
             isVerboseLogging(context.getRunnerParameters()))) {
       doStart();
     }
@@ -81,5 +84,13 @@ public abstract class InterruptableBuildProcess implements BuildProcess {
     } catch (final ExecutionException e) {
       return BuildFinishedStatus.FINISHED_FAILED;
     }
+  }
+
+  private Level isVerboseLogging(final Map<String, String> runnerParameters) {
+    if (runnerParameters != null
+        && Boolean.parseBoolean(runnerParameters.get(CommonStepPropertyNames.VERBOSE_LOGGING))) {
+      return Level.DEBUG;
+    }
+    return Level.INFO;
   }
 }
