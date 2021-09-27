@@ -30,7 +30,7 @@
 
 <div class="parameter">
   Space name:
-  <strong><props:displayValue name="${keys.spaceName}" emptyValue="not specified"/></strong>
+  <strong><props:displayValue name="${keys.spaceNameKey}" emptyValue="not specified"/></strong>
 </div>
 
 <div class="parameter">
@@ -40,7 +40,7 @@
 
 <div class="parameter">
   Package version:
-  <strong><props:displayValue name="${keys.packageVersion}" emptyValue="not specified"/></strong>
+  <strong><props:displayValue name="${keys.packageVersionKey}" emptyValue="not specified"/></strong>
 </div>
 
 <div class="parameter">

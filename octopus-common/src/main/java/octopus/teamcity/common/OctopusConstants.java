@@ -53,7 +53,7 @@ public class OctopusConstants {
     return new String[] {getVersion3(), getVersion2(), getVersion1(), getPreviewVersion()};
   }
 
-  public String getSpaceName() {
+  public String getSpaceNameKey() {
     return "octopus_space_name";
   }
 
