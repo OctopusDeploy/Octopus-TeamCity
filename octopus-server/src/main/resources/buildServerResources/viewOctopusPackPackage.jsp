@@ -30,12 +30,12 @@
 
 <div class="parameter">
   Package format:
-  <strong><props:displayValue name="${keys.packageFormatKey}" emptyValue="not specified"/></strong>
+  <strong><props:displayValue name="${keys.packageFormat}" emptyValue="not specified"/></strong>
 </div>
 
 <div class="parameter">
   Package version:
-  <strong><props:displayValue name="${keys.packageVersionKey}" emptyValue="not specified"/></strong>
+  <strong><props:displayValue name="${keys.packageVersion}" emptyValue="not specified"/></strong>
 </div>
       
 <div class="parameter">
