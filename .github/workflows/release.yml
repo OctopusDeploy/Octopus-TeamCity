@@ -6,8 +6,8 @@ on:
 
   workflow_dispatch:
     inputs:
-      release-url:
-        description: "The URL of the github release which is being replicated in Octopus Deploy"
+      release-tag:
+        description: "The tag of the release being replicated in Octopus Deploy"
         required: true
 
 jobs:
@@ -48,10 +48,13 @@ jobs:
         id: fetch-release-nodes
         run: |
           if ["${{github.event_name}}" = "release"]; then
-             RELEASE_NOTES=curl -H "Accept: application/vnd.github.v3+json" ${{ github.event_path }} | jq '.body'
+             RELEASE_NOTES=`jq '.release.body' ${{ github.event_path }}
              echo "::set-output name=release-notes::$RELEASE_NOTES"
           else
-             RELEASE_NOTES=curl -H "Accept: application/vnd.github.v3+json" ${{ inputs.release-url }} | jq '.body'
+             RELEASE_URL="http://api.github.com/repos/$GITHUB_REPOSITORY/releases/tags/"${{inputs.release-tag}}
+             echo $RELEASE_URL
+             RELEASE_NOTES=curl -H "Accept: application/vnd.github.v3+json" $RELEASE_URL | jq '
+          .body'
              echo "::set-output name=release-notes::$RELEASE_NOTES"
           fi
 
