@@ -38,7 +38,7 @@ jobs:
         echo "::set-output name=version::$version"
 
     - name: Push a package to Octopus Deploy 🐙
-      uses: OctopusDeploy/push-package-action@<version>
+      uses: OctopusDeploy/push-package-action@v1.0.2
       with:
         overwrite_mode: IgnoreExists
         api_key: ${{ secrets.OCTOPUS_APIKEY }}
