@@ -36,10 +36,16 @@ jobs:
           VERSION=`./gradlew properties | grep ^version | awk '{print $2;}'`
           echo "::set-output name=version::$VERSION"
 
-      - name: Push a package to Octopus Deploy 🐙
-        uses: OctopusDeploy/push-package-action@v1.0.2
+      - name: Install Octopus CLI 🐙
+        uses: OctopusDeploy/install-octopus-cli-action@v1.1.7
         with:
-          overwrite_mode: IgnoreExists
+          version: latest
+
+
+      - name: Push a package to Octopus Deploy 🐙
+        uses: OctopusDeploy/push-package-action@v1.1.1
+        with:
+          overwrite_mode: IgnoreIfExists
           api_key: ${{ secrets.OCTOPUS_APIKEY }}
           packages: ${{ steps .create-package.package-created }}
           server: ${{ secrets.OCTOPUS_SERVER }}
@@ -51,7 +57,8 @@ jobs:
              RELEASE_NOTES=`jq '.release.body' ${{ github.event_path }}
              echo "::set-output name=release-notes::$RELEASE_NOTES"
           else
-             RELEASE_URL="http://api.github.com/repos/$GITHUB_REPOSITORY/releases/tags/"${{inputs.release-tag}}
+             RELEASE_URL=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/releases/tags/"${{inputs
+          .release-tag}}
              echo $RELEASE_URL
              RELEASE_NOTES=curl -H "Accept: application/vnd.github.v3+json" $RELEASE_URL | jq '
           .body'
@@ -59,7 +66,7 @@ jobs:
           fi
 
       - name: Create a release in Octopus Deploy 🐙
-        uses: OctopusDeploy/create-release-action@v1.0.2
+        uses: OctopusDeploy/create-release-action@v1.1.1
         with:
           api_key: ${{ secrets.OCTOPUS_APIKEY }}
           server: ${{ secrets.OCTOPUS_SERVER }}
