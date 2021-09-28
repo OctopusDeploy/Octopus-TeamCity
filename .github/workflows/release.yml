@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       release-url:
-        description: "The URL of the github release being created in OD"
+        description: "The URL of the github release which is being replicated in Octopus Deploy"
         required: true
 
 jobs:
