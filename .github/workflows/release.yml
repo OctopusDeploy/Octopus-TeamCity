@@ -49,10 +49,10 @@ jobs:
         run: |
           if ["${{github.event_name}}" = "release"]; then
              RELEASE_NOTES=curl ${{ github.event_path }} | jq '.body'
-             echo "::set-output name=release-notes::RELEASE_NOTES"
+             echo "::set-output name=release-notes::$RELEASE_NOTES"
           else
              RELEASE_NOTES=curl ${{ inputs.release-url }} | jq '.body'
-             echo "::set-output name=release-notes::RELEASE_NOTES"
+             echo "::set-output name=release-notes::$RELEASE_NOTES"
           fi
 
       - name: Create a release in Octopus Deploy 🐙
