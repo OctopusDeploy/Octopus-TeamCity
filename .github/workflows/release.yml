@@ -12,7 +12,7 @@ on:
 
 jobs:
   build:
-    name: "Build and Package"
+    name: "Push Package and Create Release"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -47,8 +47,9 @@ jobs:
         with:
           overwrite_mode: IgnoreIfExists
           api_key: ${{ secrets.OCTOPUS_APIKEY }}
-          packages: ${{ steps .create-package.package-created }}
+          packages: ${{ steps.create-package.package-created }}
           server: ${{ secrets.OCTOPUS_SERVER }}
+          space: "Integrations"
 
       - name: Fetch Release Notes
         id: fetch-release-nodes
