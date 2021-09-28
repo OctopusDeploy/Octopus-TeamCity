@@ -1,4 +1,4 @@
-name: Build, Test, Package and Push
+name: Push to Octopus Server
 
 on:
   release:
