@@ -38,31 +38,28 @@ jobs:
 
       - name: Install Octopus CLI 🐙
         uses: OctopusDeploy/install-octopus-cli-action@v1.1.7
-        with:
-          version: latest
-
 
       - name: Push a package to Octopus Deploy 🐙
         uses: OctopusDeploy/push-package-action@v1.1.1
         with:
           overwrite_mode: IgnoreIfExists
           api_key: ${{ secrets.OCTOPUS_APIKEY }}
-          packages: ${{ steps.create-package.package-created }}
+          packages: "${{ steps.create-package.outputs.package-created }}"
           server: ${{ secrets.OCTOPUS_SERVER }}
           space: "Integrations"
 
       - name: Fetch Release Notes
-        id: fetch-release-nodes
+        id: fetch-release-notes
         run: |
-          if ["${{github.event_name}}" = "release"]; then
-             RELEASE_NOTES=`jq '.release.body' ${{ github.event_path }}
+          echo "::debug::${{github.event_name}}"
+          if [[ "${{github.event_name}}" = "release" ]]; then
+             RELEASE_NOTES=`jq --raw-output '.release.body' ${{ github.event_path }}`
              echo "::set-output name=release-notes::$RELEASE_NOTES"
           else
-             RELEASE_URL=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/releases/tags/"${{inputs
-          .release-tag}}
-             echo $RELEASE_URL
-             RELEASE_NOTES=curl -H "Accept: application/vnd.github.v3+json" $RELEASE_URL | jq '
-          .body'
+             RELEASE_URL=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/releases/tags/${{github.event.inputs.release-tag}}
+             echo "::debug::Fetching relesae from $RELEASE_URL"
+             RELEASE_NOTES=`curl -s -H "Accept: application/vnd.github.v3+json" $RELEASE_URL | jq --raw-output '.body'`
+             echo "::debug::Release notes = $RELEASE_NOTES"
              echo "::set-output name=release-notes::$RELEASE_NOTES"
           fi
 
@@ -73,5 +70,6 @@ jobs:
           server: ${{ secrets.OCTOPUS_SERVER }}
           space: "Integrations"
           project: "TeamCity Plugin"
-          package_version: ${{ steps.create-package.version }}
-          release_notes: ${{steps.fetch-release-notes.release-notes }}
+          package_version: ${{ steps.create-package.outputs.version }}
+          release_number: ${{ steps.create-package.outputs.version }}
+          release_notes: ${{ steps.fetch-release-notes.outputs.release-notes }}
