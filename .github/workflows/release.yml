@@ -41,17 +41,17 @@ jobs:
         with:
           overwrite_mode: IgnoreExists
           api_key: ${{ secrets.OCTOPUS_APIKEY }}
-          packages: ${{ step.create-package.package-created }}
+          packages: ${{ steps .create-package.package-created }}
           server: ${{ secrets.OCTOPUS_SERVER }}
 
       - name: Fetch Release Notes
         id: fetch-release-nodes
         run: |
           if ["${{github.event_name}}" = "release"]; then
-             RELEASE_NOTES=curl ${{ github.event_path }} | jq '.body'
+             RELEASE_NOTES=curl -H "Accept: application/vnd.github.v3+json" ${{ github.event_path }} | jq '.body'
              echo "::set-output name=release-notes::$RELEASE_NOTES"
           else
-             RELEASE_NOTES=curl ${{ inputs.release-url }} | jq '.body'
+             RELEASE_NOTES=curl -H "Accept: application/vnd.github.v3+json" ${{ inputs.release-url }} | jq '.body'
              echo "::set-output name=release-notes::$RELEASE_NOTES"
           fi
 
