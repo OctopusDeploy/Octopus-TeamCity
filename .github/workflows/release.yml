@@ -1,6 +1,5 @@
 name: Build, Test, Package and Push
 
-# Controls when the action will run.
 on:
   release:
     types: [created]
@@ -31,37 +30,37 @@ jobs:
       - name: Create Plugin Zip Deployment
         id: create-package
         run: |
-        ./gradlew distZip
-        PACKAGE_NAME=`./gradlew -q packageName`
-        echo "::set-output name=package-created::$PACKAGE_NAME"
-        version=`./gradlew properties | grep ^version | awk '{print $2;}'`
-        echo "::set-output name=version::$version"
+          ./gradlew distZip
+          PACKAGE_NAME=`./gradlew -q packageName`
+          echo "::set-output name=package-created::$PACKAGE_NAME"
+          VERSION=`./gradlew properties | grep ^version | awk '{print $2;}'`
+          echo "::set-output name=version::$VERSION"
 
-    - name: Push a package to Octopus Deploy 🐙
-      uses: OctopusDeploy/push-package-action@v1.0.2
-      with:
-        overwrite_mode: IgnoreExists
-        api_key: ${{ secrets.OCTOPUS_APIKEY }}
-        packages: ${{ step.create-package.package-created }}
-        server: ${{ secrets.OCTOPUS_SERVER }}
+      - name: Push a package to Octopus Deploy 🐙
+        uses: OctopusDeploy/push-package-action@v1.0.2
+        with:
+          overwrite_mode: IgnoreExists
+          api_key: ${{ secrets.OCTOPUS_APIKEY }}
+          packages: ${{ step.create-package.package-created }}
+          server: ${{ secrets.OCTOPUS_SERVER }}
 
-    - name: Fetch Release Notes
-      id: fetch-release-nodes
-      run: |
-        if ["${{github.event_name}}" = "release"]; then
-           RELEASE_NOTES=curl ${{ github.event_path }} | jq '.body'
-           echo "::set-output name=release_notes::RELEASE_NOTES"
-        else
-           RELEASE_NOTES=curl ${{ inputs.release-url }} | jq '.body'
-           echo "::set-output name=release_notes::RELEASE_NOTES"
-        fi
+      - name: Fetch Release Notes
+        id: fetch-release-nodes
+        run: |
+          if ["${{github.event_name}}" = "release"]; then
+             RELEASE_NOTES=curl ${{ github.event_path }} | jq '.body'
+             echo "::set-output name=release-notes::RELEASE_NOTES"
+          else
+             RELEASE_NOTES=curl ${{ inputs.release-url }} | jq '.body'
+             echo "::set-output name=release-notes::RELEASE_NOTES"
+          fi
 
-    - name: Create a release in Octopus Deploy 🐙
-      uses: OctopusDeploy/create-release-action@v1.0.2
-      with:
-        api_key: ${{ secrets.OCTOPUS_APIKEY }}
-        server: ${{ secrets.OCTOPUS_SERVER }}
-        space: "Integrations"
-        project: "TeamCity Plugin"
-        package_version: ${{ steps.create-package.version }}
-        release_notes: ${{steps.fetch-release-notes.release_nodes }}
+      - name: Create a release in Octopus Deploy 🐙
+        uses: OctopusDeploy/create-release-action@v1.0.2
+        with:
+          api_key: ${{ secrets.OCTOPUS_APIKEY }}
+          server: ${{ secrets.OCTOPUS_SERVER }}
+          space: "Integrations"
+          project: "TeamCity Plugin"
+          package_version: ${{ steps.create-package.version }}
+          release_notes: ${{steps.fetch-release-notes.release-notes }}
