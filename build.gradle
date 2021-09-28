@@ -167,6 +167,12 @@ distributions {
   }
 }
 
+task packageName {
+  doFirst {
+    println tasks.findByPath(":distZip").outputs.files.singleFile
+  }
+}
+
 
 task deployLocal(type: Copy) {
   def teamCityDataDir = System.getenv("TEAMCITY_DATA_DIR") ?: System.getenv("HOME") + "/.BuildServer"
