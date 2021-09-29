@@ -1,1 +1,0 @@
-powershell .\test-local.ps1
