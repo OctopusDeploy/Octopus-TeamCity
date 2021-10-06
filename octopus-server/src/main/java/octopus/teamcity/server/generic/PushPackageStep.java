@@ -3,9 +3,9 @@ package octopus.teamcity.server.generic;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.collect.Lists;
 import jetbrains.buildServer.serverSide.InvalidProperty;
 import octopus.teamcity.common.pushpackage.PushPackagePropertyNames;
-import org.apache.commons.compress.utils.Lists;
 
 public class PushPackageStep extends OctopusBuildStep {
 

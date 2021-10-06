@@ -21,9 +21,11 @@
   --%>
 
 <jsp:useBean id="keys" class="octopus.teamcity.common.commonstep.CommonStepPropertyNames"/>
-<jsp:useBean id="propertiesBean" scope="request" type="jetbrains.buildServer.controllers.BasePropertiesBean"/>
+<jsp:useBean id="propertiesBean" scope="request"
+             type="jetbrains.buildServer.controllers.BasePropertiesBean"/>
 <jsp:useBean id="params" class="octopus.teamcity.server.generic.BuildStepCollection"/>
-
+<jsp:useBean id="octopusConnections"
+             type="octopus.teamcity.server.connection.OctopusConnectionsBean" scope="request"/>
 
 <jsp:useBean id="teamcityPluginResourcesPath" scope="request" type="java.lang.String"/>
 <c:set var="paramHelpUrl">net#</c:set>
@@ -31,52 +33,66 @@
 
 <l:settingsGroup title="Octopus Connection">
     <tr>
-        <th>Octopus URL:<l:star/></th>
+        <th>Connection:<l:star/></th>
         <td>
-            <props:textProperty name="${keys.serverUrlPropertyName}" className="longField"/>
-            <span class="error" id="error_${keys.serverUrlPropertyName}"></span>
-            <span class="smallNote">Specify Octopus web portal URL</span>
+            <c:choose>
+                <c:when test="${empty octopusConnections.connections}">
+                    No suitable Octopus connections were found.
+                    <br/>
+                    To receive notifications for all projects, configure Octopus connection in the
+                    <c:choose>
+                        <c:when test='${user.isPermissionGrantedForProject(rootProject.projectId, Permission.EDIT_PROJECT)}'>
+                            <a href="${editConnectionUrl}">Root project's settings</a>.
+                        </c:when>
+                        <c:otherwise>
+                            Root project's settings.
+                        </c:otherwise>
+                    </c:choose>
+                    To receive notifications for a specific project, configure the connection directly in that project's settings instead.
+                    <br/>
+                </c:when>
+                <c:otherwise>
+                    <props:selectProperty
+                            name="${keys.connectionNamePropertyName}"
+                            id="${keys.connectionNamePropertyName.replace(':', '-')}"
+                            className="longField"
+                    >
+                        <props:option value="">-- Select Octopus connection --</props:option>
+                        <c:forEach var="connection" items="${octopusConnections.connections}">
+                            <props:option value="${connection.id}">
+                                <c:out value="${connection.connectionDisplayName}"/>
+                            </props:option>
+                        </c:forEach>
+                    </props:selectProperty>
+                </c:otherwise>
+            </c:choose>
+
+            <span class="error" id="error_${keys.connectionNamePropertyName}"></span>
         </td>
     </tr>
+</l:settingsGroup>
+
+<l:settingsGroup title="Operation">
     <tr>
-        <th>API key:<l:star/></th>
-        <td>
-            <props:passwordProperty name="${keys.apiKeyPropertyName}" className="longField"/>
-            <span class="error" id="error_${keys.apiKeyPropertyName}"></span>
-            <span class="smallNote">Specify Octopus API key. You can get this from your user page in the Octopus web portal.</span>
-        </td>
-    </tr>
-    <tr>
-        <th>Space name:</th>
-        <td>
-            <props:textProperty name="${keys.spaceNamePropertyName}" className="longField"/>
-            <span class="error" id="error_${keys.spaceNamePropertyName}"></span>
-            <span class="smallNote">Specify Octopus Space name. Leave blank to use the default space.</span>
-        </td>
-    </tr>
-    <tr class="advancedSetting">
         <th>Verbose logging:</th>
         <td>
-            <props:checkboxProperty name="${keys.verboseLoggingPropertyName}"/>
+            <props:checkboxProperty name="${keys.verboseLoggingPropertyName}" />
             <span class="error" id="error_${keys.verboseLoggingPropertyName}"></span>
             <span class="smallNote">Set this to get more verbose logging.</span>
         </td>
     </tr>
 
-</l:settingsGroup>
+    <tr>
+        <th>Space name:<l:star/></th>
+        <td>
+            <props:textProperty name="${keys.spaceNamePropertyName}" className="longField"/>
+            <span class="error" id="error_${keys.spaceNamePropertyName}"></span>
+            <span class="smallNote">Specify Octopus Space name.</span>
+        </td>
+    </tr>
 
-<l:settingsGroup title="Proxy Server">
-    <props:selectSectionProperty name="${keys.proxyRequiredPropertyName}" title="Proxy Server Requried" note="">
-        <props:selectSectionPropertyContent value="false" caption="<No Proxy Required>"/>
-            <props:selectSectionPropertyContent value="true" caption="Use Proxy Server">
-                <jsp:include page="${teamcityPluginResourcesPath}/v2/subpages/editProxyParameters.jsp"/>
-            </props:selectSectionPropertyContent>
-    </props:selectSectionProperty>
-</l:settingsGroup>
-
-
-<l:settingsGroup title="Operation">
-    <props:selectSectionProperty name="${keys.stepTypePropertyName}" title="${commandTitle}" note="">
+    <props:selectSectionProperty name="${keys.stepTypePropertyName}" title="${commandTitle}"
+                                 note="">
         <c:forEach items="${params.subSteps}" var="type">
             <props:selectSectionPropertyContent value="${type.name}" caption="${type.description}">
                 <jsp:include page="${teamcityPluginResourcesPath}/v2/subpages/${type.editPage}"/>

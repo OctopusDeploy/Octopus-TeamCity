@@ -12,31 +12,24 @@
  * CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package octopus.teamcity.common.commonstep;
+
+package octopus.teamcity.common.connection;
 
 import jetbrains.buildServer.agent.Constants;
 
-// NOTE: These constants must be accessible via getters to maintain bean-ness, which is used by jsps
-public class CommonStepPropertyNames {
+public class ConnectionPropertyNames {
+  //DisplayName is _required_ by teamcity
+  public static final String DISPLAY_NAME = "displayName";
 
-  public static final String CONNECTION_NAME = "octopus_connectionname";
-  public static final String STEP_TYPE = "octopus_step_type";
   public static final String SERVER_URL = "octopus_host";
   public static final String API_KEY = Constants.SECURE_PROPERTY_PREFIX + "octopus_apikey";
-  public static final String SPACE_NAME = "octopus_spacename";
   public static final String PROXY_REQUIRED = "octopus_proxyrequired";
   public static final String PROXY_URL = "octopus_proxyurl";
   public static final String PROXY_USERNAME = "octopus_proxyusername";
   public static final String PROXY_PASSWORD =
       Constants.SECURE_PROPERTY_PREFIX + "octopus_proxypassword";
-  public static final String VERBOSE_LOGGING = "octopus_verboselogging";
 
-  public CommonStepPropertyNames() {}
-
-  public String getConnectionNamePropertyName() { return CONNECTION_NAME; }
-
-  public String getStepTypePropertyName() {
-    return STEP_TYPE;
+  public ConnectionPropertyNames() {
   }
 
   public String getServerUrlPropertyName() {
@@ -47,15 +40,11 @@ public class CommonStepPropertyNames {
     return API_KEY;
   }
 
-  public String getSpaceNamePropertyName() {
-    return SPACE_NAME;
-  }
-
   public String getProxyRequiredPropertyName() {
     return PROXY_REQUIRED;
   }
 
-  public String getProxyServerUrlPropertyName() {
+  public String getProxyUrlPropertyName() {
     return PROXY_URL;
   }
 
@@ -65,9 +54,5 @@ public class CommonStepPropertyNames {
 
   public String getProxyPasswordPropertyName() {
     return PROXY_PASSWORD;
-  }
-
-  public String getVerboseLoggingPropertyName() {
-    return VERBOSE_LOGGING;
   }
 }
