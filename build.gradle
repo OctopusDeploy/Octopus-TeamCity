@@ -61,6 +61,7 @@ allprojects {
   targetCompatibility = 8
 
   repositories {
+    mavenLocal()
     mavenCentral()
     maven { url "https://download.jetbrains.com/teamcity-repository" }
     maven { url "https://packages.octopushq.com/artifactory/maven" }

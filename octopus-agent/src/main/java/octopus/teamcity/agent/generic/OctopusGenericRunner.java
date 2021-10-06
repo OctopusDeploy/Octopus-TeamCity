@@ -21,8 +21,8 @@ import static jetbrains.buildServer.messages.DefaultMessagesInfo.BLOCK_TYPE_BUIL
 import com.octopus.sdk.http.ConnectData;
 import com.octopus.sdk.http.OctopusClient;
 import com.octopus.sdk.http.OctopusClientFactory;
-import com.octopus.sdk.operations.buildinformation.BuildInformationUploader;
-import com.octopus.sdk.operations.pushpackage.PushPackageUploader;
+import com.octopus.sdk.operation.buildinformation.BuildInformationUploader;
+import com.octopus.sdk.operation.pushpackage.PushPackageUploader;
 
 import java.net.MalformedURLException;
 
@@ -109,9 +109,9 @@ public class OctopusGenericRunner implements AgentBuildRunner {
         final FileSelector fileSelector = new FileSelector(context.getWorkingDirectory().toPath());
         return new OctopusPushPackageBuildProcess(pushPackageUploader, fileSelector, context);
       case ("create-release"):
-        return new OctopusCreateReleaseBuildProcess(context);
+        return new OctopusCreateReleaseBuildProcess(context, client);
       case ("runbook-run"):
-        return new OctopusRunbookRunBuildProcess(context);
+        return new OctopusRunbookRunBuildProcess(context, client);
       default:
         throw new RunBuildException("Unknown build step type " + stepType);
     }

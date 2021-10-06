@@ -15,9 +15,9 @@
 
 package octopus.teamcity.agent.buildinformation;
 
-import com.octopus.sdk.operations.buildinformation.BuildInformationUploader;
-import com.octopus.sdk.operations.buildinformation.BuildInformationUploaderContext;
-import com.octopus.sdk.operations.buildinformation.BuildInformationUploaderContextBuilder;
+import com.octopus.sdk.operation.buildinformation.BuildInformationUploader;
+import com.octopus.sdk.operation.buildinformation.BuildInformationUploaderContext;
+import com.octopus.sdk.operation.buildinformation.BuildInformationUploaderContextBuilder;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;

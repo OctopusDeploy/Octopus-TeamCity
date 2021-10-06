@@ -37,7 +37,7 @@ public abstract class InterruptableBuildProcess implements BuildProcess {
   private final CompletableFuture<BuildFinishedStatus> uploadFinishedFuture =
       new CompletableFuture<>();
 
-  private final BuildRunnerContext context;
+  protected final BuildRunnerContext context;
 
   public InterruptableBuildProcess(BuildRunnerContext context) {
     this.context = context;
