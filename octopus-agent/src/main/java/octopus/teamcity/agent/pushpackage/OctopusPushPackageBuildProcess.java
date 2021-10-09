@@ -87,7 +87,6 @@ public class OctopusPushPackageBuildProcess extends InterruptableBuildProcess {
   private List<PushPackageUploaderContext> collateParameters() {
     final List<PushPackageUploaderContext> result = Lists.newArrayList();
     final Map<String, String> parameters = context.getRunnerParameters();
-    final CommonStepUserData commonStepUserData = new CommonStepUserData(parameters);
     final PushPackageUserData pushPackageUserData = new PushPackageUserData(parameters);
 
     final Set<File> filesToUpload = determineFilesToUpload(pushPackageUserData.getPackagePaths());
@@ -102,7 +101,7 @@ public class OctopusPushPackageBuildProcess extends InterruptableBuildProcess {
 
     final PushPackageUploaderContextBuilder pushPackageUploaderContextBuilder =
         new PushPackageUploaderContextBuilder()
-            .withSpaceName(commonStepUserData.getSpaceName().orElse(null))
+            .withSpaceName(pushPackageUserData.getSpaceName().orElse(null))
             .withOverwriteMode(TypeConverters.from(pushPackageUserData.getOverwriteMode()));
 
     buildLogger.message("Files found to upload:");

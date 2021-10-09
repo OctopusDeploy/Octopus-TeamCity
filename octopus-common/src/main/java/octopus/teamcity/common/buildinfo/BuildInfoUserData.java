@@ -21,8 +21,9 @@ import java.util.Map;
 import jetbrains.buildServer.util.StringUtil;
 import octopus.teamcity.common.BaseUserData;
 import octopus.teamcity.common.OverwriteMode;
+import octopus.teamcity.common.commonstep.CommonStepUserData;
 
-public class BuildInfoUserData extends BaseUserData {
+public class BuildInfoUserData extends CommonStepUserData {
 
   private static final BuildInfoPropertyNames KEYS = new BuildInfoPropertyNames();
 

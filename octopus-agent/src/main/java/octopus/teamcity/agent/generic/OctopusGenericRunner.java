@@ -43,6 +43,7 @@ import octopus.teamcity.agent.pushpackage.OctopusPushPackageBuildProcess;
 import octopus.teamcity.agent.runbookrun.OctopusRunbookRunBuildProcess;
 import octopus.teamcity.common.OctopusConstants;
 import octopus.teamcity.common.commonstep.CommonStepUserData;
+import octopus.teamcity.common.connection.ConnectionUserData;
 
 public class OctopusGenericRunner implements AgentBuildRunner {
 
@@ -69,8 +70,8 @@ public class OctopusGenericRunner implements AgentBuildRunner {
       throws RunBuildException {
 
     final BuildProgressLogger logger = runningBuild.getBuildLogger();
-    final CommonStepUserData commonStepUserData =
-        new CommonStepUserData(context.getRunnerParameters());
+    final ConnectionUserData connectionUserData = new ConnectionUserData(context.getRunnerParameters());
+    final CommonStepUserData commonStepUserData = new CommonStepUserData(context.getRunnerParameters());
 
     final String activityName = ACTIVITY_NAME + " - " + commonStepUserData.getStepType();
     logger.activityStarted(activityName, BLOCK_TYPE_BUILD_STEP);
@@ -78,8 +79,8 @@ public class OctopusGenericRunner implements AgentBuildRunner {
     try {
       logger.message(
           "Creating connection to Octopus server @ "
-              + commonStepUserData.getServerUrl().toString());
-      final ConnectData connection = TypeConverters.from(commonStepUserData);
+              + connectionUserData.getServerUrl().toString());
+      final ConnectData connection = TypeConverters.from(connectionUserData);
       final OctopusClient client = OctopusClientFactory.createClient(connection);
       return createBuildProcess(commonStepUserData.getStepType(), client, runningBuild, context);
     } catch (final MalformedURLException e) {

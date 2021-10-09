@@ -5,12 +5,13 @@ import java.util.Map;
 import java.util.Optional;
 
 import octopus.teamcity.common.BaseUserData;
+import octopus.teamcity.common.commonstep.CommonStepUserData;
 
-public class RunbookRunUserData extends BaseUserData {
+public class RunbookRunUserData extends CommonStepUserData {
 
   private static final RunbookRunPropertyNames KEYS = new RunbookRunPropertyNames();
 
-  public RunbookRunUserData(Map<String, String> params) {
+  public RunbookRunUserData(final Map<String, String> params) {
     super(params);
   }
 

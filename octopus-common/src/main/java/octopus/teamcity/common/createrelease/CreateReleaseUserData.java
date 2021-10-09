@@ -6,12 +6,13 @@ import java.util.Optional;
 
 import com.intellij.openapi.util.text.StringUtil;
 import octopus.teamcity.common.BaseUserData;
+import octopus.teamcity.common.commonstep.CommonStepUserData;
 
-public class CreateReleaseUserData extends BaseUserData {
+public class CreateReleaseUserData extends CommonStepUserData {
 
   private static final CreateReleasePropertyNames KEYS = new CreateReleasePropertyNames();
 
-  public CreateReleaseUserData(Map<String, String> params) {
+  public CreateReleaseUserData(final Map<String, String> params) {
     super(params);
   }
 

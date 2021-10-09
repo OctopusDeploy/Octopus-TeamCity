@@ -84,14 +84,13 @@ public class OctopusBuildInformationBuildProcess extends InterruptableBuildProce
     final AgentRunningBuild runningBuild = context.getBuild();
     final Map<String, String> sharedConfigParameters = runningBuild.getSharedConfigParameters();
 
-    final CommonStepUserData commonStepUserData = new CommonStepUserData(parameters);
     final BuildInfoUserData buildInfoUserData = new BuildInfoUserData(parameters);
     final String buildId = Long.toString(runningBuild.getBuildId());
 
     final BuildInformationUploaderContextBuilder buildInfoBuilder =
         new BuildInformationUploaderContextBuilder()
             .withBuildEnvironment("TeamCity")
-            .withSpaceName(commonStepUserData.getSpaceName().orElse(null))
+            .withSpaceName(buildInfoUserData.getSpaceName().orElse(null))
             .withPackageVersion(buildInfoUserData.getPackageVersion())
             .withVcsType(sharedConfigParameters.get("octopus_vcstype"))
             .withVcsRoot(sharedConfigParameters.get("vcsroot.url"))
