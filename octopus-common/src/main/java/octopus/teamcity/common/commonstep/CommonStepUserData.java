@@ -15,10 +15,10 @@
 
 package octopus.teamcity.common.commonstep;
 
-import octopus.teamcity.common.BaseUserData;
-
 import java.util.Map;
 import java.util.Optional;
+
+import octopus.teamcity.common.BaseUserData;
 
 /**
  * Assumes that the params passed in are correctly formatted and can be immediately converted to the

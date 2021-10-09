@@ -36,32 +36,34 @@ public class OctopusBuildStepPropertiesProcessor implements PropertiesProcessor 
   @Override
   public List<InvalidProperty> process(final Map<String, String> properties) {
     return Collections.emptyList();
-//
-//    if (properties == null) {
-//      throw new IllegalArgumentException("Supplied properties list was null");
-//    }
-//
-//    final String stepType = properties.get(KEYS.getStepTypePropertyName());
-//    if (stepType == null) {
-//      throw new IllegalArgumentException("No step-type was specified, contact Octopus support");
-//    }
-//
-//    final List<InvalidProperty> result = Lists.newArrayList();
-//
-//    validateServerUrl(properties, KEYS.getServerUrlPropertyName()).ifPresent(result::add);
-//    validateApiKey(properties, KEYS.getApiKeyPropertyName()).ifPresent(result::add);
-//    result.addAll(validateProxySettings(properties));
-//
-//    final BuildStepCollection buildStepCollection = new BuildStepCollection();
-//    result.addAll(
-//        buildStepCollection.getSubSteps().stream()
-//            .filter(cmd -> cmd.getName().equals(stepType))
-//            .findFirst()
-//            .map(cmd -> cmd.validateProperties(properties))
-//            .orElseThrow(
-//                () -> new IllegalArgumentException("No matching validation for selected command")));
-//
-//    return result;
+    //
+    //    if (properties == null) {
+    //      throw new IllegalArgumentException("Supplied properties list was null");
+    //    }
+    //
+    //    final String stepType = properties.get(KEYS.getStepTypePropertyName());
+    //    if (stepType == null) {
+    //      throw new IllegalArgumentException("No step-type was specified, contact Octopus
+    // support");
+    //    }
+    //
+    //    final List<InvalidProperty> result = Lists.newArrayList();
+    //
+    //    validateServerUrl(properties, KEYS.getServerUrlPropertyName()).ifPresent(result::add);
+    //    validateApiKey(properties, KEYS.getApiKeyPropertyName()).ifPresent(result::add);
+    //    result.addAll(validateProxySettings(properties));
+    //
+    //    final BuildStepCollection buildStepCollection = new BuildStepCollection();
+    //    result.addAll(
+    //        buildStepCollection.getSubSteps().stream()
+    //            .filter(cmd -> cmd.getName().equals(stepType))
+    //            .findFirst()
+    //            .map(cmd -> cmd.validateProperties(properties))
+    //            .orElseThrow(
+    //                () -> new IllegalArgumentException("No matching validation for selected
+    // command")));
+    //
+    //    return result;
   }
 
   private Optional<InvalidProperty> validateServerUrl(

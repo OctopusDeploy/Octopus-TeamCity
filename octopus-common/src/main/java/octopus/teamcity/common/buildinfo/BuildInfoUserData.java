@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Map;
 
 import jetbrains.buildServer.util.StringUtil;
-import octopus.teamcity.common.BaseUserData;
 import octopus.teamcity.common.OverwriteMode;
 import octopus.teamcity.common.commonstep.CommonStepUserData;
 

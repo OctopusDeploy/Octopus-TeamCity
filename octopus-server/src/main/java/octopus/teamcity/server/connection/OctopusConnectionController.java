@@ -15,6 +15,13 @@
 
 package octopus.teamcity.server.connection;
 
+import java.io.File;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import jetbrains.buildServer.controllers.BaseController;
 import jetbrains.buildServer.serverSide.ProjectManager;
 import jetbrains.buildServer.serverSide.SBuildServer;
@@ -32,13 +39,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.web.servlet.ModelAndView;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-
 // This is responsible for handling the call http request for the OctopusBuildStep.
 // It adds all OctopusConnections to the request, along with metadata, such that the JSP
 // can display information about the available connections.
@@ -50,11 +50,13 @@ public class OctopusConnectionController extends BaseController {
   private final PluginDescriptor pluginDescriptor;
   private final WebLinks webLinks;
 
-
-  public OctopusConnectionController(final WebControllerManager webControllerManager,
+  public OctopusConnectionController(
+      final WebControllerManager webControllerManager,
       final OAuthConnectionsManager oauthConnectionManager,
-      final ProjectManager projectManager, final PluginDescriptor pluginDescriptor,
-      final OctopusGenericRunType octopusGenericRunType, final SBuildServer myServer,
+      final ProjectManager projectManager,
+      final PluginDescriptor pluginDescriptor,
+      final OctopusGenericRunType octopusGenericRunType,
+      final SBuildServer myServer,
       final WebLinks webLinks) {
     super(myServer);
     this.oauthConnectionManager = oauthConnectionManager;
@@ -64,35 +66,40 @@ public class OctopusConnectionController extends BaseController {
 
     final String path = octopusGenericRunType.getEditRunnerParamsJspFilePath();
     webControllerManager.registerController(path, this);
-
   }
 
-  @Nullable @Override
-  protected ModelAndView doHandle(@NotNull final HttpServletRequest request,
-      @NotNull final HttpServletResponse response)
+  @Nullable
+  @Override
+  protected ModelAndView doHandle(
+      @NotNull final HttpServletRequest request, @NotNull final HttpServletResponse response)
       throws Exception {
     final ModelAndView modelAndView =
-        new ModelAndView(pluginDescriptor.getPluginResourcesPath("v2" + File.separator +
-            "editOctopusGeneric.jsp"));
+        new ModelAndView(
+            pluginDescriptor.getPluginResourcesPath(
+                "v2" + File.separator + "editOctopusGeneric.jsp"));
 
     final User user = SessionUser.getUser(request.getSession());
-    if(user == null) {
+    if (user == null) {
       response.sendError(HttpServletResponse.SC_FORBIDDEN, "Unauthenticated");
       return null;
     }
 
-    final List<OAuthConnectionDescriptor> availableConnections = projectManager.getProjects().stream().filter(p ->
-      user.isPermissionGrantedForProject(p.getProjectId(), Permission.VIEW_PROJECT)).map(p ->
-        oauthConnectionManager.getAvailableConnectionsOfType(p, OctopusConnection.TYPE)).flatMap(Collection::stream)
-        .collect(Collectors.toList());
-
+    final List<OAuthConnectionDescriptor> availableConnections =
+        projectManager.getProjects().stream()
+            .filter(
+                p -> user.isPermissionGrantedForProject(p.getProjectId(), Permission.VIEW_PROJECT))
+            .map(
+                p ->
+                    oauthConnectionManager.getAvailableConnectionsOfType(p, OctopusConnection.TYPE))
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList());
 
     modelAndView.addObject("octopusConnections", new OctopusConnectionsBean(availableConnections));
     modelAndView.addObject("user", user);
     modelAndView.addObject("rootUrl", WebUtil.getRootUrl(request));
     modelAndView.addObject("rootProject", projectManager.getRootProject());
-    modelAndView.addObject("editConnectionUrl", webLinks.getEditProjectPageUrl("_Root") + "&tab=oauthConnections");
-
+    modelAndView.addObject(
+        "editConnectionUrl", webLinks.getEditProjectPageUrl("_Root") + "&tab=oauthConnections");
 
     return modelAndView;
   }

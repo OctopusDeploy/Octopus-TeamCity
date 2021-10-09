@@ -14,8 +14,6 @@
  */
 package octopus.teamcity.common.commonstep;
 
-import jetbrains.buildServer.agent.Constants;
-
 // NOTE: These constants must be accessible via getters to maintain bean-ness, which is used by jsps
 public class CommonStepPropertyNames {
 
@@ -26,7 +24,9 @@ public class CommonStepPropertyNames {
 
   public CommonStepPropertyNames() {}
 
-  public String getConnectionNamePropertyName() { return CONNECTION_NAME; }
+  public String getConnectionNamePropertyName() {
+    return CONNECTION_NAME;
+  }
 
   public String getStepTypePropertyName() {
     return STEP_TYPE;

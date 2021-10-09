@@ -70,8 +70,10 @@ public class OctopusGenericRunner implements AgentBuildRunner {
       throws RunBuildException {
 
     final BuildProgressLogger logger = runningBuild.getBuildLogger();
-    final ConnectionUserData connectionUserData = new ConnectionUserData(context.getRunnerParameters());
-    final CommonStepUserData commonStepUserData = new CommonStepUserData(context.getRunnerParameters());
+    final ConnectionUserData connectionUserData =
+        new ConnectionUserData(context.getRunnerParameters());
+    final CommonStepUserData commonStepUserData =
+        new CommonStepUserData(context.getRunnerParameters());
 
     final String activityName = ACTIVITY_NAME + " - " + commonStepUserData.getStepType();
     logger.activityStarted(activityName, BLOCK_TYPE_BUILD_STEP);

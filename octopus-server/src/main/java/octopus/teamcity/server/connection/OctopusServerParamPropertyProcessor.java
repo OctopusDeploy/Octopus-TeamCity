@@ -15,18 +15,18 @@
 
 package octopus.teamcity.server.connection;
 
-import com.google.common.collect.Lists;
 import com.octopus.sdk.utils.ApiKeyValidator;
-import jetbrains.buildServer.serverSide.InvalidProperty;
-import jetbrains.buildServer.serverSide.PropertiesProcessor;
-import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
-import octopus.teamcity.server.generic.BuildStepCollection;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import com.google.common.collect.Lists;
+import jetbrains.buildServer.serverSide.InvalidProperty;
+import jetbrains.buildServer.serverSide.PropertiesProcessor;
+import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
 
 @SuppressWarnings("availableConnections")
 public class OctopusServerParamPropertyProcessor implements PropertiesProcessor {

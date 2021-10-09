@@ -23,7 +23,8 @@ public class OctopusBuildInformationBuildStartProcessor implements BuildStartCon
   private final ProjectManager projectManager;
 
   public OctopusBuildInformationBuildStartProcessor(
-      @NotNull final ExtensionHolder extensionHolder, @NotNull final WebLinks webLinks,
+      @NotNull final ExtensionHolder extensionHolder,
+      @NotNull final WebLinks webLinks,
       final OAuthConnectionsManager oAuthConnectionsManager,
       final ProjectManager projectManager) {
     this.extensionHolder = extensionHolder;
@@ -54,25 +55,24 @@ public class OctopusBuildInformationBuildStartProcessor implements BuildStartCon
 
     final String projectId = buildStartContext.getSharedParameters().get("teamcity.project.id");
 
-
-    //For each OctopusGenericBuildStep in the build, inject the OAuthParameters to the runner map
-    buildStartContext.getRunnerContexts()
-        .stream()
+    // For each OctopusGenericBuildStep in the build, inject the OAuthParameters to the runner map
+    buildStartContext.getRunnerContexts().stream()
         .filter(rc -> rc.getRunType() instanceof OctopusGenericRunType)
-        .forEach(context -> {
+        .forEach(
+            context -> {
               final String connectionName =
                   context.getParameters().get(CommonStepPropertyNames.CONNECTION_NAME);
-              final Map<String, String> connectionParams = getConnectionParametersForConnection(connectionName, projectId);
+              final Map<String, String> connectionParams =
+                  getConnectionParametersForConnection(connectionName, projectId);
               connectionParams.forEach(context::addRunnerParameter);
-            }
-        );
+            });
   }
 
-  private Map<String, String> getConnectionParametersForConnection(final String connectioName,
-      final String projectId) {
+  private Map<String, String> getConnectionParametersForConnection(
+      final String connectioName, final String projectId) {
     final SProject currentProject = projectManager.findProjectByExternalId(projectId);
-    final OAuthConnectionDescriptor connectionDescriptor = oAuthConnectionsManager.findConnectionById(currentProject,
-        connectioName);
+    final OAuthConnectionDescriptor connectionDescriptor =
+        oAuthConnectionsManager.findConnectionById(currentProject, connectioName);
     return connectionDescriptor.getParameters();
   }
 

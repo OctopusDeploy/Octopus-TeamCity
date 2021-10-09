@@ -15,6 +15,9 @@
 
 package octopus.teamcity.server.connection;
 
+import java.net.MalformedURLException;
+import java.util.Map;
+
 import jetbrains.buildServer.serverSide.PropertiesProcessor;
 import jetbrains.buildServer.serverSide.oauth.OAuthConnectionDescriptor;
 import jetbrains.buildServer.serverSide.oauth.OAuthProvider;
@@ -23,25 +26,25 @@ import octopus.teamcity.common.connection.ConnectionUserData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.net.MalformedURLException;
-import java.util.Map;
-
 public class OctopusConnection extends OAuthProvider {
 
   public static final String TYPE = "OctopusConnection";
 
   private final PluginDescriptor pluginDescriptor;
 
-  public OctopusConnection(
-      final PluginDescriptor pluginDescriptor) {
+  public OctopusConnection(final PluginDescriptor pluginDescriptor) {
     this.pluginDescriptor = pluginDescriptor;
   }
 
-  @NotNull @Override public String getType() {
+  @NotNull
+  @Override
+  public String getType() {
     return TYPE;
   }
 
-  @NotNull @Override public String getDisplayName() {
+  @NotNull
+  @Override
+  public String getDisplayName() {
     return "OctopusDeploy Server";
   }
 

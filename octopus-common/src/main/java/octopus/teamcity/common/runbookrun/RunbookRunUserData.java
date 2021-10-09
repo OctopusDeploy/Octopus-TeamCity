@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import octopus.teamcity.common.BaseUserData;
 import octopus.teamcity.common.commonstep.CommonStepUserData;
 
 public class RunbookRunUserData extends CommonStepUserData {

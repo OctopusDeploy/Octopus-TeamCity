@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.intellij.openapi.util.text.StringUtil;
-import octopus.teamcity.common.BaseUserData;
 import octopus.teamcity.common.commonstep.CommonStepUserData;
 
 public class CreateReleaseUserData extends CommonStepUserData {

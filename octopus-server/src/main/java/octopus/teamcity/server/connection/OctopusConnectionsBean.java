@@ -15,9 +15,9 @@
 
 package octopus.teamcity.server.connection;
 
-import jetbrains.buildServer.serverSide.oauth.OAuthConnectionDescriptor;
-
 import java.util.List;
+
+import jetbrains.buildServer.serverSide.oauth.OAuthConnectionDescriptor;
 
 public class OctopusConnectionsBean {
 

@@ -32,7 +32,6 @@ import jetbrains.buildServer.agent.BuildProgressLogger;
 import jetbrains.buildServer.agent.BuildRunnerContext;
 import octopus.teamcity.agent.InterruptableBuildProcess;
 import octopus.teamcity.agent.generic.TypeConverters;
-import octopus.teamcity.common.commonstep.CommonStepUserData;
 import octopus.teamcity.common.pushpackage.PushPackageUserData;
 
 public class OctopusPushPackageBuildProcess extends InterruptableBuildProcess {

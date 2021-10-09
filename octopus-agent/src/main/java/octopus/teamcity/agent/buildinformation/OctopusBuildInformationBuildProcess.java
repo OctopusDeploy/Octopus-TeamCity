@@ -35,7 +35,6 @@ import jetbrains.buildServer.agent.BuildRunnerContext;
 import octopus.teamcity.agent.InterruptableBuildProcess;
 import octopus.teamcity.agent.generic.TypeConverters;
 import octopus.teamcity.common.buildinfo.BuildInfoUserData;
-import octopus.teamcity.common.commonstep.CommonStepUserData;
 
 public class OctopusBuildInformationBuildProcess extends InterruptableBuildProcess {
 

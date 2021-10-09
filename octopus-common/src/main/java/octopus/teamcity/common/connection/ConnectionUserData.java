@@ -15,13 +15,13 @@
 
 package octopus.teamcity.common.connection;
 
-import octopus.teamcity.common.BaseUserData;
-
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
 
-public class ConnectionUserData  extends BaseUserData  {
+import octopus.teamcity.common.BaseUserData;
+
+public class ConnectionUserData extends BaseUserData {
 
   private static final ConnectionPropertyNames KEYS = new ConnectionPropertyNames();
 
@@ -55,5 +55,4 @@ public class ConnectionUserData  extends BaseUserData  {
   public String getProxyPassword() {
     return fetchRaw(KEYS.getProxyPasswordPropertyName());
   }
-
 }

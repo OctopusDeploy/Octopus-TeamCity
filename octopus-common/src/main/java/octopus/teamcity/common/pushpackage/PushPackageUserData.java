@@ -28,7 +28,6 @@ public class PushPackageUserData extends CommonStepUserData {
 
   private static final PushPackagePropertyNames KEYS = new PushPackagePropertyNames();
 
-
   public PushPackageUserData(final Map<String, String> params) {
     super(params);
   }

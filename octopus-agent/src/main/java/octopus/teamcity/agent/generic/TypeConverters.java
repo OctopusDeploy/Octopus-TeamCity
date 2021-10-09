@@ -22,7 +22,6 @@ import com.octopus.sdk.http.ProxyData;
 
 import java.net.MalformedURLException;
 
-import octopus.teamcity.common.commonstep.CommonStepUserData;
 import octopus.teamcity.common.connection.ConnectionUserData;
 
 public class TypeConverters {
@@ -46,9 +45,7 @@ public class TypeConverters {
     if (userData.getProxyRequired()) {
       final ProxyData proxy =
           new ProxyData(
-              userData.getProxyUrl(),
-              userData.getProxyUsername(),
-              userData.getProxyPassword());
+              userData.getProxyUrl(), userData.getProxyUsername(), userData.getProxyPassword());
       builder.withProxy(proxy);
     }
 
