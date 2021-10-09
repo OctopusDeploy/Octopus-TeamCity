@@ -18,6 +18,7 @@ package octopus.teamcity.server.connection;
 import jetbrains.buildServer.controllers.BaseController;
 import jetbrains.buildServer.serverSide.ProjectManager;
 import jetbrains.buildServer.serverSide.SBuildServer;
+import jetbrains.buildServer.serverSide.WebLinks;
 import jetbrains.buildServer.serverSide.auth.Permission;
 import jetbrains.buildServer.serverSide.oauth.OAuthConnectionDescriptor;
 import jetbrains.buildServer.serverSide.oauth.OAuthConnectionsManager;
@@ -25,6 +26,7 @@ import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import jetbrains.buildServer.web.openapi.WebControllerManager;
 import jetbrains.buildServer.web.util.SessionUser;
+import jetbrains.buildServer.web.util.WebUtil;
 import octopus.teamcity.server.OctopusGenericRunType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,25 +39,28 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+// This is responsible for handling the call http request for the OctopusBuildStep.
+// It adds all OctopusConnections to the request, along with metadata, such that the JSP
+// can display information about the available connections.
 @SuppressWarnings("UnusedVariable")
 public class OctopusConnectionController extends BaseController {
 
-  private final WebControllerManager webControllerManager;
   private final OAuthConnectionsManager oauthConnectionManager;
   private final ProjectManager projectManager;
   private final PluginDescriptor pluginDescriptor;
-  private final OctopusGenericRunType octopusGenericRunType;
+  private final WebLinks webLinks;
+
 
   public OctopusConnectionController(final WebControllerManager webControllerManager,
       final OAuthConnectionsManager oauthConnectionManager,
       final ProjectManager projectManager, final PluginDescriptor pluginDescriptor,
-      final OctopusGenericRunType octopusGenericRunType, final SBuildServer myServer) {
+      final OctopusGenericRunType octopusGenericRunType, final SBuildServer myServer,
+      final WebLinks webLinks) {
     super(myServer);
-    this.webControllerManager = webControllerManager;
     this.oauthConnectionManager = oauthConnectionManager;
     this.projectManager = projectManager;
     this.pluginDescriptor = pluginDescriptor;
-    this.octopusGenericRunType = octopusGenericRunType;
+    this.webLinks = webLinks;
 
     final String path = octopusGenericRunType.getEditRunnerParamsJspFilePath();
     webControllerManager.registerController(path, this);
@@ -83,6 +88,10 @@ public class OctopusConnectionController extends BaseController {
 
 
     modelAndView.addObject("octopusConnections", new OctopusConnectionsBean(availableConnections));
+    modelAndView.addObject("user", user);
+    modelAndView.addObject("rootUrl", WebUtil.getRootUrl(request));
+    modelAndView.addObject("rootProject", projectManager.getRootProject());
+    modelAndView.addObject("editConnectionUrl", webLinks.getEditProjectPageUrl("_Root") + "&tab=oauthConnections");
 
 
     return modelAndView;

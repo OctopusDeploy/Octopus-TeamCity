@@ -4,6 +4,7 @@
 <%@ taglib prefix="l" tagdir="/WEB-INF/tags/layout" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
+<%@ page import="jetbrains.buildServer.serverSide.auth.Permission" %>
 <%--
   ~ Copyright 2000-2012 Octopus Deploy Pty. Ltd.
   ~
@@ -28,6 +29,9 @@
              type="octopus.teamcity.server.connection.OctopusConnectionsBean" scope="request"/>
 
 <jsp:useBean id="teamcityPluginResourcesPath" scope="request" type="java.lang.String"/>
+<jsp:useBean id="rootProject" scope="request" type="jetbrains.buildServer.serverSide.SProject"/>
+<jsp:useBean id="editConnectionUrl" scope="request" type="java.lang.String"/>
+<jsp:useBean id="user" scope="request" type="jetbrains.buildServer.users.User"/>
 <c:set var="paramHelpUrl">net#</c:set>
 <c:set var="commandTitle">Command:<bs:help file="${paramHelpUrl}BuildRunnerOptions"/></c:set>
 

@@ -23,7 +23,7 @@
 <tr>
     <th>Connection Name:</th>
     <td>
-        <props:textProperty name="displayName" className="longField"/>
+        <props:textProperty name="${keys.displayName}" className="longField"/>
         <span class="error" id="error_displayName"></span>
         <span class="smallNote">Provide some name to distinguish this connection from others.</span>
     </td>
