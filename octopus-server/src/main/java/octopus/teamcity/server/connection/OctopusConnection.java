@@ -68,6 +68,6 @@ public class OctopusConnection extends OAuthProvider {
   @Override
   @Nullable
   public PropertiesProcessor getPropertiesProcessor() {
-    return new OctopusServerParamPropertyProcessor();
+    return new OctopusConnectionPropertiesProcessor();
   }
 }

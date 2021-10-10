@@ -13,11 +13,6 @@ tasks.named('jar') {
 }
 
 dependencies {
-  //implementation files('/home/trent/apps/TeamCity/webapps/ROOT/WEB-INF/lib/server.jar')
-  //implementation files('/home/trent/apps/TeamCity/webapps/ROOT/WEB-INF/lib/oauth-web.jar')
-  //implementation files('/home/trent/apps/TeamCity/webapps/ROOT/WEB-INF/plugins/.unpacked/slack/server/teamcity-slack-plugin-92597.jar')
-
-
   provided 'org.jetbrains.teamcity:server-api'
   provided 'org.jetbrains.teamcity:oauth'
 

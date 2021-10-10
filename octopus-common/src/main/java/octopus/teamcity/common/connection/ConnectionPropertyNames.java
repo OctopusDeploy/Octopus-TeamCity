@@ -19,7 +19,7 @@ import jetbrains.buildServer.agent.Constants;
 
 public class ConnectionPropertyNames {
   // DisplayName is _required_ by teamcity
-  public static final String DISPLAY_NAME = "displayName";
+  public static final String DISPLAY_NAME = "octopus_connection_displayName";
   public static final String SERVER_URL = "octopus_host";
   public static final String API_KEY = Constants.SECURE_PROPERTY_PREFIX + "octopus_apikey";
   public static final String PROXY_REQUIRED = "octopus_proxyrequired";

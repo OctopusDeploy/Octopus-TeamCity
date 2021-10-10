@@ -13,13 +13,12 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package octopus.teamcity.server.generic;
+package octopus.teamcity.server.connection;
 
 import com.octopus.sdk.utils.ApiKeyValidator;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -27,43 +26,24 @@ import java.util.Optional;
 import com.google.common.collect.Lists;
 import jetbrains.buildServer.serverSide.InvalidProperty;
 import jetbrains.buildServer.serverSide.PropertiesProcessor;
-import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
+import octopus.teamcity.common.connection.ConnectionPropertyNames;
 
-@SuppressWarnings("UnusedMethod")
-public class OctopusBuildStepPropertiesProcessor implements PropertiesProcessor {
-  private static final CommonStepPropertyNames KEYS = new CommonStepPropertyNames();
+public class OctopusConnectionPropertiesProcessor implements PropertiesProcessor {
+  private static final ConnectionPropertyNames KEYS = new ConnectionPropertyNames();
 
   @Override
   public List<InvalidProperty> process(final Map<String, String> properties) {
-    return Collections.emptyList();
-    //
-    //    if (properties == null) {
-    //      throw new IllegalArgumentException("Supplied properties list was null");
-    //    }
-    //
-    //    final String stepType = properties.get(KEYS.getStepTypePropertyName());
-    //    if (stepType == null) {
-    //      throw new IllegalArgumentException("No step-type was specified, contact Octopus
-    // support");
-    //    }
-    //
-    //    final List<InvalidProperty> result = Lists.newArrayList();
-    //
-    //    validateServerUrl(properties, KEYS.getServerUrlPropertyName()).ifPresent(result::add);
-    //    validateApiKey(properties, KEYS.getApiKeyPropertyName()).ifPresent(result::add);
-    //    result.addAll(validateProxySettings(properties));
-    //
-    //    final BuildStepCollection buildStepCollection = new BuildStepCollection();
-    //    result.addAll(
-    //        buildStepCollection.getSubSteps().stream()
-    //            .filter(cmd -> cmd.getName().equals(stepType))
-    //            .findFirst()
-    //            .map(cmd -> cmd.validateProperties(properties))
-    //            .orElseThrow(
-    //                () -> new IllegalArgumentException("No matching validation for selected
-    // command")));
-    //
-    //    return result;
+    if (properties == null) {
+      throw new IllegalArgumentException("Supplied properties list was null");
+    }
+
+    final List<InvalidProperty> result = Lists.newArrayList();
+
+    validateServerUrl(properties, KEYS.getServerUrlPropertyName()).ifPresent(result::add);
+    validateApiKey(properties, KEYS.getApiKeyPropertyName()).ifPresent(result::add);
+    result.addAll(validateProxySettings(properties));
+
+    return result;
   }
 
   private Optional<InvalidProperty> validateServerUrl(
@@ -110,7 +90,7 @@ public class OctopusBuildStepPropertiesProcessor implements PropertiesProcessor 
     if (proxyRequired.equals("false")) {
       return result;
     }
-    validateProxyServerUrl(properties, KEYS.getProxyServerUrlPropertyName()).ifPresent(result::add);
+    validateProxyServerUrl(properties, KEYS.getProxyUrlPropertyName()).ifPresent(result::add);
     validateProxyCredentials(properties).ifPresent(result::add);
 
     return result;
