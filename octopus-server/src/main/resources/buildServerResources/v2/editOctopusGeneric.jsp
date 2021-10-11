@@ -37,7 +37,7 @@
         <td>
             <props:textProperty name="${connectionKeys.serverUrlPropertyName}" className="longField"/>
             <span class="error" id="error_${connectionKeys.serverUrlPropertyName}"></span>
-            <span class="smallNote">Specify Octopus web portal URL</span>
+            <span class="smallNote">Specify Octopus server URL (eg. http(s)://{hostname}:{port})</span>
         </td>
     </tr>
     <tr>
