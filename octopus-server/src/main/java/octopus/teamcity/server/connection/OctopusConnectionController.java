@@ -42,7 +42,6 @@ import org.springframework.web.servlet.ModelAndView;
 // This is responsible for handling the call http request for the OctopusBuildStep.
 // It adds all OctopusConnections to the request, along with metadata, such that the JSP
 // can display information about the available connections.
-@SuppressWarnings("UnusedVariable")
 public class OctopusConnectionController extends BaseController {
 
   private final OAuthConnectionsManager oauthConnectionManager;

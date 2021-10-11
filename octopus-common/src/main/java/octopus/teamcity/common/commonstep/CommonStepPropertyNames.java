@@ -18,7 +18,6 @@ package octopus.teamcity.common.commonstep;
 public class CommonStepPropertyNames {
 
   public static final String CONNECTION_NAME = "octopus_connectionname";
-  public static final String STEP_TYPE = "octopus_step_type";
   public static final String SPACE_NAME = "octopus_spacename";
   public static final String VERBOSE_LOGGING = "octopus_verboselogging";
 
@@ -26,10 +25,6 @@ public class CommonStepPropertyNames {
 
   public String getConnectionNamePropertyName() {
     return CONNECTION_NAME;
-  }
-
-  public String getStepTypePropertyName() {
-    return STEP_TYPE;
   }
 
   public String getSpaceNamePropertyName() {

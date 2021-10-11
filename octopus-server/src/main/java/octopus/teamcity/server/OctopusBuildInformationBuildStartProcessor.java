@@ -73,6 +73,10 @@ public class OctopusBuildInformationBuildStartProcessor implements BuildStartCon
     final SProject currentProject = projectManager.findProjectByExternalId(projectId);
     final OAuthConnectionDescriptor connectionDescriptor =
         oAuthConnectionsManager.findConnectionById(currentProject, connectioName);
+    if (connectionDescriptor == null) {
+      throw new IllegalArgumentException(
+          "No Octopus connection '" + connectioName + "' exists for the current " + "project");
+    }
     return connectionDescriptor.getParameters();
   }
 

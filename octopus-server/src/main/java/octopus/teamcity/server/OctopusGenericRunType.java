@@ -11,9 +11,9 @@ import jetbrains.buildServer.serverSide.RunType;
 import jetbrains.buildServer.serverSide.RunTypeRegistry;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import octopus.teamcity.common.OctopusConstants;
-import octopus.teamcity.common.commonstep.CommonStepUserData;
-import octopus.teamcity.server.connection.OctopusConnectionPropertiesProcessor;
+import octopus.teamcity.common.commonstep.StepTypeConstants;
 import octopus.teamcity.server.generic.BuildStepCollection;
+import octopus.teamcity.server.generic.GenericParameterProcessor;
 import octopus.teamcity.server.generic.OctopusBuildStep;
 
 public class OctopusGenericRunType extends RunType {
@@ -24,8 +24,9 @@ public class OctopusGenericRunType extends RunType {
       final RunTypeRegistry runTypeRegistry,
       final PluginDescriptor pluginDescriptor) {
     this.pluginDescriptor = pluginDescriptor;
-    runTypeRegistry.registerRunType(this);
-    if (!StringUtil.isEmpty(enableStepVnext) && Boolean.parseBoolean(enableStepVnext)) {}
+    if (!StringUtil.isEmpty(enableStepVnext) && Boolean.parseBoolean(enableStepVnext)) {
+      runTypeRegistry.registerRunType(this);
+    }
   }
 
   @Override
@@ -45,25 +46,20 @@ public class OctopusGenericRunType extends RunType {
 
   @Override
   public String describeParameters(final Map<String, String> parameters) {
-    // NOTE: This is only called once the values in the map have been validated as being "within
-    // bounds"
-    final CommonStepUserData commonStepUserData = new CommonStepUserData(parameters);
 
-    final String stepType = commonStepUserData.getStepType();
-    if (commonStepUserData.getStepType().isEmpty()) {
+    final String stepType = parameters.get(StepTypeConstants.STEP_TYPE);
+    if (stepType == null) {
       return "No build step type specified\n";
     }
 
     final BuildStepCollection buildStepCollection = new BuildStepCollection();
-
-    final Optional<OctopusBuildStep> buildStep =
-        buildStepCollection.getSubSteps().stream()
-            .filter(cmd -> cmd.getName().equals(stepType))
-            .findFirst();
+    final Optional<OctopusBuildStep> buildStep = buildStepCollection.getStepByName(stepType);
 
     if (!buildStep.isPresent()) {
       return "No build command corresponds to supplied build step name\n";
     }
+
+    // TODO(tmm): Put in the name of the connection being used.
 
     return String.format(
         "%s\n%s\n",
@@ -72,7 +68,7 @@ public class OctopusGenericRunType extends RunType {
 
   @Override
   public PropertiesProcessor getRunnerPropertiesProcessor() {
-    return new OctopusConnectionPropertiesProcessor();
+    return new GenericParameterProcessor();
   }
 
   @Override

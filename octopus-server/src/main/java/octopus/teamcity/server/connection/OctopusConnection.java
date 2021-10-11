@@ -55,6 +55,7 @@ public class OctopusConnection extends OAuthProvider {
   }
 
   @Override
+  @NotNull
   public String describeConnection(@NotNull OAuthConnectionDescriptor connection) {
     final Map<String, String> params = connection.getParameters();
     final ConnectionUserData userData = new ConnectionUserData(params);

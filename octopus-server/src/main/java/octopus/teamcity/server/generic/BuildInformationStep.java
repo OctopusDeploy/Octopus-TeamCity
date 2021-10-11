@@ -11,10 +11,11 @@ import octopus.teamcity.common.buildinfo.BuildInfoUserData;
 public class BuildInformationStep extends OctopusBuildStep {
 
   private final BuildInfoPropertyNames KEYS = new BuildInfoPropertyNames();
+  public static final String STEP_ID = "build-information";
 
   public BuildInformationStep() {
     super(
-        "build-information",
+        STEP_ID,
         "Create Build Information entry",
         "editBuildInformationParameters.jsp",
         "viewBuildInformationParameters.jsp");
