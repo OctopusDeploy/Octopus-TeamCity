@@ -58,10 +58,9 @@
                 </c:when>
                 <c:otherwise>
                     <props:selectProperty
-                            name="${keys.connectionNamePropertyName}"
-                            id="${keys.connectionNamePropertyName.replace(':', '-')}"
-                            className="longField"
-                    >
+                            name="${keys.connectionIdPropertyName}"
+                            id="${keys.connectionIdPropertyName.replace(':', '-')}"
+                            className="longField">
                         <props:option value="">-- Select Octopus connection --</props:option>
                         <c:forEach var="connection" items="${octopusConnections.connections}">
                             <props:option value="${connection.id}">
@@ -72,7 +71,7 @@
                 </c:otherwise>
             </c:choose>
 
-            <span class="error" id="error_${keys.connectionNamePropertyName}"></span>
+            <span class="error" id="error_${keys.connectionIdPropertyName}"></span>
         </td>
     </tr>
 </l:settingsGroup>

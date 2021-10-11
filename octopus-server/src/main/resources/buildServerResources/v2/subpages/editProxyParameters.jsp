@@ -20,15 +20,15 @@
   ~ limitations under the License.
   --%>
 
-<jsp:useBean id="keys" class="octopus.teamcity.common.commonstep.CommonStepPropertyNames"/>
+<jsp:useBean id="keys" class="octopus.teamcity.common.connection.ConnectionPropertyNames"/>
 <jsp:useBean id="params" class="octopus.teamcity.server.generic.BuildStepCollection"/>
 <jsp:useBean id="propertiesBean" scope="request" type="jetbrains.buildServer.controllers.BasePropertiesBean"/>
 
 <tr>
     <th>Proxy URL:<l:star/></th>
     <td>
-        <props:textProperty name="${keys.proxyServerUrlPropertyName}" className="longField"/>
-        <span class="error" id="error_${keys.proxyServerUrlPropertyName}"></span>
+        <props:textProperty name="${keys.proxyUrlPropertyName}" className="longField"/>
+        <span class="error" id="error_${keys.proxyUrlPropertyName}"></span>
         <span class="smallNote">Specify the location of the proxy.</span>
     </td>
 </tr>

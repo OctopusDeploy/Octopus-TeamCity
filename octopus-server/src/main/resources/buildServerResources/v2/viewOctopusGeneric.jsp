@@ -13,7 +13,7 @@
 
 <div class="parameter">
     Octopus Server Connection:
-    <strong><props:displayValue name="${keys.connectionNamePropertyName}" emptyValue="not specified"/></strong>
+    <strong><props:displayValue name="${keys.connectionIdPropertyName}" emptyValue="not specified"/></strong>
 </div>
 
 <div class="parameter">

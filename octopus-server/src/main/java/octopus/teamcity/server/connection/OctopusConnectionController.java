@@ -16,9 +16,7 @@
 package octopus.teamcity.server.connection;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -26,7 +24,6 @@ import jetbrains.buildServer.controllers.BaseController;
 import jetbrains.buildServer.serverSide.ProjectManager;
 import jetbrains.buildServer.serverSide.SBuildServer;
 import jetbrains.buildServer.serverSide.WebLinks;
-import jetbrains.buildServer.serverSide.auth.Permission;
 import jetbrains.buildServer.serverSide.oauth.OAuthConnectionDescriptor;
 import jetbrains.buildServer.serverSide.oauth.OAuthConnectionsManager;
 import jetbrains.buildServer.users.User;
@@ -84,14 +81,8 @@ public class OctopusConnectionController extends BaseController {
     }
 
     final List<OAuthConnectionDescriptor> availableConnections =
-        projectManager.getProjects().stream()
-            .filter(
-                p -> user.isPermissionGrantedForProject(p.getProjectId(), Permission.VIEW_PROJECT))
-            .map(
-                p ->
-                    oauthConnectionManager.getAvailableConnectionsOfType(p, OctopusConnection.TYPE))
-            .flatMap(Collection::stream)
-            .collect(Collectors.toList());
+        ConnectionHelper.getAvailableOctopusConnections(
+            oauthConnectionManager, projectManager, user);
 
     modelAndView.addObject("octopusConnections", new OctopusConnectionsBean(availableConnections));
     modelAndView.addObject("user", user);

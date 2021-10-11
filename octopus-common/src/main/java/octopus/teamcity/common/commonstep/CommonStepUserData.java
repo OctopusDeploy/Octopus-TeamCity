@@ -34,7 +34,7 @@ public class CommonStepUserData extends BaseUserData {
   }
 
   public String getConnectionName() {
-    return params.get(KEYS.getConnectionNamePropertyName());
+    return params.get(KEYS.getConnectionIdPropertyName());
   }
 
   public Optional<String> getSpaceName() {
