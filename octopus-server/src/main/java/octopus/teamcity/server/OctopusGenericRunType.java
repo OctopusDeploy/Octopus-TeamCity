@@ -56,11 +56,7 @@ public class OctopusGenericRunType extends RunType {
     }
 
     final BuildStepCollection buildStepCollection = new BuildStepCollection();
-
-    final Optional<OctopusBuildStep> buildStep =
-        buildStepCollection.getSubSteps().stream()
-            .filter(cmd -> cmd.getName().equals(stepType))
-            .findFirst();
+    final Optional<OctopusBuildStep> buildStep = buildStepCollection.getStepTypeByName(stepType);
 
     if (!buildStep.isPresent()) {
       return "No build command corresponds to supplied build step name\n";
