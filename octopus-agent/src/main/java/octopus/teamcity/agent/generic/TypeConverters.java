@@ -22,7 +22,7 @@ import com.octopus.sdk.http.ProxyData;
 
 import java.net.MalformedURLException;
 
-import octopus.teamcity.common.commonstep.CommonStepUserData;
+import octopus.teamcity.common.connection.ConnectionUserData;
 
 public class TypeConverters {
 
@@ -39,7 +39,7 @@ public class TypeConverters {
   }
 
   /** This assumes the userData contains correctly formatted strings * */
-  public static ConnectData from(final CommonStepUserData userData) throws MalformedURLException {
+  public static ConnectData from(final ConnectionUserData userData) throws MalformedURLException {
     final ConnectDataBuilder builder = new ConnectDataBuilder();
     builder.withOctopusServerUrl(userData.getServerUrl()).withApiKey(userData.getApiKey());
     if (userData.getProxyRequired()) {

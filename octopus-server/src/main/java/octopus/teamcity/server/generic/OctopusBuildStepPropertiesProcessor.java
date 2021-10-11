@@ -27,9 +27,11 @@ import com.google.common.collect.Lists;
 import jetbrains.buildServer.serverSide.InvalidProperty;
 import jetbrains.buildServer.serverSide.PropertiesProcessor;
 import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
+import octopus.teamcity.common.connection.ConnectionPropertyNames;
 
 public class OctopusBuildStepPropertiesProcessor implements PropertiesProcessor {
   private static final CommonStepPropertyNames KEYS = new CommonStepPropertyNames();
+  private static final ConnectionPropertyNames CONNECTION_KEYS = new ConnectionPropertyNames();
 
   @Override
   public List<InvalidProperty> process(final Map<String, String> properties) {
@@ -44,8 +46,9 @@ public class OctopusBuildStepPropertiesProcessor implements PropertiesProcessor 
 
     final List<InvalidProperty> result = Lists.newArrayList();
 
-    validateServerUrl(properties, KEYS.getServerUrlPropertyName()).ifPresent(result::add);
-    validateApiKey(properties, KEYS.getApiKeyPropertyName()).ifPresent(result::add);
+    validateServerUrl(properties, CONNECTION_KEYS.getServerUrlPropertyName())
+        .ifPresent(result::add);
+    validateApiKey(properties, CONNECTION_KEYS.getApiKeyPropertyName()).ifPresent(result::add);
     result.addAll(validateProxySettings(properties));
 
     final BuildStepCollection buildStepCollection = new BuildStepCollection();
@@ -100,11 +103,12 @@ public class OctopusBuildStepPropertiesProcessor implements PropertiesProcessor 
 
   private List<InvalidProperty> validateProxySettings(final Map<String, String> properties) {
     final List<InvalidProperty> result = Lists.newArrayList();
-    final String proxyRequired = properties.get(KEYS.getProxyRequiredPropertyName());
+    final String proxyRequired = properties.get(CONNECTION_KEYS.getProxyRequiredPropertyName());
     if (proxyRequired.equals("false")) {
       return result;
     }
-    validateProxyServerUrl(properties, KEYS.getProxyServerUrlPropertyName()).ifPresent(result::add);
+    validateProxyServerUrl(properties, CONNECTION_KEYS.getProxyServerUrlPropertyName())
+        .ifPresent(result::add);
     validateProxyCredentials(properties).ifPresent(result::add);
 
     return result;
@@ -126,20 +130,20 @@ public class OctopusBuildStepPropertiesProcessor implements PropertiesProcessor 
   }
 
   private Optional<InvalidProperty> validateProxyCredentials(final Map<String, String> properties) {
-    final String proxyUsername = properties.get(KEYS.getProxyUsernamePropertyName());
-    final String proxyPassword = properties.get(KEYS.getProxyPasswordPropertyName());
+    final String proxyUsername = properties.get(CONNECTION_KEYS.getProxyUsernamePropertyName());
+    final String proxyPassword = properties.get(CONNECTION_KEYS.getProxyPasswordPropertyName());
 
     if (proxyUsername == null && proxyPassword != null) {
       return Optional.of(
           new InvalidProperty(
-              KEYS.getProxyUsernamePropertyName(),
+              CONNECTION_KEYS.getProxyUsernamePropertyName(),
               "Proxy username must be set if password is provided"));
     }
 
     if (proxyUsername != null && proxyPassword == null) {
       return Optional.of(
           new InvalidProperty(
-              KEYS.getProxyPasswordPropertyName(),
+              CONNECTION_KEYS.getProxyPasswordPropertyName(),
               "Proxy password must be set if username is provided"));
     }
 

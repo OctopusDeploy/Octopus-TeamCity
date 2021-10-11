@@ -20,7 +20,7 @@
   ~ limitations under the License.
   --%>
 
-<jsp:useBean id="keys" class="octopus.teamcity.common.commonstep.CommonStepPropertyNames"/>
+<jsp:useBean id="keys" class="octopus.teamcity.common.connection.ConnectionPropertyNames"/>
 <jsp:useBean id="params" class="octopus.teamcity.server.generic.BuildStepCollection"/>
 <jsp:useBean id="propertiesBean" scope="request" type="jetbrains.buildServer.controllers.BasePropertiesBean"/>
 
@@ -46,7 +46,7 @@
     <td>
         <props:passwordProperty name="${keys.proxyPasswordPropertyName}" className="longField"/>
         <span class="error" id="error_${keys.proxyPasswordPropertyName}"></span>
-        <span class="smallNote">Specify the password rqeuired to authenticate to the
+        <span class="smallNote">Specify the password required to authenticate to the
             proxy.</span>
     </td>
 </tr>

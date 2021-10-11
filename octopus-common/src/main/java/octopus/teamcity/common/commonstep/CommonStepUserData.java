@@ -15,8 +15,6 @@
 
 package octopus.teamcity.common.commonstep;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Map;
 import java.util.Optional;
 
@@ -39,35 +37,8 @@ public class CommonStepUserData extends BaseUserData {
     return fetchRaw(KEYS.getStepTypePropertyName());
   }
 
-  public URL getServerUrl() throws MalformedURLException {
-    final String rawInput = fetchRaw(KEYS.getServerUrlPropertyName());
-    return new URL(rawInput);
-  }
-
-  public String getApiKey() {
-    return fetchRaw(KEYS.getApiKeyPropertyName());
-  }
-
   public Optional<String> getSpaceName() {
     return Optional.ofNullable(params.get(KEYS.getSpaceNamePropertyName()));
-  }
-
-  public boolean getProxyRequired() {
-    final String rawInput = fetchRaw(KEYS.getProxyRequiredPropertyName());
-    return Boolean.getBoolean(rawInput);
-  }
-
-  public URL getProxyServerUrl() throws MalformedURLException {
-    final String rawInput = fetchRaw(KEYS.getProxyServerUrlPropertyName());
-    return new URL(rawInput);
-  }
-
-  public String getProxyUsername() {
-    return fetchRaw(KEYS.getProxyUsernamePropertyName());
-  }
-
-  public String getProxyPassword() {
-    return fetchRaw(KEYS.getProxyPasswordPropertyName());
   }
 
   public boolean getVerboseLogging() {

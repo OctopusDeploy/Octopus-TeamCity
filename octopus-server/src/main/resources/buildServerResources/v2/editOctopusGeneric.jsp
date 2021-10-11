@@ -20,6 +20,8 @@
   ~ limitations under the License.
   --%>
 
+<jsp:useBean id="connectionKeys"
+             class="octopus.teamcity.common.connection.ConnectionPropertyNames"/>
 <jsp:useBean id="keys" class="octopus.teamcity.common.commonstep.CommonStepPropertyNames"/>
 <jsp:useBean id="propertiesBean" scope="request" type="jetbrains.buildServer.controllers.BasePropertiesBean"/>
 <jsp:useBean id="params" class="octopus.teamcity.server.generic.BuildStepCollection"/>
@@ -33,16 +35,16 @@
     <tr>
         <th>Octopus URL:<l:star/></th>
         <td>
-            <props:textProperty name="${keys.serverUrlPropertyName}" className="longField"/>
-            <span class="error" id="error_${keys.serverUrlPropertyName}"></span>
+            <props:textProperty name="${connectionKeys.serverUrlPropertyName}" className="longField"/>
+            <span class="error" id="error_${connectionKeys.serverUrlPropertyName}"></span>
             <span class="smallNote">Specify Octopus web portal URL</span>
         </td>
     </tr>
     <tr>
         <th>API key:<l:star/></th>
         <td>
-            <props:passwordProperty name="${keys.apiKeyPropertyName}" className="longField"/>
-            <span class="error" id="error_${keys.apiKeyPropertyName}"></span>
+            <props:passwordProperty name="${connectionKeys.apiKeyPropertyName}" className="longField"/>
+            <span class="error" id="error_${connectionKeys.apiKeyPropertyName}"></span>
             <span class="smallNote">Specify Octopus API key. You can get this from your user page in the Octopus web portal.</span>
         </td>
     </tr>
@@ -66,7 +68,7 @@
 </l:settingsGroup>
 
 <l:settingsGroup title="Proxy Server">
-    <props:selectSectionProperty name="${keys.proxyRequiredPropertyName}" title="Proxy Server Requried" note="">
+    <props:selectSectionProperty name="${connectionKeys.proxyRequiredPropertyName}" title="Proxy Server Requried" note="">
         <props:selectSectionPropertyContent value="false" caption="<No Proxy Required>"/>
             <props:selectSectionPropertyContent value="true" caption="Use Proxy Server">
                 <jsp:include page="${teamcityPluginResourcesPath}/v2/subpages/editProxyParameters.jsp"/>

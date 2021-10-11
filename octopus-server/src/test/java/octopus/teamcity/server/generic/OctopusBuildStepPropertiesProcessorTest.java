@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 import jetbrains.buildServer.serverSide.InvalidProperty;
 import octopus.teamcity.common.buildinfo.BuildInfoPropertyNames;
 import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
+import octopus.teamcity.common.connection.ConnectionPropertyNames;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -38,13 +39,13 @@ class OctopusBuildStepPropertiesProcessorTest {
   private Map<String, String> createValidPropertyMap() {
     final Map<String, String> result = new HashMap<>();
 
-    result.put(CommonStepPropertyNames.SERVER_URL, "http://localhost:8065");
-    result.put(CommonStepPropertyNames.API_KEY, "API-123456789012345678901234567890");
+    result.put(ConnectionPropertyNames.SERVER_URL, "http://localhost:8065");
+    result.put(ConnectionPropertyNames.API_KEY, "API-123456789012345678901234567890");
     result.put(CommonStepPropertyNames.SPACE_NAME, "My Space");
-    result.put(CommonStepPropertyNames.PROXY_REQUIRED, "true");
-    result.put(CommonStepPropertyNames.PROXY_URL, "http://proxy.url");
-    result.put(CommonStepPropertyNames.PROXY_USERNAME, "ProxyUsername");
-    result.put(CommonStepPropertyNames.PROXY_PASSWORD, "ProxyPassword");
+    result.put(ConnectionPropertyNames.PROXY_REQUIRED, "true");
+    result.put(ConnectionPropertyNames.PROXY_URL, "http://proxy.url");
+    result.put(ConnectionPropertyNames.PROXY_USERNAME, "ProxyUsername");
+    result.put(ConnectionPropertyNames.PROXY_PASSWORD, "ProxyPassword");
     result.put(CommonStepPropertyNames.STEP_TYPE, new BuildInformationStep().getName());
     result.put(CommonStepPropertyNames.VERBOSE_LOGGING, "false");
 
@@ -94,15 +95,15 @@ class OctopusBuildStepPropertiesProcessorTest {
     final OctopusBuildStepPropertiesProcessor processor = new OctopusBuildStepPropertiesProcessor();
     final Map<String, String> inputMap = createValidPropertyMap();
 
-    inputMap.remove(CommonStepPropertyNames.SERVER_URL);
-    inputMap.remove(CommonStepPropertyNames.API_KEY);
+    inputMap.remove(ConnectionPropertyNames.SERVER_URL);
+    inputMap.remove(ConnectionPropertyNames.API_KEY);
     final List<InvalidProperty> result = processor.process(inputMap);
     assertThat(result).hasSize(2);
     final List<String> missingPropertyNames =
         result.stream().map(InvalidProperty::getPropertyName).collect(Collectors.toList());
     assertThat(missingPropertyNames)
         .containsExactlyInAnyOrder(
-            CommonStepPropertyNames.SERVER_URL, CommonStepPropertyNames.API_KEY);
+            ConnectionPropertyNames.SERVER_URL, ConnectionPropertyNames.API_KEY);
   }
 
   @Test
@@ -110,10 +111,10 @@ class OctopusBuildStepPropertiesProcessorTest {
     final OctopusBuildStepPropertiesProcessor processor = new OctopusBuildStepPropertiesProcessor();
     final Map<String, String> inputMap = createValidPropertyMap();
 
-    inputMap.put(CommonStepPropertyNames.SERVER_URL, "badUrl");
+    inputMap.put(ConnectionPropertyNames.SERVER_URL, "badUrl");
     final List<InvalidProperty> result = processor.process(inputMap);
     assertThat(result).hasSize(1);
-    assertThat(result.get(0).getPropertyName()).isEqualTo(CommonStepPropertyNames.SERVER_URL);
+    assertThat(result.get(0).getPropertyName()).isEqualTo(ConnectionPropertyNames.SERVER_URL);
   }
 
   @Test
@@ -121,10 +122,10 @@ class OctopusBuildStepPropertiesProcessorTest {
     final OctopusBuildStepPropertiesProcessor processor = new OctopusBuildStepPropertiesProcessor();
     final Map<String, String> inputMap = createValidPropertyMap();
 
-    inputMap.put(CommonStepPropertyNames.API_KEY, "API-1");
+    inputMap.put(ConnectionPropertyNames.API_KEY, "API-1");
     final List<InvalidProperty> result = processor.process(inputMap);
     assertThat(result).hasSize(1);
-    assertThat(result.get(0).getPropertyName()).isEqualTo(CommonStepPropertyNames.API_KEY);
+    assertThat(result.get(0).getPropertyName()).isEqualTo(ConnectionPropertyNames.API_KEY);
   }
 
   @Test
@@ -143,8 +144,8 @@ class OctopusBuildStepPropertiesProcessorTest {
     final OctopusBuildStepPropertiesProcessor processor = new OctopusBuildStepPropertiesProcessor();
     final Map<String, String> inputMap = createValidPropertyMap();
 
-    inputMap.remove(CommonStepPropertyNames.PROXY_PASSWORD);
-    inputMap.remove(CommonStepPropertyNames.PROXY_USERNAME);
+    inputMap.remove(ConnectionPropertyNames.PROXY_PASSWORD);
+    inputMap.remove(ConnectionPropertyNames.PROXY_USERNAME);
     final List<InvalidProperty> result = processor.process(inputMap);
     assertThat(result).hasSize(0);
   }
@@ -154,10 +155,10 @@ class OctopusBuildStepPropertiesProcessorTest {
     final OctopusBuildStepPropertiesProcessor processor = new OctopusBuildStepPropertiesProcessor();
     final Map<String, String> inputMap = createValidPropertyMap();
 
-    inputMap.remove(CommonStepPropertyNames.PROXY_USERNAME);
+    inputMap.remove(ConnectionPropertyNames.PROXY_USERNAME);
     final List<InvalidProperty> result = processor.process(inputMap);
     assertThat(result).hasSize(1);
-    assertThat(result.get(0).getPropertyName()).isEqualTo(CommonStepPropertyNames.PROXY_USERNAME);
+    assertThat(result.get(0).getPropertyName()).isEqualTo(ConnectionPropertyNames.PROXY_USERNAME);
   }
 
   @Test
@@ -165,9 +166,9 @@ class OctopusBuildStepPropertiesProcessorTest {
     final OctopusBuildStepPropertiesProcessor processor = new OctopusBuildStepPropertiesProcessor();
     final Map<String, String> inputMap = createValidPropertyMap();
 
-    inputMap.remove(CommonStepPropertyNames.PROXY_PASSWORD);
+    inputMap.remove(ConnectionPropertyNames.PROXY_PASSWORD);
     final List<InvalidProperty> result = processor.process(inputMap);
     assertThat(result).hasSize(1);
-    assertThat(result.get(0).getPropertyName()).isEqualTo(CommonStepPropertyNames.PROXY_PASSWORD);
+    assertThat(result.get(0).getPropertyName()).isEqualTo(ConnectionPropertyNames.PROXY_PASSWORD);
   }
 }
