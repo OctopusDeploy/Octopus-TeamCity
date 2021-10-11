@@ -59,11 +59,8 @@ public class OctopusGenericRunType extends RunType {
       return "No build command corresponds to supplied build step name\n";
     }
 
-    // TODO(tmm): Put in the name of the connection being used.
-
     return String.format(
-        "%s\n%s\n",
-        buildStep.get().getDescription(), buildStep.get().describeParameters(parameters));
+        "%s\n%s", buildStep.get().getDescription(), buildStep.get().describeParameters(parameters));
   }
 
   @Override

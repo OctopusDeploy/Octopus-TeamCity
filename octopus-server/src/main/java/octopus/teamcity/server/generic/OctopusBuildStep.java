@@ -69,4 +69,9 @@ public abstract class OctopusBuildStep implements Serializable {
     }
     return Optional.empty();
   }
+
+  protected String parameterDescription(final String title, final String value) {
+    final String formatPattern = "%s: %s\n";
+    return String.format(formatPattern, title, value);
+  }
 }

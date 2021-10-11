@@ -2,7 +2,7 @@ dependencyManagement {
 
     dependencies {
 
-        dependencySet(group: 'com.octopus', version: '0.0.2-SNAPSHOT') {
+        dependencySet(group: 'com.octopus', version: '0.0.1-SNAPSHOT') {
             entry 'octopus-sdk'
             entry 'test-support'
         }

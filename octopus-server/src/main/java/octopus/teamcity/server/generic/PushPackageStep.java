@@ -5,6 +5,7 @@ import java.util.Map;
 
 import com.google.common.collect.Lists;
 import jetbrains.buildServer.serverSide.InvalidProperty;
+import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
 import octopus.teamcity.common.pushpackage.PushPackagePropertyNames;
 
 public class PushPackageStep extends OctopusBuildStep {
@@ -40,6 +41,9 @@ public class PushPackageStep extends OctopusBuildStep {
   @Override
   public String describeParameters(final Map<String, String> parameters) {
     final String packagePaths = parameters.get(KEYS.getPackagePathsPropertyName());
-    return "Packages: " + packagePaths.replace("\n", ", ");
+
+    return parameterDescription(
+            "Connection", parameters.get(CommonStepPropertyNames.CONNECTION_NAME))
+        + parameterDescription("Packages", packagePaths.replace("\n", ", "));
   }
 }

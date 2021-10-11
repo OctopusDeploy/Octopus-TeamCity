@@ -6,6 +6,7 @@ import java.util.Map;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.text.StringUtil;
 import jetbrains.buildServer.serverSide.InvalidProperty;
+import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
 import octopus.teamcity.common.createrelease.CreateReleasePropertyNames;
 import octopus.teamcity.common.createrelease.CreateReleaseUserData;
 
@@ -24,9 +25,13 @@ public class CreateReleaseStep extends OctopusBuildStep {
   @Override
   public String describeParameters(Map<String, String> parameters) {
     final CreateReleaseUserData createReleaseUserData = new CreateReleaseUserData(parameters);
-    return String.format(
-        "Project name: %s\nPackage version: %s",
-        createReleaseUserData.getProjectName(), createReleaseUserData.getPackageVersion());
+
+    return parameterDescription(
+            "Connection", parameters.get(CommonStepPropertyNames.CONNECTION_NAME))
+        + parameterDescription(
+            "Project name", String.join(", ", createReleaseUserData.getProjectName()))
+        + parameterDescription(
+            "Package version", String.join(", ", createReleaseUserData.getPackageVersion()));
   }
 
   @Override

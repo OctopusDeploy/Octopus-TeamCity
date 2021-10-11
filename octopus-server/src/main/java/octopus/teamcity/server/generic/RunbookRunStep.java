@@ -6,6 +6,7 @@ import java.util.Map;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.text.StringUtil;
 import jetbrains.buildServer.serverSide.InvalidProperty;
+import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
 import octopus.teamcity.common.runbookrun.RunbookRunPropertyNames;
 import octopus.teamcity.common.runbookrun.RunbookRunUserData;
 
@@ -24,9 +25,11 @@ public class RunbookRunStep extends OctopusBuildStep {
   @Override
   public String describeParameters(Map<String, String> parameters) {
     final RunbookRunUserData runbookRunUserData = new RunbookRunUserData(parameters);
-    return String.format(
-        "Runbook name: %s\nProject name: %s",
-        runbookRunUserData.getRunbookName(), runbookRunUserData.getProjectName());
+
+    return parameterDescription(
+            "Connection", parameters.get(CommonStepPropertyNames.CONNECTION_NAME))
+        + parameterDescription("Runbook name", runbookRunUserData.getRunbookName())
+        + parameterDescription("Project name", runbookRunUserData.getProjectName());
   }
 
   @Override

@@ -7,6 +7,7 @@ import com.google.common.collect.Lists;
 import jetbrains.buildServer.serverSide.InvalidProperty;
 import octopus.teamcity.common.buildinfo.BuildInfoPropertyNames;
 import octopus.teamcity.common.buildinfo.BuildInfoUserData;
+import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
 
 public class BuildInformationStep extends OctopusBuildStep {
 
@@ -50,6 +51,9 @@ public class BuildInformationStep extends OctopusBuildStep {
   @Override
   public String describeParameters(final Map<String, String> parameters) {
     final BuildInfoUserData userData = new BuildInfoUserData(parameters);
-    return "Package Ids: " + String.join(", ", userData.getPackageIds());
+
+    return parameterDescription(
+            "Connection", parameters.get(CommonStepPropertyNames.CONNECTION_NAME))
+        + parameterDescription("Package Ids", String.join(", ", userData.getPackageIds()));
   }
 }
