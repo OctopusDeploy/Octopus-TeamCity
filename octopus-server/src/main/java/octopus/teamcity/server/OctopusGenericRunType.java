@@ -75,7 +75,7 @@ public class OctopusGenericRunType extends RunType {
   @Override
   public String getEditRunnerParamsJspFilePath() {
     return pluginDescriptor.getPluginResourcesPath(
-        "v2" + File.separator + "editOctopusGeneric.jsp");
+        "v2" + File.separator + "editOctopusGeneric.html");
   }
 
   @Override
