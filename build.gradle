@@ -1,4 +1,3 @@
-
 import net.ltgt.gradle.errorprone.CheckSeverity
 
 plugins {
@@ -73,7 +72,6 @@ allprojects {
   }
 
 
-
   apply plugin: 'com.diffplug.spotless'
   spotless {
     java {
@@ -140,6 +138,11 @@ allprojects {
   test {
     useJUnitPlatform()
   }
+
+  tasks.withType(Test) {
+    // If GRADLE_MAX_TEST_FORKS is not set, use half the available processors
+    maxParallelForks = (System.getenv('GRADLE_MAX_TEST_FORKS') ?: (Runtime.runtime.availableProcessors().intdiv(2) ?: 1)).toInteger()
+  }
 }
 
 
@@ -154,7 +157,7 @@ distributions {
   main {
     contents {
       from file("teamcity-plugin.xml"), {
-        filter(org.apache.tools.ant.filters.ReplaceTokens, tokens:[version: rootProject.version])
+        filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: [version: rootProject.version])
       }
       into('agent/') {
         //from tasks.findByPath(":octopus-agent:distZip").outputs.files
@@ -189,7 +192,7 @@ task updateJsp(type: Copy) {
   def fullPath = teamCityDataDir + subPath
 
   doFirst() {
-    if(teamCityDataDir == null) {
+    if (teamCityDataDir == null) {
       throw new GradleException("TEAMCITY_INSTALL_DIR env var not set, unable to copy jsps")
     }
     logger.info("Copying files to ${fullPath}")

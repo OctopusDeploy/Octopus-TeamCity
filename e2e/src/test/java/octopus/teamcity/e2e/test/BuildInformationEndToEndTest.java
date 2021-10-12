@@ -4,16 +4,16 @@ import static java.util.Collections.emptyMap;
 import static java.util.Collections.singleton;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.octopus.sdk.Repository;
 import com.octopus.sdk.api.BuildInformationApi;
 import com.octopus.sdk.api.SpaceHomeApi;
-import com.octopus.sdk.api.SpacesOverviewApi;
-import com.octopus.sdk.api.UsersApi;
+import com.octopus.sdk.api.UserApi;
+import com.octopus.sdk.domain.BuildInformation;
 import com.octopus.sdk.http.ConnectData;
 import com.octopus.sdk.http.OctopusClient;
 import com.octopus.sdk.http.OctopusClientFactory;
-import com.octopus.sdk.model.buildinformation.OctopusPackageVersionBuildInformationMappedResource;
-import com.octopus.sdk.model.spaces.SpaceHome;
-import com.octopus.sdk.model.spaces.SpaceOverviewWithLinks;
+import com.octopus.sdk.model.space.SpaceHome;
+import com.octopus.sdk.model.space.SpaceOverviewResource;
 import com.octopus.testsupport.OctopusDeployServer;
 import com.octopus.testsupport.OctopusDeployServerFactory;
 
@@ -64,13 +64,12 @@ public class BuildInformationEndToEndTest {
         new ConnectData(
             new URL(octoServer.getOctopusUrl()), octoServer.getApiKey(), Duration.ofSeconds(10));
     final OctopusClient client = OctopusClientFactory.createClient(connectData);
-    final SpacesOverviewApi spacesOverviewApi = SpacesOverviewApi.create(client);
-    final UsersApi users = UsersApi.create(client);
+    final Repository repo = new Repository(client);
+    final UserApi users = UserApi.create(client);
 
-    final SpaceOverviewWithLinks newSpace = new SpaceOverviewWithLinks();
-    newSpace.setName(SPACE_NAME);
-    newSpace.setSpaceManagersTeamMembers(singleton(users.getCurrentUser().getId()));
-    spacesOverviewApi.create(newSpace);
+    final SpaceOverviewResource newSpace =
+        new SpaceOverviewResource(SPACE_NAME, singleton(users.getCurrentUser().getId()));
+    repo.spaces().create(newSpace);
 
     // This is required to ensure docker container (run as tcuser) is able to write
     final Path teamcityDataDir = testDirectory.resolve("teamcitydata");
@@ -104,11 +103,10 @@ public class BuildInformationEndToEndTest {
       final SpaceHomeApi spaceHomeApi = new SpaceHomeApi(client);
       final SpaceHome spaceHome = spaceHomeApi.getByName(SPACE_NAME);
       final BuildInformationApi buildInfoApi = BuildInformationApi.create(client, spaceHome);
-      final List<OctopusPackageVersionBuildInformationMappedResource> items =
-          buildInfoApi.getByQuery(emptyMap());
+      final List<BuildInformation> items = buildInfoApi.getByQuery(emptyMap());
 
       assertThat(items.size()).isEqualTo(1);
-      assertThat(items.get(0).getPackageId()).isEqualTo("mypackage.noreally");
+      assertThat(items.get(0).getProperties().getPackageId()).isEqualTo("mypackage.noreally");
     } catch (final Exception e) {
       LOG.info("Failed to execute build");
       LOG.info(teamCityContainers.getAgentContainer().getLogs());

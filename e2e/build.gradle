@@ -42,4 +42,7 @@ task e2eTest(type: Test) {
     showStandardStreams = true
     exceptionFormat = 'full'
   }
+
+  // Until test run time exceeds startup costs
+  maxParallelForks = 1
 }

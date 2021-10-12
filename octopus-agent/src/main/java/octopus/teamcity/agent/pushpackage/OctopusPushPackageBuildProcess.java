@@ -38,7 +38,6 @@ import octopus.teamcity.common.pushpackage.PushPackageUserData;
 public class OctopusPushPackageBuildProcess extends InterruptableBuildProcess {
 
   private final PushPackageUploader uploader;
-  private final BuildRunnerContext context;
   private final BuildProgressLogger buildLogger;
   private final FileSelector fileSelector;
 
@@ -49,7 +48,6 @@ public class OctopusPushPackageBuildProcess extends InterruptableBuildProcess {
     super(context);
     this.uploader = uploader;
     this.fileSelector = fileSelector;
-    this.context = context;
     this.buildLogger = context.getBuild().getBuildLogger();
   }
 

@@ -1,14 +1,19 @@
 package octopus.teamcity.agent.runbookrun;
 
-import com.google.common.collect.Lists;
-import com.octopus.openapi.model.TaskState;
 import com.octopus.sdk.Repository;
-import com.octopus.sdk.api.TaskApi;
 import com.octopus.sdk.domain.Space;
-import com.octopus.sdk.domain.Task;
 import com.octopus.sdk.http.OctopusClient;
-
 import com.octopus.sdk.model.commands.ExecuteRunbookCommandBody;
+import com.octopus.sdk.model.task.TaskState;
+
+import java.util.Optional;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 import jetbrains.buildServer.RunBuildException;
 import jetbrains.buildServer.agent.BuildFinishedStatus;
 import jetbrains.buildServer.agent.BuildProgressLogger;
@@ -17,14 +22,10 @@ import octopus.teamcity.agent.InterruptableBuildProcess;
 import octopus.teamcity.common.commonstep.CommonStepUserData;
 import octopus.teamcity.common.runbookrun.RunbookRunUserData;
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Optional;
-
 public class OctopusRunbookRunBuildProcess extends InterruptableBuildProcess {
 
   private final BuildProgressLogger buildLogger;
-  private OctopusClient client;
+  private final OctopusClient client;
 
   public OctopusRunbookRunBuildProcess(BuildRunnerContext context, final OctopusClient client) {
     super(context);
@@ -52,16 +53,19 @@ public class OctopusRunbookRunBuildProcess extends InterruptableBuildProcess {
       buildLogger.message("Executing Runbook");
       final Optional<Space> space = repo.spaces().getByName(spaceName);
 
-      if(!space.isPresent()) {
-        buildLogger.buildFailureDescription("No space named '" + spaceName + "' existed on octopus server")
+      if (!space.isPresent()) {
+        buildLogger.buildFailureDescription(
+            "No space named '" + spaceName + "' existed on octopus server");
         complete(BuildFinishedStatus.FINISHED_FAILED);
         return;
       }
 
       final String serverTaskId = space.get().executionsApi().executeRunbook(body);
-      buildLogger.message("Server task has been started for runbook '" + userData.getRunbookName() + ";");
+      buildLogger.message(
+          "Server task has been started for runbook '" + userData.getRunbookName() + "'");
 
-      final BuildFinishedStatus result = waitForTask(serverTaskId, repo.tasks());
+      final TaskStateQuery taskStateQuery = new TaskStateQuery(serverTaskId, repo.tasks());
+      final BuildFinishedStatus result = waitForTask(taskStateQuery);
       complete(result);
 
     } catch (final Throwable ex) {
@@ -69,25 +73,25 @@ public class OctopusRunbookRunBuildProcess extends InterruptableBuildProcess {
     }
   }
 
-  private BuildFinishedStatus waitForTask(final String serverTaskId, final TaskApi tasks) throws IOException {
-    Optional<Task> task = tasks.getById(serverTaskId);
+  private BuildFinishedStatus waitForTask(final TaskStateQuery taskStateQuery)
+      throws InterruptedException {
+    final Timer timer = new Timer("WaitForRunbook");
+    final CompletableFuture<TaskState> completionFuture = new CompletableFuture<>();
+    final TimerTask taskStateChecker = new ServerTaskTimerTask(completionFuture, taskStateQuery);
 
-    if(!task.isPresent()) {
-      buildLogger.buildFailureDescription("Unable to find task with id '" + serverTaskId + "' on Octopus server");
-      complete(BuildFinishedStatus.FINISHED_FAILED);
-      return BuildFinishedStatus.FINISHED_FAILED;
+    try {
+      timer.scheduleAtFixedRate(taskStateChecker, 0, 1000);
+      final TaskState result = completionFuture.get(50, TimeUnit.SECONDS);
+      if (result.equals(TaskState.SUCCESS)) {
+        return BuildFinishedStatus.FINISHED_SUCCESS;
+      }
+    } catch (final ExecutionException e) {
+      buildLogger.error("Failure in communications during runbook execution " + e.getMessage());
+    } catch (final TimeoutException e) {
+      buildLogger.error("Runbook failed to complete in expected timeout.");
+    } finally {
+      timer.cancel();
     }
-    final TaskState state = task.get().getProperties().getState();
-    buildLogger.message("Server task '" + serverTaskId + "' is currently ");
-
-    final Collection<TaskState> completedStates = Lists.newArrayList(
-        TaskState.CANCELED, TaskState.FAILED, TaskState.SUCCESS,  TaskState.TIMEDOUT);
-    )
-
-    while(!completedStates.contains(state)) {
-      Thread.sleep(1000);
-    }
-
+    return BuildFinishedStatus.FINISHED_FAILED;
   }
-
 }

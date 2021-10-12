@@ -15,7 +15,7 @@
 
 package octopus.teamcity.agent.buildinformation;
 
-import com.octopus.sdk.operations.buildinformation.Commit;
+import com.octopus.sdk.operation.buildinformation.Commit;
 
 import java.util.ArrayList;
 import java.util.List;

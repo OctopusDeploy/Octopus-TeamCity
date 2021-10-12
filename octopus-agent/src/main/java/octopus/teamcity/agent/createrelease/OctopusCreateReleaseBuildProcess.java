@@ -15,7 +15,7 @@ import octopus.teamcity.common.createrelease.CreateReleaseUserData;
 public class OctopusCreateReleaseBuildProcess extends InterruptableBuildProcess {
 
   private final BuildProgressLogger buildLogger;
-  private OctopusClient client;
+  private final OctopusClient client;
 
   public OctopusCreateReleaseBuildProcess(
       final BuildRunnerContext context, final OctopusClient client) {

@@ -22,8 +22,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.octopus.sdk.operations.buildinformation.BuildInformationUploader;
-import com.octopus.sdk.operations.buildinformation.BuildInformationUploaderContext;
+import com.octopus.sdk.operation.buildinformation.BuildInformationUploader;
+import com.octopus.sdk.operation.buildinformation.BuildInformationUploaderContext;
 
 import java.io.IOException;
 import java.util.Collections;

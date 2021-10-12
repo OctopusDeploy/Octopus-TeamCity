@@ -39,7 +39,6 @@ import octopus.teamcity.common.commonstep.CommonStepUserData;
 
 public class OctopusBuildInformationBuildProcess extends InterruptableBuildProcess {
 
-  private final BuildRunnerContext context;
   private final BaseBuildVcsData buildVcsData;
   private final BuildProgressLogger buildLogger;
   private final BuildInformationUploader uploader;
@@ -52,7 +51,6 @@ public class OctopusBuildInformationBuildProcess extends InterruptableBuildProce
     this.uploader = uploader;
     this.buildVcsData = buildVcsData;
     this.buildLogger = context.getBuild().getBuildLogger();
-    this.context = context;
   }
 
   @Override
