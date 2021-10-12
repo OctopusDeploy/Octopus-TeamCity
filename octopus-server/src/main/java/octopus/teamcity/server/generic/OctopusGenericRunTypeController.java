@@ -23,8 +23,6 @@ import jetbrains.buildServer.controllers.BaseController;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import jetbrains.buildServer.web.openapi.WebControllerManager;
 import octopus.teamcity.server.OctopusGenericRunType;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.web.servlet.ModelAndView;
 
 // This is responsible for handling the call http request for the OctopusBuildStep.
