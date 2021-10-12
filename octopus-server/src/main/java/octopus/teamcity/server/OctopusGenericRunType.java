@@ -1,10 +1,5 @@
 package octopus.teamcity.server;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
 import com.intellij.openapi.util.text.StringUtil;
 import jetbrains.buildServer.serverSide.PropertiesProcessor;
 import jetbrains.buildServer.serverSide.RunType;
@@ -13,8 +8,13 @@ import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import octopus.teamcity.common.OctopusConstants;
 import octopus.teamcity.common.commonstep.StepTypeConstants;
 import octopus.teamcity.server.generic.BuildStepCollection;
-import octopus.teamcity.server.generic.GenericParameterProcessor;
 import octopus.teamcity.server.generic.OctopusBuildStep;
+import octopus.teamcity.server.generic.OctopusBuildStepPropertiesProcessor;
+
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 public class OctopusGenericRunType extends RunType {
   private final PluginDescriptor pluginDescriptor;
@@ -66,7 +66,7 @@ public class OctopusGenericRunType extends RunType {
 
   @Override
   public PropertiesProcessor getRunnerPropertiesProcessor() {
-    return new GenericParameterProcessor();
+    return new OctopusBuildStepPropertiesProcessor();
   }
 
   @Override

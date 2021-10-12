@@ -15,18 +15,18 @@
 
 package octopus.teamcity.server.connection;
 
-import jetbrains.buildServer.serverSide.InvalidProperty;
-import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
-import octopus.teamcity.common.connection.ConnectionPropertyNames;
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import jetbrains.buildServer.serverSide.InvalidProperty;
+import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
+import octopus.teamcity.common.connection.ConnectionPropertyNames;
+import org.junit.jupiter.api.Test;
 
 /**
  * It should be noted that when TeamCity constructs a Properties Map, it removes leading whitespace
@@ -49,7 +49,8 @@ class OctopusConnectionPropertiesProcessorTest {
 
   @Test
   public void aValidInputMapProducesNoInvalidEntries() {
-    final OctopusConnectionPropertiesProcessor processor = new OctopusConnectionPropertiesProcessor();
+    final OctopusConnectionPropertiesProcessor processor =
+        new OctopusConnectionPropertiesProcessor();
     final Map<String, String> inputMap = createValidPropertyMap();
 
     assertThat(processor.process(inputMap)).hasSize(0);
@@ -57,13 +58,15 @@ class OctopusConnectionPropertiesProcessorTest {
 
   @Test
   public void anEmptyListThrowsException() {
-    final OctopusConnectionPropertiesProcessor processor = new OctopusConnectionPropertiesProcessor();
+    final OctopusConnectionPropertiesProcessor processor =
+        new OctopusConnectionPropertiesProcessor();
     assertThatThrownBy(() -> processor.process(null)).isInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
   public void mandatoryFieldsMustBePopulated() {
-    final OctopusConnectionPropertiesProcessor processor = new OctopusConnectionPropertiesProcessor();
+    final OctopusConnectionPropertiesProcessor processor =
+        new OctopusConnectionPropertiesProcessor();
     final Map<String, String> inputMap = createValidPropertyMap();
 
     inputMap.remove(ConnectionPropertyNames.SERVER_URL);
@@ -79,7 +82,8 @@ class OctopusConnectionPropertiesProcessorTest {
 
   @Test
   public void illegallyFormattedServerUrlReturnsASingleInvalidProperty() {
-    final OctopusConnectionPropertiesProcessor processor = new OctopusConnectionPropertiesProcessor();
+    final OctopusConnectionPropertiesProcessor processor =
+        new OctopusConnectionPropertiesProcessor();
     final Map<String, String> inputMap = createValidPropertyMap();
 
     inputMap.put(ConnectionPropertyNames.SERVER_URL, "badUrl");
@@ -90,7 +94,8 @@ class OctopusConnectionPropertiesProcessorTest {
 
   @Test
   public void illegallyFormattedApiKeyReturnsASingleInvalidProperty() {
-    final OctopusConnectionPropertiesProcessor processor = new OctopusConnectionPropertiesProcessor();
+    final OctopusConnectionPropertiesProcessor processor =
+        new OctopusConnectionPropertiesProcessor();
     final Map<String, String> inputMap = createValidPropertyMap();
 
     inputMap.put(ConnectionPropertyNames.API_KEY, "API-1");
@@ -102,7 +107,8 @@ class OctopusConnectionPropertiesProcessorTest {
   @Test
   public void spaceNameCanBeNull() {
     // Implies the default space should be used
-    final OctopusConnectionPropertiesProcessor processor = new OctopusConnectionPropertiesProcessor();
+    final OctopusConnectionPropertiesProcessor processor =
+        new OctopusConnectionPropertiesProcessor();
     final Map<String, String> inputMap = createValidPropertyMap();
 
     inputMap.remove(CommonStepPropertyNames.SPACE_NAME);
@@ -112,7 +118,8 @@ class OctopusConnectionPropertiesProcessorTest {
 
   @Test
   public void proxyUsernameAndPasswordCanBothBeNull() {
-    final OctopusConnectionPropertiesProcessor processor = new OctopusConnectionPropertiesProcessor();
+    final OctopusConnectionPropertiesProcessor processor =
+        new OctopusConnectionPropertiesProcessor();
     final Map<String, String> inputMap = createValidPropertyMap();
 
     inputMap.remove(ConnectionPropertyNames.PROXY_PASSWORD);
@@ -123,7 +130,8 @@ class OctopusConnectionPropertiesProcessorTest {
 
   @Test
   public void invalidPropertyIsReturnedIfProxyPasswordIsSetWithoutUsername() {
-    final OctopusConnectionPropertiesProcessor processor = new OctopusConnectionPropertiesProcessor();
+    final OctopusConnectionPropertiesProcessor processor =
+        new OctopusConnectionPropertiesProcessor();
     final Map<String, String> inputMap = createValidPropertyMap();
 
     inputMap.remove(ConnectionPropertyNames.PROXY_USERNAME);
@@ -134,7 +142,8 @@ class OctopusConnectionPropertiesProcessorTest {
 
   @Test
   public void invalidPropertyIsReturnedIfProxyUsernameIsSetWithoutPassword() {
-    final OctopusConnectionPropertiesProcessor processor = new OctopusConnectionPropertiesProcessor();
+    final OctopusConnectionPropertiesProcessor processor =
+        new OctopusConnectionPropertiesProcessor();
     final Map<String, String> inputMap = createValidPropertyMap();
 
     inputMap.remove(ConnectionPropertyNames.PROXY_PASSWORD);

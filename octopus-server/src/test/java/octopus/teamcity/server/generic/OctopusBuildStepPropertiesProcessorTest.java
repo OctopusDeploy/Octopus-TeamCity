@@ -15,16 +15,16 @@
 
 package octopus.teamcity.server.generic;
 
-import octopus.teamcity.common.commonstep.StepTypeConstants;
-import octopus.teamcity.server.connection.OctopusConnectionPropertiesProcessor;
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import octopus.teamcity.common.commonstep.StepTypeConstants;
+import octopus.teamcity.server.connection.OctopusConnectionPropertiesProcessor;
+import org.junit.jupiter.api.Test;
 
-class GenericParameterProcessorTest {
+class OctopusBuildStepPropertiesProcessorTest {
 
   private Map<String, String> createValidPropertyMap() {
     final Map<String, String> result = new HashMap<>();
@@ -36,7 +36,8 @@ class GenericParameterProcessorTest {
 
   @Test
   public void missingStepTypeFieldThrowsIllegalArgumentException() {
-    final OctopusConnectionPropertiesProcessor processor = new OctopusConnectionPropertiesProcessor();
+    final OctopusConnectionPropertiesProcessor processor =
+        new OctopusConnectionPropertiesProcessor();
     final Map<String, String> inputMap = createValidPropertyMap();
 
     inputMap.remove(StepTypeConstants.STEP_TYPE);
@@ -46,7 +47,8 @@ class GenericParameterProcessorTest {
 
   @Test
   public void stepTypeWhichDoesNotAlignWithAvailableBuildProcessesThrowsIllegalArgument() {
-    final OctopusConnectionPropertiesProcessor processor = new OctopusConnectionPropertiesProcessor();
+    final OctopusConnectionPropertiesProcessor processor =
+        new OctopusConnectionPropertiesProcessor();
     final Map<String, String> inputMap = createValidPropertyMap();
 
     inputMap.put(StepTypeConstants.STEP_TYPE, "invalid-step-type");
