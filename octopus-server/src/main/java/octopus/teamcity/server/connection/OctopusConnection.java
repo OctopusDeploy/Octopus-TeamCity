@@ -23,8 +23,6 @@ import jetbrains.buildServer.serverSide.oauth.OAuthConnectionDescriptor;
 import jetbrains.buildServer.serverSide.oauth.OAuthProvider;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import octopus.teamcity.common.connection.ConnectionUserData;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class OctopusConnection extends OAuthProvider {
 
@@ -36,27 +34,23 @@ public class OctopusConnection extends OAuthProvider {
     this.pluginDescriptor = pluginDescriptor;
   }
 
-  @NotNull
   @Override
   public String getType() {
     return TYPE;
   }
 
-  @NotNull
   @Override
   public String getDisplayName() {
     return "OctopusDeploy Server";
   }
 
   @Override
-  @Nullable
   public String getEditParametersUrl() {
     return pluginDescriptor.getPluginResourcesPath("editOctopusConnection.jsp");
   }
 
   @Override
-  @NotNull
-  public String describeConnection(@NotNull OAuthConnectionDescriptor connection) {
+  public String describeConnection(final OAuthConnectionDescriptor connection) {
     final Map<String, String> params = connection.getParameters();
     final ConnectionUserData userData = new ConnectionUserData(params);
     try {
@@ -67,7 +61,6 @@ public class OctopusConnection extends OAuthProvider {
   }
 
   @Override
-  @Nullable
   public PropertiesProcessor getPropertiesProcessor() {
     return new OctopusConnectionPropertiesProcessor();
   }

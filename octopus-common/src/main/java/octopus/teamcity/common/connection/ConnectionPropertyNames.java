@@ -16,6 +16,7 @@ package octopus.teamcity.common.connection;
 
 import jetbrains.buildServer.agent.Constants;
 
+// NOTE: These constants must be accessible via getters to maintain bean-ness, which is used by jsps
 public class ConnectionPropertyNames {
   // DisplayName is _required_ by teamcity (and must be called "displayname")
   public static final String DISPLAY_NAME = "displayName";
