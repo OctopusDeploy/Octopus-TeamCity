@@ -17,14 +17,14 @@ package octopus.teamcity.common.commonstep;
 // NOTE: These constants must be accessible via getters to maintain bean-ness, which is used by jsps
 public class CommonStepPropertyNames {
 
-  public static final String STEP_TYPE = "octopus_step_type";
+  public static final String CONNECTION_ID = "octopus_connectionid";
   public static final String SPACE_NAME = "octopus_spacename";
   public static final String VERBOSE_LOGGING = "octopus_verboselogging";
 
   public CommonStepPropertyNames() {}
 
-  public String getStepTypePropertyName() {
-    return STEP_TYPE;
+  public String getConnectionIdPropertyName() {
+    return CONNECTION_ID;
   }
 
   public String getSpaceNamePropertyName() {

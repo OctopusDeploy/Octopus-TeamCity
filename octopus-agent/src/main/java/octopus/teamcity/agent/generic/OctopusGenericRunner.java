@@ -98,8 +98,7 @@ public class OctopusGenericRunner implements AgentBuildRunner {
       throws RunBuildException {
 
     // TODO(tmm): Probably should make these do something nicer than switch on hard-strings, which
-    // are otherwise
-    // available in the OctopusBuildStepCollection
+    // are otherwise available in the OctopusBuildStepCollection
     switch (stepType) {
       case ("build-information"):
         final BuildInformationUploader buildInformationUploader =
