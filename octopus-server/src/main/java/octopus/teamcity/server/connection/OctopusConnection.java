@@ -41,7 +41,7 @@ public class OctopusConnection extends OAuthProvider {
 
   @Override
   public String getDisplayName() {
-    return "OctopusDeploy Server";
+    return "Octopus Deploy";
   }
 
   @Override
