@@ -63,11 +63,7 @@ public class TeamCityFactory {
     // value=<octopusServerUrl> />
     final Path projectFile =
         Paths.get(
-            teamCityDataDir.toString(),
-            "config",
-            "projects",
-            "StepVnext",
-            "project-config.xml");
+            teamCityDataDir.toString(), "config", "projects", "StepVnext", "project-config.xml");
     updateProjectFile(projectFile, octopusServerUrl, octopusServerApiKey);
 
     final GenericContainer<?> teamCityServer = createAndStartServer();
