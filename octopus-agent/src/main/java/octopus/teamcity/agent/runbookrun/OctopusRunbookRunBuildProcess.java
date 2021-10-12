@@ -1,5 +1,7 @@
 package octopus.teamcity.agent.runbookrun;
 
+import com.google.common.collect.Lists;
+import com.octopus.openapi.model.TaskState;
 import com.octopus.sdk.Repository;
 import com.octopus.sdk.api.TaskApi;
 import com.octopus.sdk.domain.Space;
@@ -15,6 +17,8 @@ import octopus.teamcity.agent.InterruptableBuildProcess;
 import octopus.teamcity.common.commonstep.CommonStepUserData;
 import octopus.teamcity.common.runbookrun.RunbookRunUserData;
 
+import java.io.IOException;
+import java.util.Collection;
 import java.util.Optional;
 
 public class OctopusRunbookRunBuildProcess extends InterruptableBuildProcess {
@@ -57,26 +61,33 @@ public class OctopusRunbookRunBuildProcess extends InterruptableBuildProcess {
       final String serverTaskId = space.get().executionsApi().executeRunbook(body);
       buildLogger.message("Server task has been started for runbook '" + userData.getRunbookName() + ";");
 
-      waitForTask(serverTaskId);
-      complete(BuildFinishedStatus.FINISHED_SUCCESS);
+      final BuildFinishedStatus result = waitForTask(serverTaskId, repo.tasks());
+      complete(result);
 
-      while(task.get().getProperties().getIsCompleted()) {
-
-        task = repo.tasks().getById(serverTaskId);
-
-      }
     } catch (final Throwable ex) {
       throw new RunBuildException("Error processing build information build step.", ex);
     }
   }
 
-  private void waitForTask(final String serverTaskId, final TaskApi tasks) {
-    Optional<Task> task = repo.tasks().getById(serverTaskId);
+  private BuildFinishedStatus waitForTask(final String serverTaskId, final TaskApi tasks) throws IOException {
+    Optional<Task> task = tasks.getById(serverTaskId);
+
     if(!task.isPresent()) {
       buildLogger.buildFailureDescription("Unable to find task with id '" + serverTaskId + "' on Octopus server");
       complete(BuildFinishedStatus.FINISHED_FAILED);
-      return;
+      return BuildFinishedStatus.FINISHED_FAILED;
     }
+    final TaskState state = task.get().getProperties().getState();
+    buildLogger.message("Server task '" + serverTaskId + "' is currently ");
+
+    final Collection<TaskState> completedStates = Lists.newArrayList(
+        TaskState.CANCELED, TaskState.FAILED, TaskState.SUCCESS,  TaskState.TIMEDOUT);
+    )
+
+    while(!completedStates.contains(state)) {
+      Thread.sleep(1000);
+    }
+
   }
 
 }
