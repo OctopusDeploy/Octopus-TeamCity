@@ -42,10 +42,9 @@ public class OctopusGenericRunTypeController extends BaseController {
         octopusGenericRunType.getEditRunnerParamsJspFilePath(), this);
   }
 
-  @Nullable
   @Override
   protected ModelAndView doHandle(
-      @NotNull final HttpServletRequest request, @NotNull final HttpServletResponse response) {
+      final HttpServletRequest request, final HttpServletResponse response) {
     return new ModelAndView(
         pluginDescriptor.getPluginResourcesPath("v2" + File.separator + "editOctopusGeneric.jsp"));
   }
