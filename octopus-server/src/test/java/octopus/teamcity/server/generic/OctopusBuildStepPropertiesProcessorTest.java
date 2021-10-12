@@ -20,6 +20,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.util.HashMap;
 import java.util.Map;
 
+import octopus.teamcity.common.buildinfo.BuildInfoPropertyNames;
+import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
 import octopus.teamcity.common.commonstep.StepTypeConstants;
 import octopus.teamcity.server.connection.OctopusConnectionPropertiesProcessor;
 import org.junit.jupiter.api.Test;
@@ -29,7 +31,12 @@ class OctopusBuildStepPropertiesProcessorTest {
   private Map<String, String> createValidPropertyMap() {
     final Map<String, String> result = new HashMap<>();
 
-    result.put(StepTypeConstants.STEP_TYPE, "build-information");
+    result.put(StepTypeConstants.STEP_TYPE, new BuildInformationStep().getName());
+    result.put(CommonStepPropertyNames.SPACE_NAME, "My Space");
+    result.put(CommonStepPropertyNames.VERBOSE_LOGGING, "false");
+    result.put(BuildInfoPropertyNames.PACKAGE_IDS, "Package1\nPackage2");
+    result.put(BuildInfoPropertyNames.PACKAGE_VERSION, "1.0");
+    result.put(BuildInfoPropertyNames.OVERWRITE_MODE, "OverwriteExisting");
 
     return result;
   }
