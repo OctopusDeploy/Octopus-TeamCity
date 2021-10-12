@@ -34,7 +34,7 @@
         <td>
             <props:textProperty name="${keys.serverUrlPropertyName}" className="longField"/>
             <span class="error" id="error_${keys.serverUrlPropertyName}"></span>
-            <span class="smallNote">Specify Octopus web portal URL</span>
+            <span class="smallNote">Specify Octopus API key. You can get this from your user page in the Octopus web portal.</span>
         </td>
     </tr>
     <tr>
