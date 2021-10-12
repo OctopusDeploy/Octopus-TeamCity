@@ -15,29 +15,26 @@
 
 package octopus.teamcity.server.generic;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Optional;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import jetbrains.buildServer.controllers.BaseController;
 import jetbrains.buildServer.controllers.admin.projects.RunnerPropertiesBean;
 import jetbrains.buildServer.serverSide.ProjectManager;
-import jetbrains.buildServer.serverSide.RelativeWebLinks;
 import jetbrains.buildServer.serverSide.oauth.OAuthConnectionDescriptor;
 import jetbrains.buildServer.serverSide.oauth.OAuthConnectionsManager;
 import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import jetbrains.buildServer.web.openapi.WebControllerManager;
 import jetbrains.buildServer.web.util.SessionUser;
-import jetbrains.buildServer.web.util.WebUtil;
 import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
 import octopus.teamcity.server.OctopusGenericRunType;
 import octopus.teamcity.server.connection.ConnectionHelper;
-import octopus.teamcity.server.connection.OctopusConnectionsBean;
 import org.springframework.web.servlet.ModelAndView;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.Optional;
 
 // This is responsible for handling the call http request for the OctopusBuildStep.
 public class OctopusViewGenericRunTypeController extends BaseController {
@@ -74,16 +71,18 @@ public class OctopusViewGenericRunTypeController extends BaseController {
       return null;
     }
 
-    final List<OAuthConnectionDescriptor> availableConnections =
+    final Map<String, OAuthConnectionDescriptor> availableConnections =
         ConnectionHelper.getAvailableOctopusConnections(
             oauthConnectionManager, projectManager, user);
 
-    final RunnerPropertiesBean propertiesBean = (RunnerPropertiesBean)request.getAttribute("propertiesBean");
-    final String connectionId = propertiesBean.getProperties().get(CommonStepPropertyNames.CONNECTION_ID);
+    final RunnerPropertiesBean propertiesBean =
+        (RunnerPropertiesBean) request.getAttribute("propertiesBean");
+    final String connectionId =
+        propertiesBean.getProperties().get(CommonStepPropertyNames.CONNECTION_ID);
     final Optional<OAuthConnectionDescriptor> connection =
-        availableConnections.stream().filter(conn -> conn.getId().equals(connectionId)).findFirst();
+        Optional.ofNullable(availableConnections.get(connectionId));
 
-    if(connection.isPresent()) {
+    if (connection.isPresent()) {
       propertiesBean.getProperties().putAll(connection.get().getParameters());
     }
 

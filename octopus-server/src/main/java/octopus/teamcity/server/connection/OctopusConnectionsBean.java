@@ -15,19 +15,19 @@
 
 package octopus.teamcity.server.connection;
 
-import java.util.List;
+import java.util.Collection;
 
 import jetbrains.buildServer.serverSide.oauth.OAuthConnectionDescriptor;
 
 public class OctopusConnectionsBean {
 
-  private final List<OAuthConnectionDescriptor> connections;
+  private final Collection<OAuthConnectionDescriptor> connections;
 
-  public OctopusConnectionsBean(final List<OAuthConnectionDescriptor> connections) {
+  public OctopusConnectionsBean(final Collection<OAuthConnectionDescriptor> connections) {
     this.connections = connections;
   }
 
-  public List<OAuthConnectionDescriptor> getConnections() {
+  public Collection<OAuthConnectionDescriptor> getConnections() {
     return connections;
   }
 }

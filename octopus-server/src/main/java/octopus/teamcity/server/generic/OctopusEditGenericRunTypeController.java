@@ -17,7 +17,7 @@ package octopus.teamcity.server.generic;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
+import java.util.Collection;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -49,7 +49,8 @@ public class OctopusEditGenericRunTypeController extends BaseController {
       final PluginDescriptor pluginDescriptor,
       final OctopusGenericRunType octopusGenericRunType,
       final OAuthConnectionsManager oauthConnectionManager,
-      final ProjectManager projectManager, final RelativeWebLinks webLinks) {
+      final ProjectManager projectManager,
+      final RelativeWebLinks webLinks) {
     this.pluginDescriptor = pluginDescriptor;
     this.oauthConnectionManager = oauthConnectionManager;
     this.projectManager = projectManager;
@@ -73,9 +74,10 @@ public class OctopusEditGenericRunTypeController extends BaseController {
       return null;
     }
 
-    final List<OAuthConnectionDescriptor> availableConnections =
+    final Collection<OAuthConnectionDescriptor> availableConnections =
         ConnectionHelper.getAvailableOctopusConnections(
-            oauthConnectionManager, projectManager, user);
+                oauthConnectionManager, projectManager, user)
+            .values();
 
     modelAndView.addObject("octopusConnections", new OctopusConnectionsBean(availableConnections));
     modelAndView.addObject("user", user);
