@@ -16,4 +16,5 @@
     <bean class="octopus.teamcity.server.OctopusGenericRunType">
         <constructor-arg value="#{ systemProperties['octopus.enable.step.vnext'] }"/>
     </bean>
+    <bean class="octopus.teamcity.server.generic.OctopusGenericRunTypeController"/>
 </beans>
