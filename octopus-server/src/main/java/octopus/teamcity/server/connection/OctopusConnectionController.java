@@ -13,7 +13,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package octopus.teamcity.server.generic;
+package octopus.teamcity.server.connection;
 
 import java.io.File;
 import java.util.List;
@@ -22,7 +22,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import jetbrains.buildServer.controllers.BaseController;
 import jetbrains.buildServer.serverSide.ProjectManager;
-import jetbrains.buildServer.serverSide.RelativeWebLinks;
+import jetbrains.buildServer.serverSide.SBuildServer;
+import jetbrains.buildServer.serverSide.WebLinks;
 import jetbrains.buildServer.serverSide.oauth.OAuthConnectionDescriptor;
 import jetbrains.buildServer.serverSide.oauth.OAuthConnectionsManager;
 import jetbrains.buildServer.users.User;
@@ -31,37 +32,43 @@ import jetbrains.buildServer.web.openapi.WebControllerManager;
 import jetbrains.buildServer.web.util.SessionUser;
 import jetbrains.buildServer.web.util.WebUtil;
 import octopus.teamcity.server.OctopusGenericRunType;
-import octopus.teamcity.server.connection.ConnectionHelper;
-import octopus.teamcity.server.connection.OctopusConnectionsBean;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.web.servlet.ModelAndView;
 
 // This is responsible for handling the call http request for the OctopusBuildStep.
-public class OctopusGenericRunTypeController extends BaseController {
+// It adds all OctopusConnections to the request, along with metadata, such that the JSP
+// can display information about the available connections.
+public class OctopusConnectionController extends BaseController {
 
+  private final OAuthConnectionsManager oauthConnectionManager;
+  private final ProjectManager projectManager;
   private final PluginDescriptor pluginDescriptor;
-  private OAuthConnectionsManager oauthConnectionManager;
-  private ProjectManager projectManager;
-  private RelativeWebLinks webLinks;
+  private final WebLinks webLinks;
 
-  public OctopusGenericRunTypeController(
+  public OctopusConnectionController(
       final WebControllerManager webControllerManager,
-      final PluginDescriptor pluginDescriptor,
-      final OctopusGenericRunType octopusGenericRunType,
       final OAuthConnectionsManager oauthConnectionManager,
       final ProjectManager projectManager,
-      final RelativeWebLinks webLinks) {
-    this.pluginDescriptor = pluginDescriptor;
+      final PluginDescriptor pluginDescriptor,
+      final OctopusGenericRunType octopusGenericRunType,
+      final SBuildServer myServer,
+      final WebLinks webLinks) {
+    super(myServer);
     this.oauthConnectionManager = oauthConnectionManager;
     this.projectManager = projectManager;
+    this.pluginDescriptor = pluginDescriptor;
     this.webLinks = webLinks;
 
-    webControllerManager.registerController(
-        octopusGenericRunType.getEditRunnerParamsJspFilePath(), this);
+    final String path = octopusGenericRunType.getEditRunnerParamsJspFilePath();
+    webControllerManager.registerController(path, this);
   }
 
+  @Nullable
   @Override
   protected ModelAndView doHandle(
-      final HttpServletRequest request, final HttpServletResponse response) throws Exception {
+      @NotNull final HttpServletRequest request, @NotNull final HttpServletResponse response)
+      throws Exception {
     final ModelAndView modelAndView =
         new ModelAndView(
             pluginDescriptor.getPluginResourcesPath(

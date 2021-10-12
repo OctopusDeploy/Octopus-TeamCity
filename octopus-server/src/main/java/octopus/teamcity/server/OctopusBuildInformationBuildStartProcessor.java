@@ -1,5 +1,8 @@
 package octopus.teamcity.server;
 
+import java.util.List;
+import java.util.Map;
+
 import jetbrains.buildServer.ExtensionHolder;
 import jetbrains.buildServer.serverSide.BuildStartContext;
 import jetbrains.buildServer.serverSide.BuildStartContextProcessor;
@@ -12,9 +15,6 @@ import jetbrains.buildServer.vcs.VcsRootInstanceEntry;
 import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
 import octopus.teamcity.server.connection.ConnectionHelper;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
-import java.util.Map;
 
 public class OctopusBuildInformationBuildStartProcessor implements BuildStartContextProcessor {
 

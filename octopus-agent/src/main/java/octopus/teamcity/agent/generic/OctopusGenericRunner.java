@@ -42,7 +42,7 @@ import octopus.teamcity.agent.pushpackage.FileSelector;
 import octopus.teamcity.agent.pushpackage.OctopusPushPackageBuildProcess;
 import octopus.teamcity.agent.runbookrun.OctopusRunbookRunBuildProcess;
 import octopus.teamcity.common.OctopusConstants;
-import octopus.teamcity.common.commonstep.CommonStepUserData;
+import octopus.teamcity.common.commonstep.StepTypeConstants;
 import octopus.teamcity.common.connection.ConnectionUserData;
 
 public class OctopusGenericRunner implements AgentBuildRunner {
@@ -70,12 +70,11 @@ public class OctopusGenericRunner implements AgentBuildRunner {
       throws RunBuildException {
 
     final BuildProgressLogger logger = runningBuild.getBuildLogger();
-    final CommonStepUserData commonStepUserData =
-        new CommonStepUserData(context.getRunnerParameters());
     final ConnectionUserData connectionUserData =
         new ConnectionUserData(context.getRunnerParameters());
+    final String stepTypeName = context.getRunnerParameters().get(StepTypeConstants.STEP_TYPE);
 
-    final String activityName = ACTIVITY_NAME + " - " + commonStepUserData.getStepType();
+    final String activityName = ACTIVITY_NAME + " - " + stepTypeName;
     logger.activityStarted(activityName, BLOCK_TYPE_BUILD_STEP);
 
     try {
@@ -84,7 +83,7 @@ public class OctopusGenericRunner implements AgentBuildRunner {
               + connectionUserData.getServerUrl().toString());
       final ConnectData connection = TypeConverters.from(connectionUserData);
       final OctopusClient client = OctopusClientFactory.createClient(connection);
-      return createBuildProcess(commonStepUserData.getStepType(), client, runningBuild, context);
+      return createBuildProcess(stepTypeName, client, runningBuild, context);
     } catch (final MalformedURLException e) {
       throw new RunBuildException("Unable to decode supplied Octopus Server URL");
     }

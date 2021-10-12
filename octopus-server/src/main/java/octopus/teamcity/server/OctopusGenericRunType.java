@@ -11,10 +11,10 @@ import jetbrains.buildServer.serverSide.RunType;
 import jetbrains.buildServer.serverSide.RunTypeRegistry;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import octopus.teamcity.common.OctopusConstants;
-import octopus.teamcity.common.commonstep.CommonStepUserData;
+import octopus.teamcity.common.commonstep.StepTypeConstants;
 import octopus.teamcity.server.generic.BuildStepCollection;
+import octopus.teamcity.server.generic.GenericParameterProcessor;
 import octopus.teamcity.server.generic.OctopusBuildStep;
-import octopus.teamcity.server.generic.OctopusBuildStepPropertiesProcessor;
 
 public class OctopusGenericRunType extends RunType {
   private final PluginDescriptor pluginDescriptor;
@@ -46,13 +46,10 @@ public class OctopusGenericRunType extends RunType {
 
   @Override
   public String describeParameters(final Map<String, String> parameters) {
-    // NOTE: This is only called once the values in the map have been validated as being "within
-    // bounds"
-    final CommonStepUserData commonStepUserData = new CommonStepUserData(parameters);
 
-    final String stepType = commonStepUserData.getStepType();
-    if (commonStepUserData.getStepType().isEmpty()) {
-      return "No build step specified\n";
+    final String stepType = parameters.get(StepTypeConstants.STEP_TYPE);
+    if (stepType == null) {
+      return "No build step type specified\n";
     }
 
     final BuildStepCollection buildStepCollection = new BuildStepCollection();
@@ -69,7 +66,7 @@ public class OctopusGenericRunType extends RunType {
 
   @Override
   public PropertiesProcessor getRunnerPropertiesProcessor() {
-    return new OctopusBuildStepPropertiesProcessor();
+    return new GenericParameterProcessor();
   }
 
   @Override
