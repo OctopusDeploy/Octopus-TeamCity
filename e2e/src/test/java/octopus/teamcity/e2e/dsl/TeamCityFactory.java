@@ -67,8 +67,7 @@ public class TeamCityFactory {
             "config",
             "projects",
             "StepVnext",
-            "buildTypes",
-            "StepVnext_ExecuteBuildInfo.xml");
+            "project-config.xml");
     updateProjectFile(projectFile, octopusServerUrl, octopusServerApiKey);
 
     final GenericContainer<?> teamCityServer = createAndStartServer();
