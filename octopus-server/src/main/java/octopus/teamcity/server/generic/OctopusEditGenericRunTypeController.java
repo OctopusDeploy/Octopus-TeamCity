@@ -37,14 +37,14 @@ import octopus.teamcity.server.connection.OctopusConnectionsBean;
 import org.springframework.web.servlet.ModelAndView;
 
 // This is responsible for handling the call http request for the OctopusBuildStep.
-public class OctopusGenericRunTypeController extends BaseController {
+public class OctopusEditGenericRunTypeController extends BaseController {
 
   private final PluginDescriptor pluginDescriptor;
   private final OAuthConnectionsManager oauthConnectionManager;
   private final ProjectManager projectManager;
   private final RelativeWebLinks webLinks;
 
-  public OctopusGenericRunTypeController(
+  public OctopusEditGenericRunTypeController(
       final WebControllerManager webControllerManager,
       final PluginDescriptor pluginDescriptor,
       final OctopusGenericRunType octopusGenericRunType,
