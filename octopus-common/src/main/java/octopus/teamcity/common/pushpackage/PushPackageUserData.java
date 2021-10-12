@@ -18,18 +18,18 @@ package octopus.teamcity.common.pushpackage;
 import java.util.Map;
 
 import octopus.teamcity.common.OverwriteMode;
+import octopus.teamcity.common.commonstep.CommonStepUserData;
 
 /**
  * Not SURE if these classes should return a TYPED version of the data ... or just a String. ATM -
  * only used on agent side to decode paramsMap ... so it can probably be typed. *
  */
-public class PushPackageUserData {
+public class PushPackageUserData extends CommonStepUserData {
 
   private static final PushPackagePropertyNames KEYS = new PushPackagePropertyNames();
-  private final Map<String, String> params;
 
   public PushPackageUserData(final Map<String, String> params) {
-    this.params = params;
+    super(params);
   }
 
   public String getPackagePaths() {
