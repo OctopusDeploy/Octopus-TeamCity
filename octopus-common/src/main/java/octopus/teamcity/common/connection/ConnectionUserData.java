@@ -21,11 +21,6 @@ import java.util.Map;
 
 import octopus.teamcity.common.BaseUserData;
 
-/**
- * Assumes that the params passed in are correctly formatted and can be immediate converted to the
- * appropriate types (URL/Boolean), as the map was verified as part of the TeamCity
- * PropertiesValidator
- */
 public class ConnectionUserData extends BaseUserData {
 
   private static final ConnectionPropertyNames KEYS = new ConnectionPropertyNames();
