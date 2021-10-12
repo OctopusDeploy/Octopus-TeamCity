@@ -22,17 +22,17 @@ import java.util.Optional;
 
 import jetbrains.buildServer.serverSide.InvalidProperty;
 import jetbrains.buildServer.serverSide.PropertiesProcessor;
-import octopus.teamcity.common.commonstep.StepTypeConstants;
+import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
 
 public class GenericParameterProcessor implements PropertiesProcessor {
 
   @Override
   public Collection<InvalidProperty> process(final Map<String, String> properties) {
-    final String stepType = properties.get(StepTypeConstants.STEP_TYPE);
+    final String stepType = properties.get(CommonStepPropertyNames.STEP_TYPE);
 
     if (stepType == null) {
       return Collections.singletonList(
-          new InvalidProperty(StepTypeConstants.STEP_TYPE, "No StepType specified"));
+          new InvalidProperty(CommonStepPropertyNames.STEP_TYPE, "No StepType specified"));
     }
 
     final BuildStepCollection buildStepCollection = new BuildStepCollection();
@@ -41,7 +41,8 @@ public class GenericParameterProcessor implements PropertiesProcessor {
     if (!buildStep.isPresent()) {
       return Collections.singletonList(
           new InvalidProperty(
-              StepTypeConstants.STEP_TYPE, "Cannot find a build handler for defined steptype"));
+              CommonStepPropertyNames.STEP_TYPE,
+              "Cannot find a build handler for defined steptype"));
     }
 
     return buildStep.get().validateProperties(properties);

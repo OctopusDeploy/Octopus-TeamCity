@@ -52,10 +52,10 @@ public class OctopusBuildInformationBuildStartProcessor implements BuildStartCon
       }
     }
 
-    insertConnectionDetailsIntoOctopusBuildSteps(buildStartContext);
+    insertConnectionPropertiesIntoOctopusBuildSteps(buildStartContext);
   }
 
-  private void insertConnectionDetailsIntoOctopusBuildSteps(
+  private void insertConnectionPropertiesIntoOctopusBuildSteps(
       final BuildStartContext buildStartContext) {
     final SUser user = buildStartContext.getBuild().getTriggeredBy().getUser();
     final Map<String, OAuthConnectionDescriptor> allConnections =
@@ -63,17 +63,13 @@ public class OctopusBuildInformationBuildStartProcessor implements BuildStartCon
             oAuthConnectionsManager, projectManager, user);
 
     // For each OctopusGenericBuildStep in the build, find the referenced connection, and copy
-    // parameters into
-    // the runnerParams
+    // parameters into the runnerParams
     buildStartContext.getRunnerContexts().stream()
         .filter(rc -> rc.getRunType() instanceof OctopusGenericRunType)
-        .forEach(
-            context -> {
-              updateContextWithConnectionParameters(allConnections, context);
-            });
+        .forEach(context -> updateBuildStepWithConnectionProperties(allConnections, context));
   }
 
-  private void updateContextWithConnectionParameters(
+  private void updateBuildStepWithConnectionProperties(
       final Map<String, OAuthConnectionDescriptor> allConnections, final SRunnerContext context) {
     final String connectionId = context.getParameters().get(CommonStepPropertyNames.CONNECTION_ID);
     if (!allConnections.containsKey(connectionId)) {

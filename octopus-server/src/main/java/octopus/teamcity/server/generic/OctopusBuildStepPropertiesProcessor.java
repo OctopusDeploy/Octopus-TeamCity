@@ -20,7 +20,7 @@ import java.util.Map;
 
 import jetbrains.buildServer.serverSide.InvalidProperty;
 import jetbrains.buildServer.serverSide.PropertiesProcessor;
-import octopus.teamcity.common.commonstep.StepTypeConstants;
+import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
 
 public class OctopusBuildStepPropertiesProcessor implements PropertiesProcessor {
 
@@ -30,7 +30,7 @@ public class OctopusBuildStepPropertiesProcessor implements PropertiesProcessor 
       throw new IllegalArgumentException("Supplied properties list was null");
     }
 
-    final String stepType = properties.get(StepTypeConstants.STEP_TYPE);
+    final String stepType = properties.get(CommonStepPropertyNames.STEP_TYPE);
     if (stepType == null) {
       throw new IllegalArgumentException("No step-type was specified, contact Octopus support");
     }

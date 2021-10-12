@@ -33,7 +33,11 @@ public class CommonStepUserData extends BaseUserData {
     super(params);
   }
 
-  public String getConnectionName() {
+  public String getStepType() {
+    return fetchRaw(KEYS.getStepTypePropertyName());
+  }
+
+  public String getConnectionId() {
     return params.get(KEYS.getConnectionIdPropertyName());
   }
 

@@ -21,7 +21,6 @@
   ~ limitations under the License.
   --%>
 
-<jsp:useBean id="stepTypeKeys" class="octopus.teamcity.common.commonstep.StepTypeConstants"/>
 <jsp:useBean id="keys" class="octopus.teamcity.common.commonstep.CommonStepPropertyNames"/>
 <jsp:useBean id="propertiesBean" scope="request"
              type="jetbrains.buildServer.controllers.BasePropertiesBean"/>
@@ -95,7 +94,7 @@
         </td>
     </tr>
 
-    <props:selectSectionProperty name="${stepTypeKeys.stepTypePropertyName}" title="${commandTitle}"
+    <props:selectSectionProperty name="${keys.stepTypePropertyName}" title="${commandTitle}"
                                  note="">
         <c:forEach items="${params.subSteps}" var="type">
             <props:selectSectionPropertyContent value="${type.name}" caption="${type.description}">

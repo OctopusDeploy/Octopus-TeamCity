@@ -10,7 +10,7 @@ import jetbrains.buildServer.serverSide.RunType;
 import jetbrains.buildServer.serverSide.RunTypeRegistry;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import octopus.teamcity.common.OctopusConstants;
-import octopus.teamcity.common.commonstep.StepTypeConstants;
+import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
 import octopus.teamcity.server.generic.BuildStepCollection;
 import octopus.teamcity.server.generic.OctopusBuildStep;
 import octopus.teamcity.server.generic.OctopusBuildStepPropertiesProcessor;
@@ -46,7 +46,7 @@ public class OctopusGenericRunType extends RunType {
   @Override
   public String describeParameters(final Map<String, String> parameters) {
 
-    final String stepType = parameters.get(StepTypeConstants.STEP_TYPE);
+    final String stepType = parameters.get(CommonStepPropertyNames.STEP_TYPE);
     if (stepType == null) {
       return "No build step type specified\n";
     }

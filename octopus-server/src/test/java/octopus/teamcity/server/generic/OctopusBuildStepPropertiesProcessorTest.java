@@ -22,7 +22,6 @@ import java.util.Map;
 
 import octopus.teamcity.common.buildinfo.BuildInfoPropertyNames;
 import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
-import octopus.teamcity.common.commonstep.StepTypeConstants;
 import org.junit.jupiter.api.Test;
 
 class OctopusBuildStepPropertiesProcessorTest {
@@ -30,7 +29,7 @@ class OctopusBuildStepPropertiesProcessorTest {
   private Map<String, String> createValidPropertyMap() {
     final Map<String, String> result = new HashMap<>();
 
-    result.put(StepTypeConstants.STEP_TYPE, new BuildInformationStep().getName());
+    result.put(CommonStepPropertyNames.STEP_TYPE, new BuildInformationStep().getName());
     result.put(CommonStepPropertyNames.SPACE_NAME, "My Space");
     result.put(CommonStepPropertyNames.VERBOSE_LOGGING, "false");
     result.put(BuildInfoPropertyNames.PACKAGE_IDS, "Package1\nPackage2");
@@ -45,7 +44,7 @@ class OctopusBuildStepPropertiesProcessorTest {
     final OctopusBuildStepPropertiesProcessor processor = new OctopusBuildStepPropertiesProcessor();
     final Map<String, String> inputMap = createValidPropertyMap();
 
-    inputMap.remove(StepTypeConstants.STEP_TYPE);
+    inputMap.remove(CommonStepPropertyNames.STEP_TYPE);
     assertThatThrownBy(() -> processor.process(inputMap))
         .isInstanceOf(IllegalArgumentException.class);
   }
@@ -55,7 +54,7 @@ class OctopusBuildStepPropertiesProcessorTest {
     final OctopusBuildStepPropertiesProcessor processor = new OctopusBuildStepPropertiesProcessor();
     final Map<String, String> inputMap = createValidPropertyMap();
 
-    inputMap.put(StepTypeConstants.STEP_TYPE, "invalid-step-type");
+    inputMap.put(CommonStepPropertyNames.STEP_TYPE, "invalid-step-type");
     assertThatThrownBy(() -> processor.process(inputMap))
         .isInstanceOf(IllegalArgumentException.class);
   }
