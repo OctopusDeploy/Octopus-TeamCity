@@ -23,7 +23,6 @@ import java.util.Map;
 import octopus.teamcity.common.buildinfo.BuildInfoPropertyNames;
 import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
 import octopus.teamcity.common.commonstep.StepTypeConstants;
-import octopus.teamcity.server.connection.OctopusConnectionPropertiesProcessor;
 import org.junit.jupiter.api.Test;
 
 class OctopusBuildStepPropertiesProcessorTest {
@@ -43,8 +42,7 @@ class OctopusBuildStepPropertiesProcessorTest {
 
   @Test
   public void missingStepTypeFieldThrowsIllegalArgumentException() {
-    final OctopusConnectionPropertiesProcessor processor =
-        new OctopusConnectionPropertiesProcessor();
+    final OctopusBuildStepPropertiesProcessor processor = new OctopusBuildStepPropertiesProcessor();
     final Map<String, String> inputMap = createValidPropertyMap();
 
     inputMap.remove(StepTypeConstants.STEP_TYPE);
@@ -54,8 +52,7 @@ class OctopusBuildStepPropertiesProcessorTest {
 
   @Test
   public void stepTypeWhichDoesNotAlignWithAvailableBuildProcessesThrowsIllegalArgument() {
-    final OctopusConnectionPropertiesProcessor processor =
-        new OctopusConnectionPropertiesProcessor();
+    final OctopusBuildStepPropertiesProcessor processor = new OctopusBuildStepPropertiesProcessor();
     final Map<String, String> inputMap = createValidPropertyMap();
 
     inputMap.put(StepTypeConstants.STEP_TYPE, "invalid-step-type");

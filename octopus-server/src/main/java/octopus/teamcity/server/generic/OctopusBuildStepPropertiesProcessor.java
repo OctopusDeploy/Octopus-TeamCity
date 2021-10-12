@@ -15,21 +15,12 @@
 
 package octopus.teamcity.server.generic;
 
-import com.octopus.sdk.utils.ApiKeyValidator;
-
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
-import com.google.common.collect.Lists;
 import jetbrains.buildServer.serverSide.InvalidProperty;
 import jetbrains.buildServer.serverSide.PropertiesProcessor;
-import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
 import octopus.teamcity.common.commonstep.StepTypeConstants;
-import octopus.teamcity.common.connection.ConnectionPropertyNames;
 
 public class OctopusBuildStepPropertiesProcessor implements PropertiesProcessor {
 
@@ -45,14 +36,11 @@ public class OctopusBuildStepPropertiesProcessor implements PropertiesProcessor 
     }
 
     final BuildStepCollection buildStepCollection = new BuildStepCollection();
-    final Optional<OctopusBuildStep> buildStep = buildStepCollection.getStepTypeByName(stepType);
 
-    if (!buildStep.isPresent()) {
-      return Collections.singletonList(
-          new InvalidProperty(
-              StepTypeConstants.STEP_TYPE, "Cannot find a build handler for defined steptype"));
-    }
-
-    return buildStep.get().validateProperties(properties);
+    return buildStepCollection
+        .getStepTypeByName(stepType)
+        .map(buildStep -> buildStep.validateProperties(properties))
+        .orElseThrow(
+            () -> new IllegalArgumentException("No matching validation for selected command"));
   }
 }
