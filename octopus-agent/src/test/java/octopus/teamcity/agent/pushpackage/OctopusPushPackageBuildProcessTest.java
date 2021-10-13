@@ -23,8 +23,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.octopus.sdk.operations.pushpackage.PushPackageUploader;
-import com.octopus.sdk.operations.pushpackage.PushPackageUploaderContext;
+import com.octopus.sdk.operation.pushpackage.PushPackageUploader;
+import com.octopus.sdk.operation.pushpackage.PushPackageUploaderContext;
 
 import java.io.File;
 import java.io.IOException;

@@ -15,9 +15,9 @@
 
 package octopus.teamcity.agent.pushpackage;
 
-import com.octopus.sdk.operations.pushpackage.PushPackageUploader;
-import com.octopus.sdk.operations.pushpackage.PushPackageUploaderContext;
-import com.octopus.sdk.operations.pushpackage.PushPackageUploaderContextBuilder;
+import com.octopus.sdk.operation.pushpackage.PushPackageUploader;
+import com.octopus.sdk.operation.pushpackage.PushPackageUploaderContext;
+import com.octopus.sdk.operation.pushpackage.PushPackageUploaderContextBuilder;
 
 import java.io.File;
 import java.io.IOException;
