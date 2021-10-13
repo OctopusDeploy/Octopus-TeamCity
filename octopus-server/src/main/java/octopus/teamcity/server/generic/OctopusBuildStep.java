@@ -5,15 +5,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.google.common.collect.Lists;
-import com.intellij.openapi.util.text.StringUtil;
 import jetbrains.buildServer.serverSide.InvalidProperty;
 import octopus.teamcity.common.OverwriteMode;
-import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
 
 public abstract class OctopusBuildStep implements Serializable {
-
-  private static final CommonStepPropertyNames KEYS = new CommonStepPropertyNames();
 
   private final String name;
   private final String description;
@@ -53,24 +48,7 @@ public abstract class OctopusBuildStep implements Serializable {
 
   public abstract String describeParameters(final Map<String, String> parameters);
 
-  public List<InvalidProperty> validateProperties(final Map<String, String> properties) {
-    final List<InvalidProperty> failedProperties = Lists.newArrayList();
-
-    final String spaceName = properties.getOrDefault(KEYS.getSpaceNamePropertyName(), "");
-    if (StringUtil.isEmpty(spaceName)) {
-      failedProperties.add(
-          new InvalidProperty(
-              KEYS.getSpaceNamePropertyName(),
-              "Space name must be specified, and cannot be whitespace."));
-    }
-
-    failedProperties.addAll(validateBuildSpecificProperties(properties));
-
-    return failedProperties;
-  }
-
-  protected abstract List<InvalidProperty> validateBuildSpecificProperties(
-      final Map<String, String> properties);
+  public abstract List<InvalidProperty> validateProperties(final Map<String, String> parameters);
 
   protected Optional<InvalidProperty> validateOverwriteMode(
       final Map<String, String> properties, final String key) {

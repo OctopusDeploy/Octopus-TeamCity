@@ -30,7 +30,7 @@ public class RunbookRunStep extends OctopusBuildStep {
   }
 
   @Override
-  protected List<InvalidProperty> validateBuildSpecificProperties(Map<String, String> properties) {
+  public List<InvalidProperty> validateProperties(Map<String, String> properties) {
     final List<InvalidProperty> failedProperties = Lists.newArrayList();
 
     if (StringUtil.isEmpty(properties.get(KEYS.getRunbookNamePropertyName()))) {

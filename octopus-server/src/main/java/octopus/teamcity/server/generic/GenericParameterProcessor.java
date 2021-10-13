@@ -17,14 +17,19 @@ package octopus.teamcity.server.generic;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.google.common.collect.Lists;
+import com.intellij.openapi.util.text.StringUtil;
 import jetbrains.buildServer.serverSide.InvalidProperty;
 import jetbrains.buildServer.serverSide.PropertiesProcessor;
 import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
 
 public class GenericParameterProcessor implements PropertiesProcessor {
+
+  private static final CommonStepPropertyNames KEYS = new CommonStepPropertyNames();
 
   @Override
   public Collection<InvalidProperty> process(final Map<String, String> properties) {
@@ -45,6 +50,18 @@ public class GenericParameterProcessor implements PropertiesProcessor {
               "Cannot find a build handler for defined steptype"));
     }
 
-    return buildStep.get().validateProperties(properties);
+    final List<InvalidProperty> failedProperties = Lists.newArrayList();
+
+    final String spaceName = properties.getOrDefault(KEYS.getSpaceNamePropertyName(), "");
+    if (StringUtil.isEmpty(spaceName)) {
+      failedProperties.add(
+          new InvalidProperty(
+              KEYS.getSpaceNamePropertyName(),
+              "Space name must be specified, and cannot be whitespace."));
+    }
+
+    failedProperties.addAll(buildStep.get().validateProperties(properties));
+
+    return failedProperties;
   }
 }

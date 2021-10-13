@@ -30,7 +30,6 @@ class PushPackageStepTest {
 
   private Map<String, String> createValidPropertyMap() {
     final Map<String, String> result = new HashMap<>();
-    result.put(CommonStepPropertyNames.SPACE_NAME, "TheSpace");
     result.put(PushPackagePropertyNames.PACKAGE_PATHS, "Package1\nPackage2");
     result.put(PushPackagePropertyNames.PUBLISH_ARTIFACTS, "false");
     result.put(PushPackagePropertyNames.OVERWRITE_MODE, "FailIfExists");

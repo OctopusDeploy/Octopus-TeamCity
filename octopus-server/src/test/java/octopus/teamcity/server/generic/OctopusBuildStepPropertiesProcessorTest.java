@@ -30,8 +30,6 @@ class OctopusBuildStepPropertiesProcessorTest {
     final Map<String, String> result = new HashMap<>();
 
     result.put(CommonStepPropertyNames.STEP_TYPE, new BuildInformationStep().getName());
-    result.put(CommonStepPropertyNames.SPACE_NAME, "My Space");
-    result.put(CommonStepPropertyNames.VERBOSE_LOGGING, "false");
     result.put(BuildInfoPropertyNames.PACKAGE_IDS, "Package1\nPackage2");
     result.put(BuildInfoPropertyNames.PACKAGE_VERSION, "1.0");
     result.put(BuildInfoPropertyNames.OVERWRITE_MODE, "OverwriteExisting");

@@ -67,7 +67,6 @@ class CreateReleaseStepTest {
   private Map<String, String> buildPropertiesMap() {
     final Map<String, String> validMap = new HashMap<>();
     // Mandatory/validated
-    validMap.put(CommonStepPropertyNames.SPACE_NAME, "TheSpace");
     validMap.put(CreateReleasePropertyNames.PROJECT_NAME, "Project-1");
     validMap.put(CreateReleasePropertyNames.PACKAGE_VERSION, "1.0.0");
     // Optional/un-validated
