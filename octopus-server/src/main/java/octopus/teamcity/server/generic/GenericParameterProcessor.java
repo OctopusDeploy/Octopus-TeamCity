@@ -15,36 +15,52 @@
 
 package octopus.teamcity.server.generic;
 
-import java.util.Collection;
-import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.google.common.collect.Lists;
+import com.intellij.openapi.util.text.StringUtil;
 import jetbrains.buildServer.serverSide.InvalidProperty;
 import jetbrains.buildServer.serverSide.PropertiesProcessor;
 import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
 
 public class GenericParameterProcessor implements PropertiesProcessor {
 
-  @Override
-  public Collection<InvalidProperty> process(final Map<String, String> properties) {
-    final String stepType = properties.get(CommonStepPropertyNames.STEP_TYPE);
+  private static final CommonStepPropertyNames KEYS = new CommonStepPropertyNames();
 
-    if (stepType == null) {
-      return Collections.singletonList(
-          new InvalidProperty(CommonStepPropertyNames.STEP_TYPE, "No StepType specified"));
+  @Override
+  public List<InvalidProperty> process(final Map<String, String> properties) {
+    final List<InvalidProperty> failedProperties = Lists.newArrayList();
+
+    final String stepType = properties.getOrDefault(KEYS.getStepTypePropertyName(), "");
+    if (StringUtil.isEmpty(stepType)) {
+      failedProperties.add(
+          new InvalidProperty(
+              CommonStepPropertyNames.STEP_TYPE,
+              "StepType must be specified, and cannot be whitespace."));
+    }
+
+    final String spaceName = properties.getOrDefault(KEYS.getSpaceNamePropertyName(), "");
+    if (StringUtil.isEmpty(spaceName)) {
+      failedProperties.add(
+          new InvalidProperty(
+              KEYS.getSpaceNamePropertyName(),
+              "Space name must be specified, and cannot be whitespace."));
     }
 
     final BuildStepCollection buildStepCollection = new BuildStepCollection();
     final Optional<OctopusBuildStep> buildStep = buildStepCollection.getStepTypeByName(stepType);
 
     if (!buildStep.isPresent()) {
-      return Collections.singletonList(
+      failedProperties.add(
           new InvalidProperty(
               CommonStepPropertyNames.STEP_TYPE,
-              "Cannot find a build handler for defined steptype"));
+              "Cannot find a build handler for defined StepType"));
+    } else {
+      failedProperties.addAll(buildStep.get().validateProperties(properties));
     }
 
-    return buildStep.get().validateProperties(properties);
+    return failedProperties;
   }
 }

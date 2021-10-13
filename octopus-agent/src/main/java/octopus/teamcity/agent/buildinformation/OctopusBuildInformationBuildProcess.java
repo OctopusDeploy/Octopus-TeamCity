@@ -87,7 +87,7 @@ public class OctopusBuildInformationBuildProcess extends InterruptableBuildProce
     final BuildInformationUploaderContextBuilder buildInfoBuilder =
         new BuildInformationUploaderContextBuilder()
             .withBuildEnvironment("TeamCity")
-            .withSpaceName(buildInfoUserData.getSpaceName().orElse(null))
+            .withSpaceName(buildInfoUserData.getSpaceName())
             .withPackageVersion(buildInfoUserData.getPackageVersion())
             .withVcsType(sharedConfigParameters.get("octopus_vcstype"))
             .withVcsRoot(sharedConfigParameters.get("vcsroot.url"))

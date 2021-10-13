@@ -4,16 +4,16 @@ import static java.util.Collections.emptyMap;
 import static java.util.Collections.singleton;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.octopus.sdk.Repository;
 import com.octopus.sdk.api.BuildInformationApi;
 import com.octopus.sdk.api.SpaceHomeApi;
+import com.octopus.sdk.api.SpaceOverviewApi;
 import com.octopus.sdk.api.UserApi;
 import com.octopus.sdk.domain.BuildInformation;
 import com.octopus.sdk.http.ConnectData;
 import com.octopus.sdk.http.OctopusClient;
 import com.octopus.sdk.http.OctopusClientFactory;
 import com.octopus.sdk.model.space.SpaceHome;
-import com.octopus.sdk.model.space.SpaceOverviewResource;
+import com.octopus.sdk.model.space.SpaceOverviewWithLinks;
 import com.octopus.testsupport.OctopusDeployServer;
 import com.octopus.testsupport.OctopusDeployServerFactory;
 
@@ -64,12 +64,12 @@ public class BuildInformationEndToEndTest {
         new ConnectData(
             new URL(octoServer.getOctopusUrl()), octoServer.getApiKey(), Duration.ofSeconds(10));
     final OctopusClient client = OctopusClientFactory.createClient(connectData);
-    final Repository repo = new Repository(client);
+    final SpaceOverviewApi spaceOverviewApi = SpaceOverviewApi.create(client);
     final UserApi users = UserApi.create(client);
 
-    final SpaceOverviewResource newSpace =
-        new SpaceOverviewResource(SPACE_NAME, singleton(users.getCurrentUser().getId()));
-    repo.spaces().create(newSpace);
+    final SpaceOverviewWithLinks newSpace =
+        new SpaceOverviewWithLinks(SPACE_NAME, singleton(users.getCurrentUser().getId()));
+    spaceOverviewApi.create(newSpace);
 
     // This is required to ensure docker container (run as tcuser) is able to write
     final Path teamcityDataDir = testDirectory.resolve("teamcitydata");
@@ -106,7 +106,7 @@ public class BuildInformationEndToEndTest {
       final List<BuildInformation> items = buildInfoApi.getByQuery(emptyMap());
 
       assertThat(items.size()).isEqualTo(1);
-      assertThat(items.get(0).getProperties().getPackageId()).isEqualTo("mypackage.noreally");
+      assertThat(items.get(0).getProperties().getPackageId()).isEqualTo("mypackage");
     } catch (final Exception e) {
       LOG.info("Failed to execute build");
       LOG.info(teamCityContainers.getAgentContainer().getLogs());
