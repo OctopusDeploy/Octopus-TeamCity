@@ -15,19 +15,19 @@
 
 package octopus.teamcity.server.generic;
 
-import jetbrains.buildServer.serverSide.InvalidProperty;
-import octopus.teamcity.common.buildinfo.BuildInfoPropertyNames;
-import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import jetbrains.buildServer.serverSide.InvalidProperty;
+import octopus.teamcity.common.buildinfo.BuildInfoPropertyNames;
+import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class GenericParameterProcessorTest {
 
@@ -59,7 +59,9 @@ class GenericParameterProcessorTest {
         .isNotNull()
         .hasSize(1)
         .flatExtracting(InvalidProperty::getPropertyName, InvalidProperty::getInvalidReason)
-        .containsExactly(CommonStepPropertyNames.SPACE_NAME, "Space name must be specified, and cannot be whitespace.");
+        .containsExactly(
+            CommonStepPropertyNames.SPACE_NAME,
+            "Space name must be specified, and cannot be whitespace.");
   }
 
   @ParameterizedTest
@@ -73,11 +75,12 @@ class GenericParameterProcessorTest {
         .isNotNull()
         .hasSize(1)
         .flatExtracting(InvalidProperty::getPropertyName, InvalidProperty::getInvalidReason)
-        .containsExactly(CommonStepPropertyNames.SPACE_NAME, "Space name must be specified, and cannot be whitespace.");
+        .containsExactly(
+            CommonStepPropertyNames.SPACE_NAME,
+            "Space name must be specified, and cannot be whitespace.");
   }
 
   static Stream<String> emptyStrings() {
     return Stream.of("", null);
   }
-
 }
