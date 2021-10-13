@@ -111,6 +111,10 @@ class RunbookRunStepTest {
         Arguments.of(
             RunbookRunPropertyNames.ENVIRONMENT_NAMES,
             "env1\n \nenv3",
-            "An environment name cannot be whitespace."));
+            "An environment name cannot be whitespace."),
+        Arguments.of(
+            CommonStepPropertyNames.SPACE_NAME,
+            null,
+            "Space name must be specified, and cannot be whitespace."));
   }
 }

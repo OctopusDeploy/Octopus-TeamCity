@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.google.common.collect.Lists;
+import com.intellij.openapi.util.text.StringUtil;
 import jetbrains.buildServer.serverSide.InvalidProperty;
 import octopus.teamcity.common.OverwriteMode;
 import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
@@ -55,8 +56,8 @@ public abstract class OctopusBuildStep implements Serializable {
   public List<InvalidProperty> validateProperties(final Map<String, String> properties) {
     final List<InvalidProperty> failedProperties = Lists.newArrayList();
 
-    final String packageId = properties.getOrDefault(KEYS.getSpaceNamePropertyName(), "");
-    if (packageId.isEmpty()) {
+    final String spaceName = properties.getOrDefault(KEYS.getSpaceNamePropertyName(), "");
+    if (StringUtil.isEmpty(spaceName)) {
       failedProperties.add(
           new InvalidProperty(
               KEYS.getSpaceNamePropertyName(),
