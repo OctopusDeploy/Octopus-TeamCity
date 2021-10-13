@@ -49,8 +49,8 @@ class ServerTaskTimerTask extends TimerTask {
         completionFuture.complete(taskState);
       }
     } catch (final IOException e) {
-      LOG.error("Failed to connect to Ocotpus Server, will continue trying until timeout");
-    } catch (IllegalStateException e) {
+      LOG.error("Failed to connect to Octopus Server, will continue trying until timeout");
+    } catch (final IllegalStateException e) {
       LOG.error(e.getMessage());
     }
   }

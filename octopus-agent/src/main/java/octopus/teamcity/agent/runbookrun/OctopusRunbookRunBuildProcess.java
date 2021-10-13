@@ -65,7 +65,7 @@ public class OctopusRunbookRunBuildProcess extends InterruptableBuildProcess {
           "Server task has been started for runbook '" + userData.getRunbookName() + "'");
 
       final TaskStateQuery taskStateQuery = new TaskStateQuery(serverTaskId, repo.tasks());
-      final BuildFinishedStatus result = waitForTask(taskStateQuery);
+      final BuildFinishedStatus result = waitForServerTaskToComplete(taskStateQuery);
       complete(result);
 
     } catch (final Throwable ex) {
@@ -73,7 +73,7 @@ public class OctopusRunbookRunBuildProcess extends InterruptableBuildProcess {
     }
   }
 
-  private BuildFinishedStatus waitForTask(final TaskStateQuery taskStateQuery)
+  private BuildFinishedStatus waitForServerTaskToComplete(final TaskStateQuery taskStateQuery)
       throws InterruptedException {
     final Timer timer = new Timer("WaitForRunbook");
     final CompletableFuture<TaskState> completionFuture = new CompletableFuture<>();

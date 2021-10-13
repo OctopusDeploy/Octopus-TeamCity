@@ -1,6 +1,7 @@
 package octopus.teamcity.agent.createrelease;
 
 import com.octopus.sdk.Repository;
+import com.octopus.sdk.domain.Space;
 import com.octopus.sdk.http.OctopusClient;
 import com.octopus.sdk.model.commands.CreateReleaseCommandBody;
 
@@ -12,16 +13,18 @@ import octopus.teamcity.agent.InterruptableBuildProcess;
 import octopus.teamcity.common.commonstep.CommonStepUserData;
 import octopus.teamcity.common.createrelease.CreateReleaseUserData;
 
+import java.util.Optional;
+
 public class OctopusCreateReleaseBuildProcess extends InterruptableBuildProcess {
 
   private final BuildProgressLogger buildLogger;
-  private final OctopusClient client;
+  private final Repository respository
 
   public OctopusCreateReleaseBuildProcess(
-      final BuildRunnerContext context, final OctopusClient client) {
+      final BuildRunnerContext context, final Repository respository) {
     super(context);
     this.buildLogger = context.getBuild().getBuildLogger();
-    this.client = client;
+    this.respository = respository;
   }
 
   @Override
@@ -40,10 +43,17 @@ public class OctopusCreateReleaseBuildProcess extends InterruptableBuildProcess 
       userData.getReleaseVersion().ifPresent(body::setReleaseVersion);
       userData.getChannelName().ifPresent(body::setChannelIdOrName);
 
-      final Repository repo = new Repository(client);
       buildLogger.message("Creating release");
-      final String response =
-          repo.spaces().getByName(spaceName).get().executionsApi().createRelease(body);
+      final Optional<Space> space = repo.spaces().getByName(spaceName);
+
+      if (!space.isPresent()) {
+        buildLogger.buildFailureDescription(
+            "No space named '" + spaceName + "' existed on octopus server");
+        complete(BuildFinishedStatus.FINISHED_FAILED);
+        return;
+      }
+
+      final String response = space.get().executionsApi().createRelease(body);
 
       buildLogger.message("Release has been created: " + response);
 

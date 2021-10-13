@@ -18,6 +18,7 @@ package octopus.teamcity.agent.generic;
 
 import static jetbrains.buildServer.messages.DefaultMessagesInfo.BLOCK_TYPE_BUILD_STEP;
 
+import com.octopus.sdk.Repository;
 import com.octopus.sdk.http.ConnectData;
 import com.octopus.sdk.http.OctopusClient;
 import com.octopus.sdk.http.OctopusClientFactory;
@@ -111,7 +112,8 @@ public class OctopusGenericRunner implements AgentBuildRunner {
         final FileSelector fileSelector = new FileSelector(context.getWorkingDirectory().toPath());
         return new OctopusPushPackageBuildProcess(pushPackageUploader, fileSelector, context);
       case ("create-release"):
-        return new OctopusCreateReleaseBuildProcess(context, client);
+        final Repository respository = new Repository(client);
+        return new OctopusCreateReleaseBuildProcess(context, respository);
       case ("runbook-run"):
         return new OctopusRunbookRunBuildProcess(context, client);
       default:
