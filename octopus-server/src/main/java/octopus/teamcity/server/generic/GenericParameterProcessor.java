@@ -33,21 +33,12 @@ public class GenericParameterProcessor implements PropertiesProcessor {
   public List<InvalidProperty> process(final Map<String, String> properties) {
     final List<InvalidProperty> failedProperties = Lists.newArrayList();
 
-    final String stepType = properties.get(CommonStepPropertyNames.STEP_TYPE);
-
-    if (stepType == null) {
-      failedProperties.add(
-          new InvalidProperty(CommonStepPropertyNames.STEP_TYPE, "No StepType specified"));
-    }
-
-    final BuildStepCollection buildStepCollection = new BuildStepCollection();
-    final Optional<OctopusBuildStep> buildStep = buildStepCollection.getStepTypeByName(stepType);
-
-    if (!buildStep.isPresent()) {
+    final String stepType = properties.getOrDefault(KEYS.getStepTypePropertyName(), "");
+    if (StringUtil.isEmpty(stepType)) {
       failedProperties.add(
           new InvalidProperty(
               CommonStepPropertyNames.STEP_TYPE,
-              "Cannot find a build handler for defined steptype"));
+              "StepType must be specified, and cannot be whitespace."));
     }
 
     final String spaceName = properties.getOrDefault(KEYS.getSpaceNamePropertyName(), "");
@@ -58,7 +49,17 @@ public class GenericParameterProcessor implements PropertiesProcessor {
               "Space name must be specified, and cannot be whitespace."));
     }
 
-    failedProperties.addAll(buildStep.get().validateProperties(properties));
+    final BuildStepCollection buildStepCollection = new BuildStepCollection();
+    final Optional<OctopusBuildStep> buildStep = buildStepCollection.getStepTypeByName(stepType);
+
+    if (!buildStep.isPresent()) {
+      failedProperties.add(
+          new InvalidProperty(
+              CommonStepPropertyNames.STEP_TYPE,
+              "Cannot find a build handler for defined StepType"));
+    } else {
+      failedProperties.addAll(buildStep.get().validateProperties(properties));
+    }
 
     return failedProperties;
   }
