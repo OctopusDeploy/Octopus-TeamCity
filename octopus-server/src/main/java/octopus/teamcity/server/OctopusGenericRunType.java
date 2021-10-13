@@ -1,6 +1,5 @@
 package octopus.teamcity.server;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -11,7 +10,7 @@ import jetbrains.buildServer.serverSide.RunType;
 import jetbrains.buildServer.serverSide.RunTypeRegistry;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import octopus.teamcity.common.OctopusConstants;
-import octopus.teamcity.common.commonstep.CommonStepUserData;
+import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
 import octopus.teamcity.server.generic.BuildStepCollection;
 import octopus.teamcity.server.generic.OctopusBuildStep;
 import octopus.teamcity.server.generic.OctopusBuildStepPropertiesProcessor;
@@ -46,21 +45,14 @@ public class OctopusGenericRunType extends RunType {
 
   @Override
   public String describeParameters(final Map<String, String> parameters) {
-    // NOTE: This is only called once the values in the map have been validated as being "within
-    // bounds"
-    final CommonStepUserData commonStepUserData = new CommonStepUserData(parameters);
 
-    final String stepType = commonStepUserData.getStepType();
-    if (commonStepUserData.getStepType().isEmpty()) {
-      return "No build step specified\n";
+    final String stepType = parameters.get(CommonStepPropertyNames.STEP_TYPE);
+    if (stepType == null) {
+      return "No build step type specified\n";
     }
 
     final BuildStepCollection buildStepCollection = new BuildStepCollection();
-
-    final Optional<OctopusBuildStep> buildStep =
-        buildStepCollection.getSubSteps().stream()
-            .filter(cmd -> cmd.getName().equals(stepType))
-            .findFirst();
+    final Optional<OctopusBuildStep> buildStep = buildStepCollection.getStepTypeByName(stepType);
 
     if (!buildStep.isPresent()) {
       return "No build command corresponds to supplied build step name\n";
@@ -78,14 +70,14 @@ public class OctopusGenericRunType extends RunType {
 
   @Override
   public String getEditRunnerParamsJspFilePath() {
-    return pluginDescriptor.getPluginResourcesPath(
-        "v2" + File.separator + "editOctopusGeneric.jsp");
+    // as this doesn't point to a specific file (just a controller) - the pathing need not conform
+    // to literal filepath
+    return pluginDescriptor.getPluginResourcesPath("editOctopusGeneric.html");
   }
 
   @Override
   public String getViewRunnerParamsJspFilePath() {
-    return pluginDescriptor.getPluginResourcesPath(
-        "v2" + File.separator + "viewOctopusGeneric.jsp");
+    return pluginDescriptor.getPluginResourcesPath("viewOctopusGeneric.html");
   }
 
   @Override

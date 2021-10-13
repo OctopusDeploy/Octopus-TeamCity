@@ -5,18 +5,20 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <jsp:useBean id="teamcityPluginResourcesPath" scope="request" type="java.lang.String"/>
+<jsp:useBean id="connectionKeys"
+             class="octopus.teamcity.common.connection.ConnectionPropertyNames"/>
 <jsp:useBean id="keys" class="octopus.teamcity.common.commonstep.CommonStepPropertyNames"/>
 <jsp:useBean id="params" class="octopus.teamcity.server.generic.BuildStepCollection"/>
 <jsp:useBean id="propertiesBean" scope="request"
              type="jetbrains.buildServer.controllers.BasePropertiesBean"/>
 
 <c:set var="selectedOctopusVersion" value="${propertiesBean.properties['octopus_version']}"/>
-<c:set var="proxyServerUrl" value="${propertiesBean.properties[keys.proxyServerUrlPropertyName]}"/>
-<c:set var="proxyServerUser" value="${propertiesBean.properties[keys.proxyUsernamePropertyName]}"/>
+<c:set var="proxyServerUrl" value="${propertiesBean.properties[connectionKeys.proxyServerUrlPropertyName]}"/>
+<c:set var="proxyServerUser" value="${propertiesBean.properties[connectionKeys.proxyUsernamePropertyName]}"/>
 
 <div class="parameter">
     Octopus URL:
-    <strong><props:displayValue name="${keys.serverUrlPropertyName}" emptyValue="not specified"/></strong>
+    <strong><props:displayValue name="${connectionKeys.serverUrlPropertyName}" emptyValue="not specified"/></strong>
 </div>
 
 <div class="parameter">
@@ -26,20 +28,20 @@
 
 <div class="parameter">
     Proxy server required:
-    <strong><props:displayValue name="${keys.proxyRequiredPropertyName}" emptyValue="not specified"/></strong>
+    <strong><props:displayValue name="${connectionKeys.proxyRequiredPropertyName}" emptyValue="not specified"/></strong>
 </div>
 
 <c:if test="${proxyServerUrl ne null and proxyServerUrl ne ''}">
     <div class="parameter">
         Proxy server URL:
-        <strong><props:displayValue name="${keys.proxyServerUrlPropertyName}" emptyValue="not specified"/></strong>
+        <strong><props:displayValue name="${connectionKeys.proxyServerUrlPropertyName}" emptyValue="not specified"/></strong>
     </div>
 </c:if>
 
 <c:if test="${proxyServerUser ne null and proxyServerUser ne ''}">
     <div class="parameter">
         Proxy server username:
-        <strong><props:displayValue name="${keys.proxyUsernamePropertyName}" emptyValue="not specified"/></strong>
+        <strong><props:displayValue name="${connectionKeys.proxyUsernamePropertyName}" emptyValue="not specified"/></strong>
     </div>
 </c:if>
 

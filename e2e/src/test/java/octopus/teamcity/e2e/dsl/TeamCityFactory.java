@@ -14,7 +14,7 @@ import java.util.Iterator;
 
 import com.google.common.io.Resources;
 import net.lingala.zip4j.ZipFile;
-import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
+import octopus.teamcity.common.connection.ConnectionPropertyNames;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.teamcity.rest.BuildAgent;
@@ -63,12 +63,7 @@ public class TeamCityFactory {
     // value=<octopusServerUrl> />
     final Path projectFile =
         Paths.get(
-            teamCityDataDir.toString(),
-            "config",
-            "projects",
-            "StepVnext",
-            "buildTypes",
-            "StepVnext_ExecuteBuildInfo.xml");
+            teamCityDataDir.toString(), "config", "projects", "StepVnext", "project-config.xml");
     updateProjectFile(projectFile, octopusServerUrl, octopusServerApiKey);
 
     final GenericContainer<?> teamCityServer = createAndStartServer();
@@ -129,8 +124,8 @@ public class TeamCityFactory {
       final Path projectFilePath, final String httpEndpoint, final String apiKey)
       throws IOException {
     String projectContent = new String(Files.readAllBytes(projectFilePath), StandardCharsets.UTF_8);
-    projectContent = updateField(projectContent, CommonStepPropertyNames.SERVER_URL, httpEndpoint);
-    projectContent = updateField(projectContent, CommonStepPropertyNames.API_KEY, apiKey);
+    projectContent = updateField(projectContent, ConnectionPropertyNames.SERVER_URL, httpEndpoint);
+    projectContent = updateField(projectContent, ConnectionPropertyNames.API_KEY, apiKey);
 
     Files.write(projectFilePath, projectContent.getBytes(StandardCharsets.UTF_8));
   }

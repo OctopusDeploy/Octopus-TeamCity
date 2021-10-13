@@ -15,32 +15,36 @@
 
 package octopus.teamcity.server.generic;
 
-import java.util.List;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 
 import jetbrains.buildServer.serverSide.InvalidProperty;
 import jetbrains.buildServer.serverSide.PropertiesProcessor;
 import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
 
-public class OctopusBuildStepPropertiesProcessor implements PropertiesProcessor {
+public class GenericParameterProcessor implements PropertiesProcessor {
 
   @Override
-  public List<InvalidProperty> process(final Map<String, String> properties) {
-    if (properties == null) {
-      throw new IllegalArgumentException("Supplied properties list was null");
-    }
-
+  public Collection<InvalidProperty> process(final Map<String, String> properties) {
     final String stepType = properties.get(CommonStepPropertyNames.STEP_TYPE);
+
     if (stepType == null) {
-      throw new IllegalArgumentException("No step-type was specified, contact Octopus support");
+      return Collections.singletonList(
+          new InvalidProperty(CommonStepPropertyNames.STEP_TYPE, "No StepType specified"));
     }
 
     final BuildStepCollection buildStepCollection = new BuildStepCollection();
+    final Optional<OctopusBuildStep> buildStep = buildStepCollection.getStepTypeByName(stepType);
 
-    return buildStepCollection
-        .getStepTypeByName(stepType)
-        .map(buildStep -> buildStep.validateProperties(properties))
-        .orElseThrow(
-            () -> new IllegalArgumentException("No matching validation for selected command"));
+    if (!buildStep.isPresent()) {
+      return Collections.singletonList(
+          new InvalidProperty(
+              CommonStepPropertyNames.STEP_TYPE,
+              "Cannot find a build handler for defined steptype"));
+    }
+
+    return buildStep.get().validateProperties(properties);
   }
 }

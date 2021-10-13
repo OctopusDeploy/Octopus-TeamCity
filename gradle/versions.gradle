@@ -25,6 +25,7 @@ dependencyManagement {
             entry 'agent-api'
             entry 'common-api'
             entry 'server-api'
+            entry 'oauth'
         }
         dependency 'org.jetbrains.teamcity:teamcity-rest-client:1.15.9999-SNAPSHOT'
 
