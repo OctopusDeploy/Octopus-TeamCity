@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import jetbrains.buildServer.serverSide.InvalidProperty;
+import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
 import octopus.teamcity.common.runbookrun.RunbookRunPropertyNames;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -70,6 +71,7 @@ class RunbookRunStepTest {
   private Map<String, String> buildPropertiesMap() {
     final Map<String, String> validMap = new HashMap<>();
     // Mandatory/validated
+    validMap.put(CommonStepPropertyNames.SPACE_NAME, "TheSpace");
     validMap.put(RunbookRunPropertyNames.RUNBOOK_NAME, "RunbookName");
     validMap.put(RunbookRunPropertyNames.PROJECT_NAME, "ProjectName");
     validMap.put(RunbookRunPropertyNames.ENVIRONMENT_NAMES, "Env1\nEnv2");

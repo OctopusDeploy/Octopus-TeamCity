@@ -100,7 +100,7 @@ public class OctopusPushPackageBuildProcess extends InterruptableBuildProcess {
 
     final PushPackageUploaderContextBuilder pushPackageUploaderContextBuilder =
         new PushPackageUploaderContextBuilder()
-            .withSpaceName(pushPackageUserData.getSpaceName().orElse(null))
+            .withSpaceName(pushPackageUserData.getSpaceName())
             .withOverwriteMode(TypeConverters.from(pushPackageUserData.getOverwriteMode()));
 
     buildLogger.message("Files found to upload:");

@@ -16,7 +16,6 @@
 package octopus.teamcity.common.commonstep;
 
 import java.util.Map;
-import java.util.Optional;
 
 import octopus.teamcity.common.BaseUserData;
 
@@ -41,8 +40,8 @@ public class CommonStepUserData extends BaseUserData {
     return params.get(KEYS.getConnectionIdPropertyName());
   }
 
-  public Optional<String> getSpaceName() {
-    return Optional.ofNullable(params.get(KEYS.getSpaceNamePropertyName()));
+  public String getSpaceName() {
+    return params.get(KEYS.getSpaceNamePropertyName());
   }
 
   public boolean getVerboseLogging() {

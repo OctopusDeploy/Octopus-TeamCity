@@ -21,7 +21,8 @@ public class BuildInformationStep extends OctopusBuildStep {
   }
 
   @Override
-  public List<InvalidProperty> validateProperties(final Map<String, String> properties) {
+  protected List<InvalidProperty> validateBuildSpecificProperties(
+      final Map<String, String> properties) {
     final List<InvalidProperty> failedProperties = Lists.newArrayList();
 
     final String packageId = properties.getOrDefault(KEYS.getPackageIdPropertyName(), "");

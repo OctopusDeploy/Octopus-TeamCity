@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import jetbrains.buildServer.serverSide.InvalidProperty;
+import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
 import octopus.teamcity.common.createrelease.CreateReleasePropertyNames;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -66,6 +67,7 @@ class CreateReleaseStepTest {
   private Map<String, String> buildPropertiesMap() {
     final Map<String, String> validMap = new HashMap<>();
     // Mandatory/validated
+    validMap.put(CommonStepPropertyNames.SPACE_NAME, "TheSpace");
     validMap.put(CreateReleasePropertyNames.PROJECT_NAME, "Project-1");
     validMap.put(CreateReleasePropertyNames.PACKAGE_VERSION, "1.0.0");
     // Optional/un-validated
