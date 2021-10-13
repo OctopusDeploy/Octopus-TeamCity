@@ -39,6 +39,7 @@ import octopus.teamcity.agent.buildinformation.BaseBuildVcsData;
 import octopus.teamcity.agent.buildinformation.BuildVcsData;
 import octopus.teamcity.agent.buildinformation.OctopusBuildInformationBuildProcess;
 import octopus.teamcity.agent.createrelease.OctopusCreateReleaseBuildProcess;
+import octopus.teamcity.agent.createrelease.OtherExecutionApi;
 import octopus.teamcity.agent.pushpackage.FileSelector;
 import octopus.teamcity.agent.pushpackage.OctopusPushPackageBuildProcess;
 import octopus.teamcity.agent.runbookrun.OctopusRunbookRunBuildProcess;
@@ -112,8 +113,8 @@ public class OctopusGenericRunner implements AgentBuildRunner {
         final FileSelector fileSelector = new FileSelector(context.getWorkingDirectory().toPath());
         return new OctopusPushPackageBuildProcess(pushPackageUploader, fileSelector, context);
       case ("create-release"):
-        final Repository respository = new Repository(client);
-        return new OctopusCreateReleaseBuildProcess(context, respository);
+        final OtherExecutionApi executionApi = new OtherExecutionApi(client);
+        return new OctopusCreateReleaseBuildProcess(context, executionApi);
       case ("runbook-run"):
         return new OctopusRunbookRunBuildProcess(context, client);
       default:
