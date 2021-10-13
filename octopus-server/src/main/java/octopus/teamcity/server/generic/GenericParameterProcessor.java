@@ -15,7 +15,6 @@
 
 package octopus.teamcity.server.generic;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -32,10 +31,12 @@ public class GenericParameterProcessor implements PropertiesProcessor {
 
   @Override
   public List<InvalidProperty> process(final Map<String, String> properties) {
+    final List<InvalidProperty> failedProperties = Lists.newArrayList();
+
     final String stepType = properties.get(CommonStepPropertyNames.STEP_TYPE);
 
     if (stepType == null) {
-      return Collections.singletonList(
+      failedProperties.add(
           new InvalidProperty(CommonStepPropertyNames.STEP_TYPE, "No StepType specified"));
     }
 
@@ -43,13 +44,11 @@ public class GenericParameterProcessor implements PropertiesProcessor {
     final Optional<OctopusBuildStep> buildStep = buildStepCollection.getStepTypeByName(stepType);
 
     if (!buildStep.isPresent()) {
-      return Collections.singletonList(
+      failedProperties.add(
           new InvalidProperty(
               CommonStepPropertyNames.STEP_TYPE,
               "Cannot find a build handler for defined steptype"));
     }
-
-    final List<InvalidProperty> failedProperties = Lists.newArrayList();
 
     final String spaceName = properties.getOrDefault(KEYS.getSpaceNamePropertyName(), "");
     if (StringUtil.isEmpty(spaceName)) {
