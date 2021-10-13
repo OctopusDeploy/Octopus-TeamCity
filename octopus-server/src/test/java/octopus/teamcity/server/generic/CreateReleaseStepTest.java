@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import jetbrains.buildServer.serverSide.InvalidProperty;
-import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
 import octopus.teamcity.common.createrelease.CreateReleasePropertyNames;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

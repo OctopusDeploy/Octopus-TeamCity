@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 
 import jetbrains.buildServer.serverSide.InvalidProperty;
-import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
 import octopus.teamcity.common.pushpackage.PushPackagePropertyNames;
 import org.junit.jupiter.api.Test;
 

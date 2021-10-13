@@ -24,14 +24,12 @@ import java.util.stream.Collectors;
 
 import jetbrains.buildServer.serverSide.InvalidProperty;
 import octopus.teamcity.common.buildinfo.BuildInfoPropertyNames;
-import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
 import org.junit.jupiter.api.Test;
 
 class BuildInformationStepTypeTest {
 
   private Map<String, String> createValidPropertyMap() {
     final Map<String, String> result = new HashMap<>();
-    result.put(CommonStepPropertyNames.SPACE_NAME, "TheSpace");
     result.put(BuildInfoPropertyNames.PACKAGE_IDS, "Package1\nPackage2");
     result.put(BuildInfoPropertyNames.PACKAGE_VERSION, "1.2.3");
     result.put(BuildInfoPropertyNames.OVERWRITE_MODE, "FailIfExists");

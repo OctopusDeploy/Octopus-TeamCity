@@ -32,7 +32,7 @@ public class GenericParameterProcessor implements PropertiesProcessor {
   private static final CommonStepPropertyNames KEYS = new CommonStepPropertyNames();
 
   @Override
-  public Collection<InvalidProperty> process(final Map<String, String> properties) {
+  public List<InvalidProperty> process(final Map<String, String> properties) {
     final String stepType = properties.get(CommonStepPropertyNames.STEP_TYPE);
 
     if (stepType == null) {
