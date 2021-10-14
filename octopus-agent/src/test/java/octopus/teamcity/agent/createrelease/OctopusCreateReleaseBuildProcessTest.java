@@ -43,7 +43,7 @@ class OctopusCreateReleaseBuildProcessTest {
   private final BuildProgressLogger logger = mock(BuildProgressLogger.class);
 
   @Test
-  public void unknownSpaceThrowsExceptionWithMessage() throws RunBuildException, IOException {
+  public void createReleaseInvokesSdkFunctionalityWithCorrectParameters() throws RunBuildException, IOException {
 
     final Map<String, String> parameters = new HashMap<>();
     parameters.put(CommonStepPropertyNames.SPACE_NAME, "TheSpace");

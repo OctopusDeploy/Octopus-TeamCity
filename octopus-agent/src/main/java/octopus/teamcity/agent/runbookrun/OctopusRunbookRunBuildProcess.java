@@ -31,9 +31,7 @@ public class OctopusRunbookRunBuildProcess extends InterruptableBuildProcess {
     try {
       buildLogger.message("Collating data for Execute Runbook");
       final RunbookRunUserData userData = new RunbookRunUserData(context.getRunnerParameters());
-      final CommonStepUserData commonStepUserData =
-          new CommonStepUserData(context.getRunnerParameters());
-      final String spaceName = commonStepUserData.getSpaceName();
+      final String spaceName = userData.getSpaceName();
 
       final ExecuteRunbookCommandBody body =
           new ExecuteRunbookCommandBody(
@@ -41,6 +39,7 @@ public class OctopusRunbookRunBuildProcess extends InterruptableBuildProcess {
               userData.getProjectName(),
               userData.getEnvironmentNames(),
               userData.getRunbookName());
+      userData.getSnapshotName().ifPresent(body::setSnapshot);
 
       final String serverTaskId = executor.execute(body);
 
