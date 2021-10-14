@@ -48,7 +48,6 @@ public class TaskWaiter {
 
   public void cancel() {
     timer.cancel();
-
   }
 
   private TaskState waitForServerTaskToComplete(final TaskStateQuery taskStateQuery)

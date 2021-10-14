@@ -9,7 +9,6 @@ import jetbrains.buildServer.agent.BuildFinishedStatus;
 import jetbrains.buildServer.agent.BuildProgressLogger;
 import jetbrains.buildServer.agent.BuildRunnerContext;
 import octopus.teamcity.agent.InterruptableBuildProcess;
-import octopus.teamcity.common.commonstep.CommonStepUserData;
 import octopus.teamcity.common.runbookrun.RunbookRunUserData;
 
 public class OctopusRunbookRunBuildProcess extends InterruptableBuildProcess {

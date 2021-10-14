@@ -15,30 +15,28 @@
 
 package octopus.teamcity.agent.runbookrun;
 
-import com.octopus.sdk.model.commands.CreateReleaseCommandBody;
-import com.octopus.sdk.model.commands.ExecuteRunbookCommandBody;
-import com.octopus.sdk.model.task.TaskState;
-import com.octopus.sdk.operation.executionapi.ExecuteRunbook;
-import jetbrains.buildServer.RunBuildException;
-import jetbrains.buildServer.agent.AgentRunningBuild;
-import jetbrains.buildServer.agent.BuildProgressLogger;
-import jetbrains.buildServer.agent.BuildRunnerContext;
-import octopus.teamcity.agent.createrelease.OctopusCreateReleaseBuildProcess;
-import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
-import octopus.teamcity.common.createrelease.CreateReleasePropertyNames;
-import octopus.teamcity.common.runbookrun.RunbookRunPropertyNames;
-import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import com.octopus.sdk.model.commands.ExecuteRunbookCommandBody;
+import com.octopus.sdk.model.task.TaskState;
+import com.octopus.sdk.operation.executionapi.ExecuteRunbook;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import jetbrains.buildServer.RunBuildException;
+import jetbrains.buildServer.agent.AgentRunningBuild;
+import jetbrains.buildServer.agent.BuildProgressLogger;
+import jetbrains.buildServer.agent.BuildRunnerContext;
+import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
+import octopus.teamcity.common.runbookrun.RunbookRunPropertyNames;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 class OctopusRunbookRunBuildProcessTest {
 
@@ -80,13 +78,11 @@ class OctopusRunbookRunBuildProcessTest {
         .isEqualTo(parameters.get(CommonStepPropertyNames.SPACE_NAME));
     assertThat(transmittedBody.getRunbookName())
         .isEqualTo(parameters.get(RunbookRunPropertyNames.RUNBOOK_NAME));
-//    assertThat(transmittedBody.containsExactlyInAnyOrder())
-//        .containsInAnyOrder("Environment1", "Environment2");
+    //    assertThat(transmittedBody.containsExactlyInAnyOrder())
+    //        .containsInAnyOrder("Environment1", "Environment2");
     assertThat(transmittedBody.getSnapshot())
         .isEqualTo(parameters.get(RunbookRunPropertyNames.SNAPSHOT_NAME));
 
     verify(taskWaiter).waitForCompletion(createdServerTaskId);
-
   }
-
 }
