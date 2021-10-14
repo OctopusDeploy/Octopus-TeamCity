@@ -43,7 +43,7 @@ public class OctopusRunbookRunBuildProcess extends InterruptableBuildProcess {
       final String serverTaskId = executor.execute(body);
 
       buildLogger.message(
-          "Server task has been started for runbook '" + userData.getRunbookName() + "'");
+          "Server task with id '" + serverTaskId + "' has been started for runbook '" + userData.getRunbookName());
 
       final TaskState taskCompletionState = waiter.waitForCompletion(serverTaskId);
 

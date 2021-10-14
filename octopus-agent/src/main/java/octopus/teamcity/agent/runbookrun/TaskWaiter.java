@@ -33,7 +33,7 @@ public class TaskWaiter {
   private static final Logger LOG = LogManager.getLogger();
 
   private final OctopusClient client;
-  final Timer timer = new Timer("WaitForTask-");
+  final Timer timer = new Timer("WaitForTask");
 
   public TaskWaiter(final OctopusClient client) {
     this.client = client;
