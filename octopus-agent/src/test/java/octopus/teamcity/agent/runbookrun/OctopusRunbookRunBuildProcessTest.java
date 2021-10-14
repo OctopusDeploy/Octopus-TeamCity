@@ -78,7 +78,8 @@ class OctopusRunbookRunBuildProcessTest {
         .isEqualTo(parameters.get(CommonStepPropertyNames.SPACE_NAME));
     assertThat(transmittedBody.getRunbookName())
         .isEqualTo(parameters.get(RunbookRunPropertyNames.RUNBOOK_NAME));
-    assertThat(transmittedBody.getEnvironmentIdsOrNames()).containsExactlyInAnyOrder("Environment1", "Environment2");
+    assertThat(transmittedBody.getEnvironmentIdsOrNames())
+        .containsExactlyInAnyOrder("Environment1", "Environment2");
     assertThat(transmittedBody.getSnapshot())
         .isEqualTo(parameters.get(RunbookRunPropertyNames.SNAPSHOT_NAME));
 
