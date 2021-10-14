@@ -158,7 +158,7 @@ distributions {
   main {
     contents {
       from file("teamcity-plugin.xml"), {
-        filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: [version: rootProject.version])
+        filter(org.apache.tools.ant.filters.ReplaceTokens, tokens:[version: rootProject.version])
       }
       into('agent/') {
         //from tasks.findByPath(":octopus-agent:distZip").outputs.files
@@ -193,7 +193,7 @@ task updateJsp(type: Copy) {
   def fullPath = teamCityDataDir + subPath
 
   doFirst() {
-    if (teamCityDataDir == null) {
+    if(teamCityDataDir == null) {
       throw new GradleException("TEAMCITY_INSTALL_DIR env var not set, unable to copy jsps")
     }
     logger.info("Copying files to ${fullPath}")
