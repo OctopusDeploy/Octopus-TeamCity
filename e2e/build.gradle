@@ -43,6 +43,6 @@ task e2eTest(type: Test) {
     exceptionFormat = 'full'
   }
 
-  // Until test run time exceeds startup costs
+  // Until test execution exceed startup costs.
   maxParallelForks = 1
 }

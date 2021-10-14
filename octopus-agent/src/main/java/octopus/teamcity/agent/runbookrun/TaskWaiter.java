@@ -33,6 +33,7 @@ public class TaskWaiter {
   private static final Logger LOG = LogManager.getLogger();
 
   private final OctopusClient client;
+  final Timer timer = new Timer("WaitForTask-");
 
   public TaskWaiter(final OctopusClient client) {
     this.client = client;
@@ -45,9 +46,13 @@ public class TaskWaiter {
     return waitForServerTaskToComplete(taskStateQuery);
   }
 
+  public void cancel() {
+    timer.cancel();
+
+  }
+
   private TaskState waitForServerTaskToComplete(final TaskStateQuery taskStateQuery)
       throws InterruptedException {
-    final Timer timer = new Timer("WaitForTask-" + taskStateQuery.getServerTaskId());
     final CompletableFuture<TaskState> completionFuture = new CompletableFuture<>();
     final TimerTask taskStateChecker = new ServerTaskTimerTask(completionFuture, taskStateQuery);
 
@@ -55,12 +60,12 @@ public class TaskWaiter {
       timer.scheduleAtFixedRate(taskStateChecker, 0, 1000);
       return completionFuture.get(50, TimeUnit.SECONDS);
     } catch (final ExecutionException e) {
-      LOG.error("Failure in communications during runbook execution " + e.getMessage());
+      LOG.error("Task was terminated - " + e.getMessage());
+      return TaskState.CANCELED;
     } catch (final TimeoutException e) {
       return TaskState.TIMEDOUT;
     } finally {
       timer.cancel();
     }
-    return TaskState.FAILED;
   }
 }

@@ -58,4 +58,10 @@ public class OctopusRunbookRunBuildProcess extends InterruptableBuildProcess {
       throw new RunBuildException("Error processing build information build step.", ex);
     }
   }
+
+  @Override
+  public void interrupt() {
+    super.interrupt();
+    waiter.cancel();
+  }
 }
