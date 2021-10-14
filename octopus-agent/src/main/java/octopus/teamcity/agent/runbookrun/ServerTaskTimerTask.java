@@ -18,11 +18,9 @@ package octopus.teamcity.agent.runbookrun;
 import com.octopus.sdk.model.task.TaskState;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
 
-import com.google.common.collect.Lists;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -30,9 +28,6 @@ class ServerTaskTimerTask extends TimerTask {
   private static final Logger LOG = LogManager.getLogger();
   private final CompletableFuture<TaskState> completionFuture;
   private final TaskStateQuery taskStateQuery;
-  private final Collection<TaskState> completedStates =
-      Lists.newArrayList(
-          TaskState.CANCELED, TaskState.FAILED, TaskState.SUCCESS, TaskState.TIMEDOUT);
 
   public ServerTaskTimerTask(
       final CompletableFuture<TaskState> completionFuture, final TaskStateQuery taskStateQuery) {
@@ -45,7 +40,7 @@ class ServerTaskTimerTask extends TimerTask {
     final TaskState taskState;
     try {
       taskState = taskStateQuery.getState();
-      if (completedStates.contains(taskState)) {
+      if (TaskStateQuery.COMPLETED_STATES.contains(taskState)) {
         completionFuture.complete(taskState);
       }
     } catch (final IOException e) {

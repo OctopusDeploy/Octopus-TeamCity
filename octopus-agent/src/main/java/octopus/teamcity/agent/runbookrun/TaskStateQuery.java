@@ -20,12 +20,18 @@ import com.octopus.sdk.domain.Task;
 import com.octopus.sdk.model.task.TaskState;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Optional;
 
+import com.google.common.collect.Lists;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class TaskStateQuery {
+  public static final Collection<TaskState> COMPLETED_STATES =
+      Lists.newArrayList(
+          TaskState.CANCELED, TaskState.FAILED, TaskState.SUCCESS, TaskState.TIMEDOUT);
+
   private static final Logger LOG = LogManager.getLogger();
   private final String serverTaskId;
   private final TaskApi tasks;
@@ -33,6 +39,10 @@ public class TaskStateQuery {
   public TaskStateQuery(final String serverTaskId, final TaskApi tasks) {
     this.serverTaskId = serverTaskId;
     this.tasks = tasks;
+  }
+
+  public String getServerTaskId() {
+    return serverTaskId;
   }
 
   public TaskState getState() throws IOException {
