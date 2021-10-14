@@ -93,5 +93,4 @@ public abstract class InterruptableBuildProcess implements BuildProcess {
     }
     return Level.INFO;
   }
-
 }

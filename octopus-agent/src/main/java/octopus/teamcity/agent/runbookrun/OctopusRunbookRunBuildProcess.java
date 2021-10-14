@@ -1,12 +1,11 @@
 package octopus.teamcity.agent.runbookrun;
 
 import com.octopus.sdk.Repository;
-import com.octopus.sdk.domain.Space;
 import com.octopus.sdk.http.OctopusClient;
 import com.octopus.sdk.model.commands.ExecuteRunbookCommandBody;
 import com.octopus.sdk.model.task.TaskState;
+import com.octopus.sdk.operation.executionapi.ExecuteRunbook;
 
-import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
@@ -25,12 +24,15 @@ import octopus.teamcity.common.runbookrun.RunbookRunUserData;
 public class OctopusRunbookRunBuildProcess extends InterruptableBuildProcess {
 
   private final BuildProgressLogger buildLogger;
+  private final ExecuteRunbook executor;
   private final OctopusClient client;
 
-  public OctopusRunbookRunBuildProcess(BuildRunnerContext context, final OctopusClient client) {
+  public OctopusRunbookRunBuildProcess(
+      final BuildRunnerContext context, final OctopusClient client, final ExecuteRunbook executor) {
     super(context);
     this.buildLogger = context.getBuild().getBuildLogger();
     this.client = client;
+    this.executor = executor;
   }
 
   @Override
@@ -40,7 +42,7 @@ public class OctopusRunbookRunBuildProcess extends InterruptableBuildProcess {
       final RunbookRunUserData userData = new RunbookRunUserData(context.getRunnerParameters());
       final CommonStepUserData commonStepUserData =
           new CommonStepUserData(context.getRunnerParameters());
-      final String spaceName = commonStepUserData.getSpaceName().get();
+      final String spaceName = commonStepUserData.getSpaceName();
 
       final ExecuteRunbookCommandBody body =
           new ExecuteRunbookCommandBody(
@@ -49,21 +51,12 @@ public class OctopusRunbookRunBuildProcess extends InterruptableBuildProcess {
               userData.getEnvironmentNames(),
               userData.getRunbookName());
 
-      final Repository repo = new Repository(client);
-      buildLogger.message("Executing Runbook");
-      final Optional<Space> space = repo.spaces().getByName(spaceName);
+      final String serverTaskId = executor.execute(body);
 
-      if (!space.isPresent()) {
-        buildLogger.buildFailureDescription(
-            "No space named '" + spaceName + "' existed on octopus server");
-        complete(BuildFinishedStatus.FINISHED_FAILED);
-        return;
-      }
-
-      final String serverTaskId = space.get().executionsApi().executeRunbook(body);
       buildLogger.message(
           "Server task has been started for runbook '" + userData.getRunbookName() + "'");
 
+      final Repository repo = new Repository(client);
       final TaskStateQuery taskStateQuery = new TaskStateQuery(serverTaskId, repo.tasks());
       final BuildFinishedStatus result = waitForServerTaskToComplete(taskStateQuery);
       complete(result);

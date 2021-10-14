@@ -18,11 +18,12 @@ package octopus.teamcity.agent.generic;
 
 import static jetbrains.buildServer.messages.DefaultMessagesInfo.BLOCK_TYPE_BUILD_STEP;
 
-import com.octopus.sdk.Repository;
 import com.octopus.sdk.http.ConnectData;
 import com.octopus.sdk.http.OctopusClient;
 import com.octopus.sdk.http.OctopusClientFactory;
 import com.octopus.sdk.operation.buildinformation.BuildInformationUploader;
+import com.octopus.sdk.operation.executionapi.CreateRelease;
+import com.octopus.sdk.operation.executionapi.ExecuteRunbook;
 import com.octopus.sdk.operation.pushpackage.PushPackageUploader;
 
 import java.net.MalformedURLException;
@@ -39,7 +40,6 @@ import octopus.teamcity.agent.buildinformation.BaseBuildVcsData;
 import octopus.teamcity.agent.buildinformation.BuildVcsData;
 import octopus.teamcity.agent.buildinformation.OctopusBuildInformationBuildProcess;
 import octopus.teamcity.agent.createrelease.OctopusCreateReleaseBuildProcess;
-import octopus.teamcity.agent.createrelease.OtherExecutionApi;
 import octopus.teamcity.agent.pushpackage.FileSelector;
 import octopus.teamcity.agent.pushpackage.OctopusPushPackageBuildProcess;
 import octopus.teamcity.agent.runbookrun.OctopusRunbookRunBuildProcess;
@@ -113,10 +113,9 @@ public class OctopusGenericRunner implements AgentBuildRunner {
         final FileSelector fileSelector = new FileSelector(context.getWorkingDirectory().toPath());
         return new OctopusPushPackageBuildProcess(pushPackageUploader, fileSelector, context);
       case ("create-release"):
-        final OtherExecutionApi executionApi = new OtherExecutionApi(client);
-        return new OctopusCreateReleaseBuildProcess(context, executionApi);
+        return new OctopusCreateReleaseBuildProcess(context, new CreateRelease(client));
       case ("runbook-run"):
-        return new OctopusRunbookRunBuildProcess(context, client);
+        return new OctopusRunbookRunBuildProcess(context, client, new ExecuteRunbook(client));
       default:
         throw new RunBuildException("Unknown build step type " + stepType);
     }

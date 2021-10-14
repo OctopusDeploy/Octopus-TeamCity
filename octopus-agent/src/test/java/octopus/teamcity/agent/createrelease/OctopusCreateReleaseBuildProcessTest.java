@@ -15,38 +15,35 @@
 
 package octopus.teamcity.agent.createrelease;
 
-import com.google.common.collect.Lists;
-import com.octopus.sdk.Repository;
-import com.octopus.sdk.operation.buildinformation.BuildInformationUploader;
-import jetbrains.buildServer.RunBuildException;
-import jetbrains.buildServer.agent.AgentRunningBuild;
-import jetbrains.buildServer.agent.BuildAgentConfiguration;
-import jetbrains.buildServer.agent.BuildProgressLogger;
-import jetbrains.buildServer.agent.BuildRunnerContext;
-import octopus.teamcity.agent.buildinformation.BaseBuildVcsData;
-import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
-import octopus.teamcity.common.commonstep.CommonStepUserData;
-import octopus.teamcity.common.createrelease.CreateReleasePropertyNames;
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import com.octopus.sdk.model.commands.CreateReleaseCommandBody;
+import com.octopus.sdk.operation.executionapi.CreateRelease;
+
+import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import jetbrains.buildServer.RunBuildException;
+import jetbrains.buildServer.agent.AgentRunningBuild;
+import jetbrains.buildServer.agent.BuildProgressLogger;
+import jetbrains.buildServer.agent.BuildRunnerContext;
+import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
+import octopus.teamcity.common.createrelease.CreateReleasePropertyNames;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 class OctopusCreateReleaseBuildProcessTest {
 
-  private final Repository mockRepository = mock(Repository.class);
   private final BuildRunnerContext context = mock(BuildRunnerContext.class);
   private final AgentRunningBuild mockBuild = mock(AgentRunningBuild.class);
   private final BuildProgressLogger logger = mock(BuildProgressLogger.class);
-  private final BuildAgentConfiguration agentConfig = mock(BuildAgentConfiguration.class);
 
   @Test
-  public void unknownSpaceThrowsExceptionWithMessage() throws RunBuildException {
+  public void unknownSpaceThrowsExceptionWithMessage() throws RunBuildException, IOException {
 
     final Map<String, String> parameters = new HashMap<>();
     parameters.put(CommonStepPropertyNames.SPACE_NAME, "TheSpace");
@@ -60,9 +57,36 @@ class OctopusCreateReleaseBuildProcessTest {
     when(context.getBuild()).thenReturn(mockBuild);
     when(mockBuild.getBuildLogger()).thenReturn(logger);
 
-    final OctopusCreateReleaseBuildProcess buildProcess = new OctopusCreateReleaseBuildProcess(context, mockRepository);
+    final CreateRelease createRelease = mock(CreateRelease.class);
+
+    final OctopusCreateReleaseBuildProcess buildProcess =
+        new OctopusCreateReleaseBuildProcess(context, createRelease);
     buildProcess.doStart();
 
-  }
+    final ArgumentCaptor<CreateReleaseCommandBody> commandBodyArgumentCaptor =
+        ArgumentCaptor.forClass(CreateReleaseCommandBody.class);
+    verify(createRelease).execute(commandBodyArgumentCaptor.capture());
 
+    final CreateReleaseCommandBody transmittedBody = commandBodyArgumentCaptor.getValue();
+    assertThat(transmittedBody).isNotNull();
+    assertThat(transmittedBody.getSpaceIdOrName())
+        .isEqualTo(parameters.get(CommonStepPropertyNames.SPACE_NAME));
+    assertThat(transmittedBody.getProjectIdOrName())
+        .isEqualTo(parameters.get(CreateReleasePropertyNames.PROJECT_NAME));
+    assertThat(transmittedBody.getPackageVersion())
+        .isEqualTo(parameters.get(CreateReleasePropertyNames.PACKAGE_VERSION));
+    assertThat(transmittedBody.getReleaseVersion())
+        .isEqualTo(parameters.get(CreateReleasePropertyNames.RELEASE_VERSION));
+    assertThat(transmittedBody.getChannelIdOrName())
+        .isEqualTo(parameters.get(CreateReleasePropertyNames.CHANNEL_NAME));
+    assertThat(transmittedBody.getPackages()).containsExactlyInAnyOrder("Package1", "Package2");
+    assertThat(transmittedBody.getGitCommit()).isNull();
+    assertThat(transmittedBody.getGitRef()).isNull();
+    assertThat(transmittedBody.getPackageFolder()).isNull();
+    assertThat(transmittedBody.getPackagePrerelease()).isNull();
+    assertThat(transmittedBody.getReleaseNotes()).isNull();
+    assertThat(transmittedBody.getReleaseNotes()).isNull();
+    assertThat(transmittedBody.isIgnoreChannelRules()).isFalse();
+    assertThat(transmittedBody.isIgnoreExisting()).isFalse();
+  }
 }
