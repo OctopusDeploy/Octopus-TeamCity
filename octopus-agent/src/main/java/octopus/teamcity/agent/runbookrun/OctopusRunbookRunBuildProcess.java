@@ -1,6 +1,5 @@
 package octopus.teamcity.agent.runbookrun;
 
-import com.octopus.sdk.http.OctopusClient;
 import com.octopus.sdk.model.commands.ExecuteRunbookCommandBody;
 import com.octopus.sdk.model.task.TaskState;
 import com.octopus.sdk.operation.executionapi.ExecuteRunbook;
@@ -17,13 +16,13 @@ public class OctopusRunbookRunBuildProcess extends InterruptableBuildProcess {
 
   private final BuildProgressLogger buildLogger;
   private final ExecuteRunbook executor;
-  private final OctopusClient client;
+  private final TaskWaiter waiter;
 
   public OctopusRunbookRunBuildProcess(
-      final BuildRunnerContext context, final OctopusClient client, final ExecuteRunbook executor) {
+      final BuildRunnerContext context, final ExecuteRunbook executor, final TaskWaiter waiter) {
     super(context);
     this.buildLogger = context.getBuild().getBuildLogger();
-    this.client = client;
+    this.waiter = waiter;
     this.executor = executor;
   }
 
@@ -48,7 +47,6 @@ public class OctopusRunbookRunBuildProcess extends InterruptableBuildProcess {
       buildLogger.message(
           "Server task has been started for runbook '" + userData.getRunbookName() + "'");
 
-      final TaskWaiter waiter = new TaskWaiter(client);
       final TaskState taskCompletionState = waiter.waitForCompletion(serverTaskId);
 
       if (taskCompletionState.equals(TaskState.SUCCESS)) {
