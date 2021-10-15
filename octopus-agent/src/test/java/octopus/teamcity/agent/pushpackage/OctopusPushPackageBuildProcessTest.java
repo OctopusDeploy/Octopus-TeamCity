@@ -44,6 +44,7 @@ import jetbrains.buildServer.agent.BuildFinishedStatus;
 import jetbrains.buildServer.agent.BuildProgressLogger;
 import jetbrains.buildServer.agent.BuildRunnerContext;
 import octopus.teamcity.common.OverwriteMode;
+import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
 import octopus.teamcity.common.pushpackage.PushPackagePropertyNames;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -78,6 +79,7 @@ class OctopusPushPackageBuildProcessTest {
         PushPackagePropertyNames.OVERWRITE_MODE, OverwriteMode.OverwriteExisting.name());
     userEnteredData.put(PushPackagePropertyNames.PACKAGE_PATHS, "*.zip");
     userEnteredData.put(PushPackagePropertyNames.USE_DELTA_COMPRESSION, "false");
+    userEnteredData.put(CommonStepPropertyNames.SPACE_NAME, "TheSpace");
 
     when(fileSelector.getMatchingFiles(any())).thenReturn(matchedFiles);
 
@@ -92,7 +94,7 @@ class OctopusPushPackageBuildProcessTest {
 
     final ArgumentCaptor<PushPackageUploaderContext> uploadPayload =
         ArgumentCaptor.forClass(PushPackageUploaderContext.class);
-    verify(uploader).upload(uploadPayload.capture());
+    verify(uploader).execute(uploadPayload.capture());
 
     assertThat(uploadPayload.getValue().getFile()).isEqualTo(toUpload);
     assertThat(uploadPayload.getValue().getOverwriteMode())
@@ -113,6 +115,7 @@ class OctopusPushPackageBuildProcessTest {
         PushPackagePropertyNames.OVERWRITE_MODE, OverwriteMode.OverwriteExisting.name());
     userEnteredData.put(PushPackagePropertyNames.PACKAGE_PATHS, "*.zip");
     userEnteredData.put(PushPackagePropertyNames.USE_DELTA_COMPRESSION, "false");
+    userEnteredData.put(CommonStepPropertyNames.SPACE_NAME, "TheSpace");
 
     final OctopusPushPackageBuildProcess buildProcess =
         new OctopusPushPackageBuildProcess(uploader, fileSelector, context);
@@ -121,7 +124,7 @@ class OctopusPushPackageBuildProcessTest {
 
     final ArgumentCaptor<PushPackageUploaderContext> uploadPayload =
         ArgumentCaptor.forClass(PushPackageUploaderContext.class);
-    verify(uploader, times(fileCount)).upload(uploadPayload.capture());
+    verify(uploader, times(fileCount)).execute(uploadPayload.capture());
 
     final List<File> filesUploaded =
         uploadPayload.getAllValues().stream()

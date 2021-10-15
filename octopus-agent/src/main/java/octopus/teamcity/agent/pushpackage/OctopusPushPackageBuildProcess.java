@@ -20,68 +20,31 @@ import com.octopus.sdk.operation.pushpackage.PushPackageUploaderContext;
 import com.octopus.sdk.operation.pushpackage.PushPackageUploaderContextBuilder;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.Lists;
-import jetbrains.buildServer.RunBuildException;
-import jetbrains.buildServer.agent.BuildFinishedStatus;
-import jetbrains.buildServer.agent.BuildProgressLogger;
 import jetbrains.buildServer.agent.BuildRunnerContext;
-import octopus.teamcity.agent.InterruptableBuildProcess;
+import octopus.teamcity.agent.GenericUploadingBuildProcess;
 import octopus.teamcity.agent.generic.TypeConverters;
 import octopus.teamcity.common.pushpackage.PushPackageUserData;
 
-public class OctopusPushPackageBuildProcess extends InterruptableBuildProcess {
+public class OctopusPushPackageBuildProcess
+    extends GenericUploadingBuildProcess<PushPackageUploaderContext> {
 
-  private final PushPackageUploader uploader;
-  private final BuildProgressLogger buildLogger;
   private final FileSelector fileSelector;
 
   public OctopusPushPackageBuildProcess(
       final PushPackageUploader uploader,
       final FileSelector fileSelector,
       final BuildRunnerContext context) {
-    super(context);
-    this.uploader = uploader;
+    super(context, uploader);
     this.fileSelector = fileSelector;
-    this.buildLogger = context.getBuild().getBuildLogger();
   }
 
   @Override
-  public void doStart() throws RunBuildException {
-    try {
-      buildLogger.message("Collating data for upload");
-      final List<PushPackageUploaderContext> parameters = collateParameters();
-
-      if (isInterrupted()) {
-        complete(BuildFinishedStatus.INTERRUPTED);
-        return;
-      }
-
-      boolean success = true;
-      for (final PushPackageUploaderContext c : parameters) {
-        try {
-          uploader.upload(c);
-        } catch (IOException e) {
-          e.printStackTrace();
-          success = false;
-        }
-      }
-
-      if (success) {
-        complete(BuildFinishedStatus.FINISHED_SUCCESS);
-        return;
-      }
-      complete(BuildFinishedStatus.FINISHED_FAILED);
-    } catch (final Throwable t) {
-      throw new RunBuildException("Upload to server failed", t);
-    }
-  }
-
-  private List<PushPackageUploaderContext> collateParameters() {
+  protected List<PushPackageUploaderContext> collateParameters() {
     final List<PushPackageUploaderContext> result = Lists.newArrayList();
     final Map<String, String> parameters = context.getRunnerParameters();
     final PushPackageUserData pushPackageUserData = new PushPackageUserData(parameters);
@@ -98,7 +61,7 @@ public class OctopusPushPackageBuildProcess extends InterruptableBuildProcess {
 
     final PushPackageUploaderContextBuilder pushPackageUploaderContextBuilder =
         new PushPackageUploaderContextBuilder()
-            .withSpaceName(pushPackageUserData.getSpaceName())
+            .withSpaceIdOrName(pushPackageUserData.getSpaceName())
             .withOverwriteMode(TypeConverters.from(pushPackageUserData.getOverwriteMode()));
 
     buildLogger.message("Files found to upload:");
@@ -110,6 +73,11 @@ public class OctopusPushPackageBuildProcess extends InterruptableBuildProcess {
         });
 
     return result;
+  }
+
+  @Override
+  protected String getIdentifier(final PushPackageUploaderContext parameter) {
+    return parameter.getFile().getName();
   }
 
   private Set<File> determineFilesToUpload(final String globs) {

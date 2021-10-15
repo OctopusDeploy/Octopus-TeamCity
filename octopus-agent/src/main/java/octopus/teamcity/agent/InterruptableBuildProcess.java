@@ -19,6 +19,8 @@ import static octopus.teamcity.agent.logging.BuildLogAppender.BUILD_LOG_APPENDER
 
 import com.octopus.sdk.logging.SdkLogAppenderHelper;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -26,6 +28,7 @@ import java.util.concurrent.ExecutionException;
 import jetbrains.buildServer.RunBuildException;
 import jetbrains.buildServer.agent.BuildFinishedStatus;
 import jetbrains.buildServer.agent.BuildProcess;
+import jetbrains.buildServer.agent.BuildProgressLogger;
 import jetbrains.buildServer.agent.BuildRunnerContext;
 import octopus.teamcity.agent.logging.BuildLogAppender;
 import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
@@ -33,6 +36,7 @@ import org.apache.logging.log4j.Level;
 
 public abstract class InterruptableBuildProcess implements BuildProcess {
 
+  protected final BuildProgressLogger buildLogger;
   private volatile boolean interrupted = false;
   private final CompletableFuture<BuildFinishedStatus> uploadFinishedFuture =
       new CompletableFuture<>();
@@ -41,6 +45,7 @@ public abstract class InterruptableBuildProcess implements BuildProcess {
 
   public InterruptableBuildProcess(BuildRunnerContext context) {
     this.context = context;
+    this.buildLogger = context.getBuild().getBuildLogger();
   }
 
   protected void complete(final BuildFinishedStatus status) {
@@ -57,6 +62,11 @@ public abstract class InterruptableBuildProcess implements BuildProcess {
                 BUILD_LOG_APPENDER_NAME, context.getBuild().getBuildLogger()),
             isVerboseLogging(context.getRunnerParameters()))) {
       doStart();
+    } catch (final Exception e) {
+      context
+          .getBuild()
+          .getBuildLogger()
+          .buildFailureDescription("Failure reason - " + e.getMessage());
     }
   }
 
@@ -72,6 +82,7 @@ public abstract class InterruptableBuildProcess implements BuildProcess {
 
   @Override
   public void interrupt() {
+    uploadFinishedFuture.cancel(true);
     interrupted = true;
   }
 
@@ -92,5 +103,12 @@ public abstract class InterruptableBuildProcess implements BuildProcess {
       return Level.DEBUG;
     }
     return Level.INFO;
+  }
+
+  protected void logStackTrace(final Throwable t) {
+    final StringWriter sw = new StringWriter();
+    final PrintWriter pw = new PrintWriter(sw);
+    t.printStackTrace(pw);
+    buildLogger.debug(sw.toString());
   }
 }
