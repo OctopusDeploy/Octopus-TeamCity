@@ -41,7 +41,10 @@ public class OctopusRunbookRunBuildProcess
 
       return taskCompletionState.equals(TaskState.SUCCESS);
     } catch (final Throwable t) {
-      throw new RuntimeException("Oh noes");
+      buildLogger.error(getIdentifier(parameters) + " -- FAILED");
+      buildLogger.buildFailureDescription(t.getMessage());
+      logStackTrace(t);
+      return false;
     }
   }
 
