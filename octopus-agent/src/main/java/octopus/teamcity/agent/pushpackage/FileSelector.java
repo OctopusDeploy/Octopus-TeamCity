@@ -32,38 +32,51 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class FileSelector {
-  private static final Logger LOG = LogManager.getLogger();
+    private static final Logger LOG = LogManager.getLogger();
 
-  private final Path rootPath;
+    private final Path rootPath;
 
-  public FileSelector(final Path rootPath) {
-    this.rootPath = rootPath;
-  }
+    public FileSelector(final Path rootPath) {
+        this.rootPath = rootPath;
+    }
 
-  public Set<File> getMatchingFiles(final List<String> globs) {
-    final Set<File> result = new HashSet<>();
-    globs.forEach(
-        entry -> {
-          final Path fullPath = rootPath.resolve(entry);
-          final PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + fullPath);
-          try {
-            Files.walkFileTree(
-                rootPath,
-                new SimpleFileVisitor<Path>() {
+    public Set<File> getMatchingFiles(final List<String> globs) {
+        final Set<File> result = new HashSet<>();
+        globs.forEach(
+                entry -> {
+                    final String fullPath = appendGlobToPath(rootPath, entry);
+                    final PathMatcher matcher =
+                            FileSystems.getDefault().getPathMatcher("glob:" + fullPath);
+                    try {
+                        Files.walkFileTree(
+                                rootPath,
+                                new SimpleFileVisitor<Path>() {
 
-                  @Override
-                  public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs)
-                      throws IOException {
-                    if (matcher.matches(file)) {
-                      result.add(file.toFile());
+                                    @Override
+                                    public FileVisitResult visitFile(final Path file,
+                                                                     final BasicFileAttributes attrs)
+                                            throws IOException {
+                                        if (matcher.matches(file)) {
+                                            result.add(file.toFile());
+                                        }
+                                        return super.visitFile(file, attrs);
+                                    }
+                                });
+                    } catch (IOException e) {
+                        LOG.error("Failed to walk tree when finding files");
                     }
-                    return super.visitFile(file, attrs);
-                  }
                 });
-          } catch (IOException e) {
-            LOG.error("Failed to walk tree when finding files");
-          }
-        });
-    return result;
-  }
+        return result;
+    }
+
+    // Note on windows, cannot use globs when using Path.resolve (as * is an illegal character)
+    // this _should_ also be valid on linux, but its nasty
+    public static String appendGlobToPath(final Path rootPath, final String glob) {
+
+        final String globbedPath = rootPath.toAbsolutePath() + File.separator + glob;
+
+        // duplicate all file-separators (required to escape "\" on windows, and should be safe
+        // on windows.
+        return globbedPath.replace(File.separator, File.separator + File.separator);
+    }
 }
