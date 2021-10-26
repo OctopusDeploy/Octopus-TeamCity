@@ -13,6 +13,8 @@ dependencyManagement {
             entry 'log4j-slf4j-impl'
         }
 
+        dependency 'commons-io:commons-io:2.11.0'
+
         dependencySet(group: 'org.junit.jupiter', version: '5.6.0') {
             entry 'junit-jupiter-api'
             entry 'junit-jupiter-engine'

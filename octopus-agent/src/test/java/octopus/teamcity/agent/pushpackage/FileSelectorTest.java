@@ -29,6 +29,8 @@ import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class FileSelectorTest {
 
@@ -84,14 +86,15 @@ class FileSelectorTest {
         assertThat(matchedFile.getName()).isEqualTo(filesToCreate.get(0));
     }
 
-    @Test
-    public void canMatchOnMultipleEntries() {
+    @ParameterizedTest
+    @ValueSource(strings = {"/", "\\"})
+    public void canMatchOnMultipleEntries(final String delimterUsedByUser) {
         final Set<File> matchedFiles =
                 new FileSelector(testPath)
                         .getMatchingFiles(
                                 Lists.newArrayList(
                                         "*.zip",
-                                        subDirectoryName + File.separator + "*.zip"));
+                                        subDirectoryName + delimterUsedByUser + "*.zip"));
         final List<File> fullList = Lists.newArrayList(rootPathFiles);
         fullList.addAll(subDirectoryFiles);
         assertThat(matchedFiles).containsExactlyInAnyOrderElementsOf(fullList);
