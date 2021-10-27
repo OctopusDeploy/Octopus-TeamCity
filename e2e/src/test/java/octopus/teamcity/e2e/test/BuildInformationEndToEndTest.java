@@ -29,6 +29,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 
+import com.google.common.collect.Lists;
 import com.google.common.io.Resources;
 import octopus.teamcity.e2e.dsl.TeamCityContainers;
 import octopus.teamcity.e2e.dsl.TeamCityFactory;
@@ -138,25 +139,17 @@ public class BuildInformationEndToEndTest {
 
   private void cleanupContainers(final TeamCityContainers teamCityContainers)
       throws IOException, InterruptedException {
-    teamCityContainers
-        .getServerContainer()
-        .execInContainer("rm", "-rf", "/data/teamcity_server/datadir/system/buildserver.tmp");
-    teamCityContainers
-        .getServerContainer()
-        .execInContainer("rm", "-rf", "/data/teamcity_server/datadir/system/artifacts");
-    teamCityContainers
-        .getServerContainer()
-        .execInContainer(
-            "rm", "-rf", "/data/teamcity_server/datadir/system/caches/plugins.unpacked");
-    teamCityContainers
-        .getServerContainer()
-        .execInContainer(
-            "rm", "-rf", "/data/teamcity_server/datadir/system/caches/pluginsDslCache/src");
-    teamCityContainers
-        .getServerContainer()
-        .execInContainer(
-            "rm",
-            "-rf",
-            "/data/teamcity_server/datadir/system/caches/buildsMetadata/metadataDB.tmp");
+    final List<String> filesToDelete =
+        Lists.newArrayList(
+            "/data/teamcity_server/datadir/system/buildserver.tmp",
+            "/data/teamcity_server/datadir/system/artifacts",
+            "/data/teamcity_server/datadir/system/caches/plugins.unpacked",
+            "/data/teamcity_server/datadir/system/caches/pluginsDslCache/src",
+            "/data/teamcity_server/datadir/system/caches/buildsMetadata/metadataDB.tmp",
+            "/data/teamcity_server/datadir/system/pluginData/avatars");
+
+    for (final String file : filesToDelete) {
+      teamCityContainers.getServerContainer().execInContainer("rm", "-rf", file);
+    }
   }
 }
