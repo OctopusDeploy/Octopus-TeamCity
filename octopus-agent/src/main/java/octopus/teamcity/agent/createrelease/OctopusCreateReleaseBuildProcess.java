@@ -7,7 +7,6 @@ import com.octopus.sdk.operation.executionapi.CreateRelease;
 
 import java.util.Collection;
 
-import jetbrains.buildServer.RunBuildException;
 import jetbrains.buildServer.agent.BuildRunnerContext;
 import octopus.teamcity.agent.GenericUploadingBuildProcess;
 import octopus.teamcity.common.createrelease.CreateReleaseUserData;
