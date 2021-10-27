@@ -28,7 +28,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -47,16 +46,14 @@ public class FileSelector {
     globs.forEach(
         entry -> {
           final String fullPath = appendGlobToPath(rootPath, entry);
-          final PathMatcher matcher =
-              FileSystems.getDefault().getPathMatcher("glob:" + fullPath);
+          final PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + fullPath);
           try {
             Files.walkFileTree(
                 rootPath,
                 new SimpleFileVisitor<Path>() {
 
                   @Override
-                  public FileVisitResult visitFile(final Path file,
-                      final BasicFileAttributes attrs)
+                  public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs)
                       throws IOException {
                     if (matcher.matches(file)) {
                       result.add(file.toFile());

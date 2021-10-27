@@ -68,7 +68,8 @@ public class BuildInformationEndToEndTest {
     final UserApi users = UserApi.create(client);
 
     final SpaceOverviewWithLinks newSpace =
-        new SpaceOverviewWithLinks(SPACE_NAME, singleton(users.getCurrentUser().getId()));
+        new SpaceOverviewWithLinks(
+            SPACE_NAME, singleton(users.getCurrentUser().getProperties().getId()));
     spaceOverviewApi.create(newSpace);
 
     // This is required to ensure docker container (run as tcuser) is able to write
