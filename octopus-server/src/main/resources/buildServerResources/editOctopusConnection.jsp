@@ -25,7 +25,7 @@
     <td>
         <props:textProperty name="${keys.displayName}" className="longField"/>
         <span class="error" id="error_displayName"></span>
-        <span class="smallNote">Provide some name to distinguish this connection from others.</span>
+        <span class="smallNote">Provide a uniquely distinguishable name for this connection</span>
     </td>
 </tr>
 <l:settingsGroup title="Server">

@@ -37,6 +37,7 @@ import jetbrains.buildServer.agent.BuildProgressLogger;
 import jetbrains.buildServer.agent.BuildRunnerContext;
 import octopus.teamcity.common.OverwriteMode;
 import octopus.teamcity.common.buildinfo.BuildInfoPropertyNames;
+import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -56,6 +57,7 @@ class OctopusBuildInformationBuildProcessTest {
         BuildInfoPropertyNames.OVERWRITE_MODE, OverwriteMode.OverwriteExisting.name());
     userEnteredData.put(BuildInfoPropertyNames.PACKAGE_VERSION, "1.0");
     userEnteredData.put(BuildInfoPropertyNames.PACKAGE_IDS, "mypackage.first\nmypackage.second");
+    userEnteredData.put(CommonStepPropertyNames.SPACE_NAME, "TheSpace");
 
     final Map<String, String> sharedConfigParameters = new HashMap<>();
     sharedConfigParameters.put("octopus_vcstype", "git");
@@ -72,7 +74,7 @@ class OctopusBuildInformationBuildProcessTest {
     when(vcsData.getCommits()).thenReturn(Collections.emptyList());
     when(context.getRunnerParameters()).thenReturn(userEnteredData);
     when(context.getBuild()).thenReturn(mockBuild);
-    when(uploader.upload(any())).thenReturn("12345");
+    when(uploader.execute(any())).thenReturn("12345");
 
     final OctopusBuildInformationBuildProcess buildProcess =
         new OctopusBuildInformationBuildProcess(uploader, vcsData, context);
@@ -82,7 +84,7 @@ class OctopusBuildInformationBuildProcessTest {
 
     final ArgumentCaptor<BuildInformationUploaderContext> contextCaptor =
         ArgumentCaptor.forClass(BuildInformationUploaderContext.class);
-    verify(uploader, times(2)).upload(contextCaptor.capture());
+    verify(uploader, times(2)).execute(contextCaptor.capture());
 
     assertThat(contextCaptor.getAllValues().get(0).getBranch().get())
         .isEqualTo(vcsData.getBranchName());

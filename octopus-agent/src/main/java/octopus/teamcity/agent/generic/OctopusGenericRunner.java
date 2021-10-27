@@ -105,12 +105,12 @@ public class OctopusGenericRunner implements AgentBuildRunner {
     switch (stepType) {
       case ("build-information"):
         final BuildInformationUploader buildInformationUploader =
-            BuildInformationUploader.create(client);
+            new BuildInformationUploader(client);
         final BaseBuildVcsData buildVcsData = BuildVcsData.create(runningBuild);
         return new OctopusBuildInformationBuildProcess(
             buildInformationUploader, buildVcsData, context);
       case ("push-package"):
-        final PushPackageUploader pushPackageUploader = PushPackageUploader.create(client);
+        final PushPackageUploader pushPackageUploader = new PushPackageUploader(client);
         final FileSelector fileSelector = new FileSelector(context.getWorkingDirectory().toPath());
         return new OctopusPushPackageBuildProcess(pushPackageUploader, fileSelector, context);
       case ("create-release"):

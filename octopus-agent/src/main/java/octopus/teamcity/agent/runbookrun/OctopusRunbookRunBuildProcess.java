@@ -1,63 +1,72 @@
 package octopus.teamcity.agent.runbookrun;
 
+import static java.util.Collections.singletonList;
+
 import com.octopus.sdk.model.commands.ExecuteRunbookCommandBody;
 import com.octopus.sdk.model.task.TaskState;
 import com.octopus.sdk.operation.executionapi.ExecuteRunbook;
 
-import jetbrains.buildServer.RunBuildException;
-import jetbrains.buildServer.agent.BuildFinishedStatus;
-import jetbrains.buildServer.agent.BuildProgressLogger;
+import java.util.Collection;
+
 import jetbrains.buildServer.agent.BuildRunnerContext;
-import octopus.teamcity.agent.InterruptableBuildProcess;
+import octopus.teamcity.agent.GenericUploadingBuildProcess;
 import octopus.teamcity.common.runbookrun.RunbookRunUserData;
 
-public class OctopusRunbookRunBuildProcess extends InterruptableBuildProcess {
+public class OctopusRunbookRunBuildProcess
+    extends GenericUploadingBuildProcess<ExecuteRunbookCommandBody> {
 
-  private final BuildProgressLogger buildLogger;
   private final ExecuteRunbook executor;
   private final TaskWaiter waiter;
 
   public OctopusRunbookRunBuildProcess(
       final BuildRunnerContext context, final ExecuteRunbook executor, final TaskWaiter waiter) {
-    super(context);
-    this.buildLogger = context.getBuild().getBuildLogger();
-    this.waiter = waiter;
+    super(context, executor);
     this.executor = executor;
+    this.waiter = waiter;
   }
 
   @Override
-  public void doStart() throws RunBuildException {
+  protected boolean uploadItem(final ExecuteRunbookCommandBody parameters) {
     try {
-      buildLogger.message("Collating data for Execute Runbook");
-      final RunbookRunUserData userData = new RunbookRunUserData(context.getRunnerParameters());
-      final String spaceName = userData.getSpaceName();
-
-      final ExecuteRunbookCommandBody body =
-          new ExecuteRunbookCommandBody(
-              spaceName,
-              userData.getProjectName(),
-              userData.getEnvironmentNames(),
-              userData.getRunbookName());
-      userData.getSnapshotName().ifPresent(body::setSnapshot);
-
-      final String serverTaskId = executor.execute(body);
+      final String serverTaskId = executor.execute(parameters);
+      buildLogger.message(getIdentifier(parameters) + " -- Executing");
 
       buildLogger.message(
           "Server task with id '"
               + serverTaskId
               + "' has been started for runbook '"
-              + userData.getRunbookName());
+              + getIdentifier(parameters));
 
       final TaskState taskCompletionState = waiter.waitForCompletion(serverTaskId);
 
-      if (taskCompletionState.equals(TaskState.SUCCESS)) {
-        complete(BuildFinishedStatus.FINISHED_SUCCESS);
-      } else {
-        complete(BuildFinishedStatus.FINISHED_FAILED);
-      }
-    } catch (final Throwable ex) {
-      throw new RunBuildException("Error processing build information build step.", ex);
+      return taskCompletionState.equals(TaskState.SUCCESS);
+    } catch (final Throwable t) {
+      buildLogger.error(getIdentifier(parameters) + " -- FAILED");
+      buildLogger.buildFailureDescription(t.getMessage());
+      logStackTrace(t);
+      return false;
     }
+  }
+
+  @Override
+  protected Collection<ExecuteRunbookCommandBody> collateParameters() {
+    final RunbookRunUserData userData = new RunbookRunUserData(context.getRunnerParameters());
+    final String spaceName = userData.getSpaceName();
+
+    final ExecuteRunbookCommandBody body =
+        new ExecuteRunbookCommandBody(
+            spaceName,
+            userData.getProjectName(),
+            userData.getEnvironmentNames(),
+            userData.getRunbookName());
+    userData.getSnapshotName().ifPresent(body::setSnapshot);
+
+    return singletonList(body);
+  }
+
+  @Override
+  protected String getIdentifier(final ExecuteRunbookCommandBody parameters) {
+    return parameters.getRunbookName();
   }
 
   @Override
