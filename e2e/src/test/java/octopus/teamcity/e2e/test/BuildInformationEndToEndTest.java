@@ -137,8 +137,7 @@ public class BuildInformationEndToEndTest {
     throw new RuntimeException("Build Failed to complete within 30 seconds");
   }
 
-  private void cleanupContainers(final TeamCityContainers teamCityContainers)
-      throws IOException, InterruptedException {
+  private void cleanupContainers(final TeamCityContainers teamCityContainers) {
     final List<String> filesToDelete =
         Lists.newArrayList(
             "/data/teamcity_server/datadir/system/buildserver.tmp",
@@ -149,7 +148,12 @@ public class BuildInformationEndToEndTest {
             "/data/teamcity_server/datadir/system/pluginData/avatars");
 
     for (final String file : filesToDelete) {
-      teamCityContainers.getServerContainer().execInContainer("rm", "-rf", file);
+      try {
+        LOG.debug("Removing " + file);
+        teamCityContainers.getServerContainer().execInContainer("rm", "-rf", file);
+      } catch (final Exception e) {
+        LOG.error("Failed to delete " + file);
+      }
     }
   }
 }
