@@ -21,7 +21,7 @@ public class OctopusCreateReleaseBuildProcess
   }
 
   @Override
-  protected Collection<CreateReleaseCommandBody> collateParameters() throws RunBuildException {
+  protected Collection<CreateReleaseCommandBody> collateParameters() {
     final CreateReleaseUserData userData = new CreateReleaseUserData(context.getRunnerParameters());
 
     final CreateReleaseCommandBody body =
