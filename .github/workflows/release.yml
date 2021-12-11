@@ -53,15 +53,15 @@ jobs:
         run: |
           echo "::debug::${{github.event_name}}"
           if [[ "${{github.event_name}}" = "release" ]]; then
-             RELEASE_NOTES=`jq --raw-output '.release.body' ${{ github.event_path }}`
-             echo "::set-output name=release-notes::$RELEASE_NOTES"
+             LOCAL_RELEASE_NOTES=`jq --raw-output '.release.body' ${{ github.event_path }}`
           else
              RELEASE_URL=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/releases/tags/${{github.event.inputs.release-tag}}
              echo "::debug::Fetching relesae from $RELEASE_URL"
-             RELEASE_NOTES=`curl -s -H "Accept: application/vnd.github.v3+json" $RELEASE_URL | jq --raw-output '.body'`
-             echo "::debug::Release notes = $RELEASE_NOTES"
-             echo "::set-output name=release-notes::$RELEASE_NOTES"
+             LOCAL_RELEASE_NOTES=`curl -s -H "Accept: application/vnd.github.v3+json" $RELEASE_URL | jq --raw-output '.body'`
           fi
+          echo "Release notes = $LOCAL_RELEASE_NOTES"
+          # Need to use env-var, not step outputs, to ensure multi-line is successful
+          echo "RELEASE_NOTES=$LOCAL_RELEASE_NOTES" >> $GITHUB_ENV
 
       - name: Create a release in Octopus Deploy 🐙
         uses: OctopusDeploy/create-release-action@v1.1.1
@@ -72,4 +72,4 @@ jobs:
           project: "TeamCity Plugin"
           package_version: ${{ steps.create-package.outputs.version }}
           release_number: ${{ steps.create-package.outputs.version }}
-          release_notes: ${{ steps.fetch-release-notes.outputs.release-notes }}
+          release_notes: ${{ env.RELEASE_NOTES }}
