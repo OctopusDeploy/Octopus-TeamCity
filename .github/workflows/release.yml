@@ -12,6 +12,9 @@ on:
 
 jobs:
   build:
+    name: "Push Package and Create Release"
+    runs-on: ubuntu-latest
+    steps:
       - name: Fetch Release Notes
         id: fetch-release-notes
         run: |
