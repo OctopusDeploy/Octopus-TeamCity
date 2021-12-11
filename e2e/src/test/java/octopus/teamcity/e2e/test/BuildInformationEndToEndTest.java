@@ -146,6 +146,7 @@ public class BuildInformationEndToEndTest {
             "/data/teamcity_server/datadir/system/caches/pluginsDslCache/src",
             "/data/teamcity_server/datadir/system/caches/buildsMetadata/metadataDB.tmp",
             "/data/teamcity_server/datadir/system/caches/sources",
+            "/data/teamcity_server/datadir/system/caches/kotlinDslData",
             "/data/teamcity_server/datadir/system/pluginData/avatars");
 
     for (final String file : filesToDelete) {
