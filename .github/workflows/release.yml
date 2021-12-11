@@ -28,8 +28,10 @@ jobs:
           fi
           echo "Release notes = $LOCAL_RELEASE_NOTES"
           # Need to use env-var, not step outputs, to ensure multi-line is successful
-          echo "RELEASE_NOTES=$LOCAL_RELEASE_NOTES" >> $GITHUB_ENV
+          echo "RELEASE_NOTES=<<EOF" >> $GITHUB_ENV
+          echo "$LOCAL_RELEASE_NOTES" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
       - name: Create a release in Octopus Deploy 🐙
         run:
-          echo ${{env.RELEASE_NOTES }}
+          echo ${{ env.RELEASE_NOTES }}
