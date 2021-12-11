@@ -12,42 +12,6 @@ on:
 
 jobs:
   build:
-    name: "Push Package and Create Release"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2
-
-      - name: Set up JDK 8
-        uses: actions/setup-java@v2
-        with:
-          java-version: '8'
-          distribution: 'adopt'
-
-      - name: Build with gradle
-        run: ./gradlew build test
-
-      - name: Create Plugin Zip Deployment
-        id: create-package
-        run: |
-          ./gradlew distZip
-          PACKAGE_NAME=`./gradlew -q packageName`
-          echo "::set-output name=package-created::$PACKAGE_NAME"
-          VERSION=`./gradlew properties | grep ^version | awk '{print $2;}'`
-          echo "::set-output name=version::$VERSION"
-
-      - name: Install Octopus CLI 🐙
-        uses: OctopusDeploy/install-octopus-cli-action@v1.1.7
-
-      - name: Push a package to Octopus Deploy 🐙
-        uses: OctopusDeploy/push-package-action@v1.1.1
-        with:
-          overwrite_mode: IgnoreIfExists
-          api_key: ${{ secrets.OCTOPUS_APIKEY }}
-          packages: "${{ steps.create-package.outputs.package-created }}"
-          server: ${{ secrets.OCTOPUS_SERVER }}
-          space: "Integrations"
-
       - name: Fetch Release Notes
         id: fetch-release-notes
         run: |
@@ -64,12 +28,5 @@ jobs:
           echo "RELEASE_NOTES=$LOCAL_RELEASE_NOTES" >> $GITHUB_ENV
 
       - name: Create a release in Octopus Deploy 🐙
-        uses: OctopusDeploy/create-release-action@v1.1.1
-        with:
-          api_key: ${{ secrets.OCTOPUS_APIKEY }}
-          server: ${{ secrets.OCTOPUS_SERVER }}
-          space: "Integrations"
-          project: "TeamCity Plugin"
-          package_version: ${{ steps.create-package.outputs.version }}
-          release_number: ${{ steps.create-package.outputs.version }}
-          release_notes: ${{ env.RELEASE_NOTES }}
+        run:
+          echo ${{env.RELEASE_NOTES }}
