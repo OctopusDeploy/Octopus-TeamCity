@@ -20,26 +20,17 @@ jobs:
         run: |
           echo "::debug::${{github.event_name}}"
           if [[ "${{github.event_name}}" = "release" ]]; then
-             LOCAL_RELEASE_NOTES=`jq --raw-output '.release.body' ${{ github.event_path }}`
+             RELEASE_NOTES=`jq --raw-output '.release.body' ${{ github.event_path }}`
           else
              RELEASE_URL=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/releases/tags/${{github.event.inputs.release-tag}}
              echo "::debug::Fetching relesae from $RELEASE_URL"
-             LOCAL_RELEASE_NOTES=`curl -s -H "Accept: application/vnd.github.v3+json" $RELEASE_URL | jq --raw-output '.body'`
+             RELEASE_NOTES=`curl -s -H "Accept: application/vnd.github.v3+json" $RELEASE_URL | jq --raw-output '.body'`
           fi
-          echo "local = $LOCAL_RELEASE_NOTES"
-          MULTI_LINE_LOCAL_RELEASE_NOTES=$(cat << EOF
-          $LOCAL_RELEASE_NOTES
-          EOF
-          )
-          echo "EOF'd = $MULTI_LINE_LOCAL_RELEASE_NOTES"
-          # Need to use env-var, not step outputs, to ensure multi-line is successful
-          echo "RELEASE_NOTES=<<EOF" >> $GITHUB_ENV
-          echo "in between"
-          echo "$MULTI_LINE_LOCAL_RELEASE_NOTES" >> $GITHUB_ENV
-          echo "before EOF"
-          echo "EOF" >> $GITHUB_ENV
-          echo "after EOF"
+          RELEASE_NOTES="${RELEASE_NOTES//'%'/'%25'}"
+          RELEASE_NOTES="${RELEASE_NOTES//$'\n'/'%0A'}"
+          RELEASE_NOTES="${RELEASE_NOTES//$'\r'/'%0D'}"
+          echo "::set-output name=RELEASE_NOTES::LOCAL_RELEASE_NOTES"
 
       - name: Create a release in Octopus Deploy 🐙
         run:
-          echo ${{ env.RELEASE_NOTES }}
+          echo ${{ steps.fetch-release-notes.outputs.RELEASE_NOTES }}
