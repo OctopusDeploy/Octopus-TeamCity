@@ -26,14 +26,17 @@ jobs:
              echo "::debug::Fetching relesae from $RELEASE_URL"
              LOCAL_RELEASE_NOTES=`curl -s -H "Accept: application/vnd.github.v3+json" $RELEASE_URL | jq --raw-output '.body'`
           fi
+          echo "local = $LOCAL_RELEASE_NOTES"
           MULTI_LINE_LOCAL_RELEASE_NOTES=$(cat << EOF
           $LOCAL_RELEASE_NOTES
           EOF
           )
-          echo "$MULTI_LINE_LOCAL_RELEASE_NOTES"
+          echo "EOF'd = $MULTI_LINE_LOCAL_RELEASE_NOTES"
           # Need to use env-var, not step outputs, to ensure multi-line is successful
-          echo "RELEASE_NOTES=<<EOF" >> $GITHUB_ENV
+          echo "RELEASE_NOTES=<<EOF" >> $GITHUB_ENVA
+          echo "in between"
           echo "$MULTI_LINE_LOCAL_RELEASE_NOTES" >> $GITHUB_ENV
+          echo "before EOF"
           echo "EOF" >> $GITHUB_ENV
 
       - name: Create a release in Octopus Deploy 🐙
