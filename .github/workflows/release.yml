@@ -38,6 +38,7 @@ jobs:
           echo "$MULTI_LINE_LOCAL_RELEASE_NOTES" >> $GITHUB_ENV
           echo "before EOF"
           echo "EOF" >> $GITHUB_ENV
+          echo "after EOF"
 
       - name: Create a release in Octopus Deploy 🐙
         run:
