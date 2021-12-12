@@ -33,7 +33,7 @@ jobs:
           )
           echo "EOF'd = $MULTI_LINE_LOCAL_RELEASE_NOTES"
           # Need to use env-var, not step outputs, to ensure multi-line is successful
-          echo "RELEASE_NOTES=<<EOF" >> $GITHUB_ENVA
+          echo "RELEASE_NOTES=<<EOF" >> $GITHUB_ENV
           echo "in between"
           echo "$MULTI_LINE_LOCAL_RELEASE_NOTES" >> $GITHUB_ENV
           echo "before EOF"
