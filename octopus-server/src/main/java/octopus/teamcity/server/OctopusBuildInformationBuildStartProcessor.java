@@ -3,6 +3,8 @@ package octopus.teamcity.server;
 import java.util.List;
 import java.util.Map;
 
+import com.intellij.openapi.util.text.StringUtil;
+import jdk.internal.org.jline.utils.Log;
 import jetbrains.buildServer.ExtensionHolder;
 import jetbrains.buildServer.serverSide.BuildStartContext;
 import jetbrains.buildServer.serverSide.BuildStartContextProcessor;
@@ -52,12 +54,23 @@ public class OctopusBuildInformationBuildStartProcessor implements BuildStartCon
       }
     }
 
-    insertConnectionPropertiesIntoOctopusBuildSteps(buildStartContext);
+    final String enableStepVnext = System.getProperty("octopus.enable.step.vnext");
+    if (!StringUtil.isEmpty(enableStepVnext) && Boolean.parseBoolean(enableStepVnext)) {
+      insertConnectionPropertiesIntoOctopusBuildSteps(buildStartContext);
+    }
   }
 
   private void insertConnectionPropertiesIntoOctopusBuildSteps(
       final BuildStartContext buildStartContext) {
-    final SUser user = buildStartContext.getBuild().getTriggeredBy().getUser();
+    SUser user = buildStartContext.getBuild().getTriggeredBy().getUser();
+    if (user == null) {
+      user = buildStartContext.getBuild().getOwner();
+    }
+
+    if(user == null) {
+      Log.warn("Unable to determine user who triggered build - unable to append connection data to build.");
+    }
+
     final Map<String, OAuthConnectionDescriptor> allConnections =
         ConnectionHelper.getAvailableOctopusConnections(
             oAuthConnectionsManager, projectManager, user);
