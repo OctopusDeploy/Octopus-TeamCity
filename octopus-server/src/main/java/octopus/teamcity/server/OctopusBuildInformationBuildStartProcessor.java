@@ -61,10 +61,8 @@ public class OctopusBuildInformationBuildStartProcessor implements BuildStartCon
 
   private void insertConnectionPropertiesIntoOctopusBuildSteps(
       final BuildStartContext buildStartContext) {
-    final SUser user = buildStartContext.getBuild().getTriggeredBy().getUser();
     final Map<String, OAuthConnectionDescriptor> allConnections =
-        ConnectionHelper.getAvailableOctopusConnections(
-            oAuthConnectionsManager, projectManager, user);
+        ConnectionHelper.getAllOctopusConnections(oAuthConnectionsManager, projectManager);
 
     // For each OctopusGenericBuildStep in the build, find the referenced connection, and copy
     // parameters into the runnerParams

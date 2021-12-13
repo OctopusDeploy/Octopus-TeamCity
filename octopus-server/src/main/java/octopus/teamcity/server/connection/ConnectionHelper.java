@@ -22,8 +22,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import jetbrains.buildServer.serverSide.ProjectManager;
+import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.auth.Permission;
 import jetbrains.buildServer.serverSide.oauth.OAuthConnectionDescriptor;
 import jetbrains.buildServer.serverSide.oauth.OAuthConnectionsManager;
@@ -31,17 +33,34 @@ import jetbrains.buildServer.users.User;
 
 public class ConnectionHelper {
 
-  public static Map<String, OAuthConnectionDescriptor> getAvailableOctopusConnections(
+  public static Map<String, OAuthConnectionDescriptor> getUserSpecificOctopusConnections(
       final OAuthConnectionsManager oauthConnectionManager,
       final ProjectManager projectManager,
       final User user) {
-    return projectManager.getProjects().stream()
-        .filter(p -> user.isPermissionGrantedForProject(p.getProjectId(), Permission.VIEW_PROJECT))
-        .map(p -> oauthConnectionManager.getAvailableConnectionsOfType(p, OctopusConnection.TYPE))
+    return getConnectionFromProjects(oauthConnectionManager,
+        projectManager.getProjects().stream().filter(p -> user.isPermissionGrantedForProject(p.getProjectId(),
+            Permission.VIEW_PROJECT)));
+  }
+
+  public static Map<String, OAuthConnectionDescriptor> getAllOctopusConnections(
+      final OAuthConnectionsManager oauthConnectionManager,
+      final ProjectManager projectManager) {
+    return getConnectionFromProjects(oauthConnectionManager, projectManager.getProjects().stream());
+  }
+
+  private static Map<String, OAuthConnectionDescriptor> getConnectionFromProjects(
+      final OAuthConnectionsManager oauthConnectionManager,
+      final Stream<SProject> projectStream) {
+
+    return projectStream.map(p -> oauthConnectionManager.getAvailableConnectionsOfType(p, OctopusConnection.TYPE))
         .flatMap(Collection::stream)
         .filter(distinctByField(OAuthConnectionDescriptor::getId))
         .collect(Collectors.toMap(OAuthConnectionDescriptor::getId, Function.identity()));
+
   }
+
+
+
 
   private static <T> Predicate<T> distinctByField(final Function<? super T, ?> keyExtractor) {
     final Set<Object> seen = ConcurrentHashMap.newKeySet();

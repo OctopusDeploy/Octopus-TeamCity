@@ -72,7 +72,7 @@ public class OctopusViewGenericRunTypeController extends BaseController {
     }
 
     final Map<String, OAuthConnectionDescriptor> availableConnections =
-        ConnectionHelper.getAvailableOctopusConnections(
+        ConnectionHelper.getUserSpecificOctopusConnections(
             oauthConnectionManager, projectManager, user);
 
     final RunnerPropertiesBean propertiesBean =

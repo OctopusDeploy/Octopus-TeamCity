@@ -75,7 +75,7 @@ public class OctopusEditGenericRunTypeController extends BaseController {
     }
 
     final Collection<OAuthConnectionDescriptor> availableConnections =
-        ConnectionHelper.getAvailableOctopusConnections(
+        ConnectionHelper.getUserSpecificOctopusConnections(
                 oauthConnectionManager, projectManager, user)
             .values();
 
