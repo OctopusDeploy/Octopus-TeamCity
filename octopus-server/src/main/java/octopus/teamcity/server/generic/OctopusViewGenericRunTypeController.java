@@ -17,6 +17,7 @@ package octopus.teamcity.server.generic;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
@@ -25,6 +26,7 @@ import javax.servlet.http.HttpServletResponse;
 import jetbrains.buildServer.controllers.BaseController;
 import jetbrains.buildServer.controllers.admin.projects.RunnerPropertiesBean;
 import jetbrains.buildServer.serverSide.ProjectManager;
+import jetbrains.buildServer.serverSide.impl.auth.SecuredProject;
 import jetbrains.buildServer.serverSide.oauth.OAuthConnectionDescriptor;
 import jetbrains.buildServer.serverSide.oauth.OAuthConnectionsManager;
 import jetbrains.buildServer.users.User;
@@ -71,20 +73,19 @@ public class OctopusViewGenericRunTypeController extends BaseController {
       return null;
     }
 
-    final Map<String, OAuthConnectionDescriptor> availableConnections =
-        ConnectionHelper.getUserSpecificOctopusConnections(
-            oauthConnectionManager, projectManager, user);
+    // "contextProject" is a bit magic, unable to find docs to justify its existence
+    final SecuredProject project = (SecuredProject) request.getAttribute("contextProject");
+    final Collection<OAuthConnectionDescriptor> availableConnections =
+        oauthConnectionManager.getAvailableConnections(project);
 
     final RunnerPropertiesBean propertiesBean =
         (RunnerPropertiesBean) request.getAttribute("propertiesBean");
     final String connectionId =
         propertiesBean.getProperties().get(CommonStepPropertyNames.CONNECTION_ID);
-    final Optional<OAuthConnectionDescriptor> connection =
-        Optional.ofNullable(availableConnections.get(connectionId));
-
-    if (connection.isPresent()) {
-      propertiesBean.getProperties().putAll(connection.get().getParameters());
-    }
+    availableConnections.stream()
+        .filter(c -> c.getId().equals(connectionId))
+        .findFirst()
+        .ifPresent(c -> propertiesBean.getProperties().putAll(c.getParameters()));
 
     return modelAndView;
   }

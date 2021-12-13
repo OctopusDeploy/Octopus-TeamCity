@@ -18,12 +18,15 @@ package octopus.teamcity.server.generic;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import jetbrains.buildServer.controllers.BaseController;
 import jetbrains.buildServer.serverSide.ProjectManager;
 import jetbrains.buildServer.serverSide.RelativeWebLinks;
+import jetbrains.buildServer.serverSide.SProject;
+import jetbrains.buildServer.serverSide.impl.auth.SecuredProject;
 import jetbrains.buildServer.serverSide.oauth.OAuthConnectionDescriptor;
 import jetbrains.buildServer.serverSide.oauth.OAuthConnectionsManager;
 import jetbrains.buildServer.users.User;
@@ -33,7 +36,9 @@ import jetbrains.buildServer.web.util.SessionUser;
 import jetbrains.buildServer.web.util.WebUtil;
 import octopus.teamcity.server.OctopusGenericRunType;
 import octopus.teamcity.server.connection.ConnectionHelper;
+import octopus.teamcity.server.connection.OctopusConnection;
 import octopus.teamcity.server.connection.OctopusConnectionsBean;
+import org.apache.commons.compress.utils.Lists;
 import org.springframework.web.servlet.ModelAndView;
 
 // This is responsible for handling the call http request for the OctopusBuildStep.
@@ -74,10 +79,10 @@ public class OctopusEditGenericRunTypeController extends BaseController {
       return null;
     }
 
+    // "contextProject" is a bit magic, unable to find docs
+    final SecuredProject project = (SecuredProject)request.getAttribute("contextProject");
     final Collection<OAuthConnectionDescriptor> availableConnections =
-        ConnectionHelper.getUserSpecificOctopusConnections(
-                oauthConnectionManager, projectManager, user)
-            .values();
+        oauthConnectionManager.getAvailableConnections(project);
 
     modelAndView.addObject("octopusConnections", new OctopusConnectionsBean(availableConnections));
     modelAndView.addObject("user", user);

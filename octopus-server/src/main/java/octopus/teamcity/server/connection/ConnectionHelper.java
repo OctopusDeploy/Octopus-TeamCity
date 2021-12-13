@@ -16,6 +16,7 @@
 package octopus.teamcity.server.connection;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,6 +31,7 @@ import jetbrains.buildServer.serverSide.auth.Permission;
 import jetbrains.buildServer.serverSide.oauth.OAuthConnectionDescriptor;
 import jetbrains.buildServer.serverSide.oauth.OAuthConnectionsManager;
 import jetbrains.buildServer.users.User;
+import org.apache.commons.compress.utils.Lists;
 
 public class ConnectionHelper {
 
@@ -59,8 +61,21 @@ public class ConnectionHelper {
 
   }
 
-
-
+  public static Map<String, OAuthConnectionDescriptor> getConnectionsInProjectHierarchy(
+      final SProject project, final OAuthConnectionsManager oauthConnectionManager) {
+    final List<SProject> projectHierarchy = Lists.newArrayList();
+    SProject iterator = project;
+    while (iterator != null) {
+      projectHierarchy.add(iterator);
+      iterator = iterator.getParentProject();
+    }
+    return projectHierarchy
+        .stream()
+        .map(p -> oauthConnectionManager.getAvailableConnectionsOfType(p, OctopusConnection.TYPE))
+        .flatMap(Collection::stream)
+        .filter(distinctByField(OAuthConnectionDescriptor::getId))
+        .collect(Collectors.toMap(OAuthConnectionDescriptor::getId, Function.identity()));
+  }
 
   private static <T> Predicate<T> distinctByField(final Function<? super T, ?> keyExtractor) {
     final Set<Object> seen = ConcurrentHashMap.newKeySet();
