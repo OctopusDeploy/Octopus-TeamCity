@@ -18,8 +18,6 @@ package octopus.teamcity.server.generic;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Map;
-import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -35,7 +33,7 @@ import jetbrains.buildServer.web.openapi.WebControllerManager;
 import jetbrains.buildServer.web.util.SessionUser;
 import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
 import octopus.teamcity.server.OctopusGenericRunType;
-import octopus.teamcity.server.connection.ConnectionHelper;
+import octopus.teamcity.server.connection.OctopusConnection;
 import org.springframework.web.servlet.ModelAndView;
 
 // This is responsible for handling the call http request for the OctopusBuildStep.
@@ -43,7 +41,6 @@ public class OctopusViewGenericRunTypeController extends BaseController {
 
   private final PluginDescriptor pluginDescriptor;
   private final OAuthConnectionsManager oauthConnectionManager;
-  private final ProjectManager projectManager;
 
   public OctopusViewGenericRunTypeController(
       final WebControllerManager webControllerManager,
@@ -53,7 +50,6 @@ public class OctopusViewGenericRunTypeController extends BaseController {
       final ProjectManager projectManager) {
     this.pluginDescriptor = pluginDescriptor;
     this.oauthConnectionManager = oauthConnectionManager;
-    this.projectManager = projectManager;
 
     webControllerManager.registerController(
         octopusGenericRunType.getViewRunnerParamsJspFilePath(), this);
@@ -76,7 +72,7 @@ public class OctopusViewGenericRunTypeController extends BaseController {
     // "contextProject" is a bit magic, unable to find docs to justify its existence
     final SecuredProject project = (SecuredProject) request.getAttribute("contextProject");
     final Collection<OAuthConnectionDescriptor> availableConnections =
-        oauthConnectionManager.getAvailableConnections(project);
+        oauthConnectionManager.getAvailableConnectionsOfType(project, OctopusConnection.TYPE);
 
     final RunnerPropertiesBean propertiesBean =
         (RunnerPropertiesBean) request.getAttribute("propertiesBean");
