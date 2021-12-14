@@ -13,11 +13,11 @@ import octopus.teamcity.common.OctopusConstants;
 
 public class OctopusBuildInformationBuildStartProcessor implements BuildStartContextProcessor {
 
-  private final ExtensionHolder extensionHolder;
   private final Logger logger = Loggers.SERVER;
 
   public OctopusBuildInformationBuildStartProcessor(final ExtensionHolder extensionHolder) {
-    this.extensionHolder = extensionHolder;
+    extensionHolder.registerExtension(
+        BuildStartContextProcessor.class, this.getClass().getName(), this);
   }
 
   @Override
@@ -45,10 +45,5 @@ public class OctopusBuildInformationBuildStartProcessor implements BuildStartCon
       logger.error("Failed to write VCS type into the buildstartContext's shared parameters", t);
       throw t;
     }
-  }
-
-  public void register() {
-    extensionHolder.registerExtension(
-        BuildStartContextProcessor.class, this.getClass().getName(), this);
   }
 }

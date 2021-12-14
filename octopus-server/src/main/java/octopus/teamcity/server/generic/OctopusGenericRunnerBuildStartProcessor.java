@@ -3,6 +3,7 @@ package octopus.teamcity.server.generic;
 import java.util.List;
 
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.text.StringUtil;
 import jetbrains.buildServer.ExtensionHolder;
 import jetbrains.buildServer.log.Loggers;
 import jetbrains.buildServer.serverSide.BuildStartContext;
@@ -19,15 +20,19 @@ import octopus.teamcity.server.connection.OctopusConnection;
 
 public class OctopusGenericRunnerBuildStartProcessor implements BuildStartContextProcessor {
 
-  private final ExtensionHolder extensionHolder;
   private final OAuthConnectionsManager oAuthConnectionsManager;
   private final Logger logger = Loggers.SERVER;
 
   public OctopusGenericRunnerBuildStartProcessor(
+      final String enableStepVnext,
       final ExtensionHolder extensionHolder,
       final OAuthConnectionsManager oAuthConnectionsManager) {
-    this.extensionHolder = extensionHolder;
     this.oAuthConnectionsManager = oAuthConnectionsManager;
+
+    if (!StringUtil.isEmpty(enableStepVnext) && Boolean.parseBoolean(enableStepVnext)) {
+      extensionHolder.registerExtension(
+          BuildStartContextProcessor.class, this.getClass().getName(), this);
+    }
   }
 
   @Override
@@ -81,10 +86,5 @@ public class OctopusGenericRunnerBuildStartProcessor implements BuildStartContex
                         + "project"))
         .getParameters()
         .forEach(context::addRunnerParameter);
-  }
-
-  public void register() {
-    extensionHolder.registerExtension(
-        BuildStartContextProcessor.class, this.getClass().getName(), this);
   }
 }
