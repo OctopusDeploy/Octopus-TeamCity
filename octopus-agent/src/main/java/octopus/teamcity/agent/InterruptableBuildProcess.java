@@ -67,6 +67,7 @@ public abstract class InterruptableBuildProcess implements BuildProcess {
           .getBuild()
           .getBuildLogger()
           .buildFailureDescription("Failure reason - " + e.getMessage());
+      complete(BuildFinishedStatus.FINISHED_FAILED);
     }
   }
 
