@@ -43,7 +43,6 @@ public class OctopusViewGenericRunTypeController extends BaseController {
 
   private final PluginDescriptor pluginDescriptor;
   private final OAuthConnectionsManager oauthConnectionManager;
-  private final Logger logger = Loggers.SERVER;
 
   public OctopusViewGenericRunTypeController(
       final WebControllerManager webControllerManager,

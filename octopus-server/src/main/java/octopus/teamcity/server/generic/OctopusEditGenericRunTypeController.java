@@ -18,6 +18,7 @@ package octopus.teamcity.server.generic;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -80,17 +81,18 @@ public class OctopusEditGenericRunTypeController extends BaseController {
     if(project == null) {
       modelAndView.addObject("parameterCollectionFailure", "Unable to identify containing project from request - "
           + "please contact Octopus Deploy support");
+      modelAndView.addObject("octopusConnections", new OctopusConnectionsBean(Collections.emptyList()));
     }
     else {
       final Collection<OAuthConnectionDescriptor> availableConnections =
           oauthConnectionManager.getAvailableConnectionsOfType(project, OctopusConnection.TYPE);
       modelAndView.addObject("octopusConnections", new OctopusConnectionsBean(availableConnections));
-      modelAndView.addObject("user", user);
-      modelAndView.addObject("rootUrl", WebUtil.getRootUrl(request));
-      modelAndView.addObject("rootProject", projectManager.getRootProject());
-      modelAndView.addObject(
-          "editConnectionUrl", webLinks.getEditProjectPageUrl("_Root") + "&tab=oauthConnections");
     }
+    modelAndView.addObject("user", user);
+    modelAndView.addObject("rootUrl", WebUtil.getRootUrl(request));
+    modelAndView.addObject("rootProject", projectManager.getRootProject());
+    modelAndView.addObject(
+        "editConnectionUrl", webLinks.getEditProjectPageUrl("_Root") + "&tab=oauthConnections");
 
     return modelAndView;
   }
