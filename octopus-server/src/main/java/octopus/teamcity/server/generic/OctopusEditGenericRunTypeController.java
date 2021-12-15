@@ -78,7 +78,8 @@ public class OctopusEditGenericRunTypeController extends BaseController {
     // "contextProject" is a bit magic, unable to find docs
     final SecuredProject project = (SecuredProject) request.getAttribute("contextProject");
     if(project == null) {
-      modelAndView.addObject("projectFailure", "Unable to identify containing project from request - see OD People");
+      modelAndView.addObject("parameterCollectionFailure", "Unable to identify containing project from request - "
+          + "please contact Octopus Deploy support");
     }
     else {
       final Collection<OAuthConnectionDescriptor> availableConnections =

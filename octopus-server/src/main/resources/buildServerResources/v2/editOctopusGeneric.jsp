@@ -32,7 +32,7 @@
 <jsp:useBean id="rootProject" scope="request" type="jetbrains.buildServer.serverSide.SProject"/>
 <jsp:useBean id="editConnectionUrl" scope="request" type="java.lang.String"/>
 <jsp:useBean id="user" scope="request" type="jetbrains.buildServer.users.User"/>
-<jsp:useBean id="projectFailure" scope="request" type="java.lang.String"/>
+<jsp:useBean id="parameterCollectionFailure" scope="request" type="java.lang.String"/>
 <c:set var="paramHelpUrl">net#</c:set>
 <c:set var="commandTitle">Command:<bs:help file="${paramHelpUrl}BuildRunnerOptions"/></c:set>
 
@@ -41,8 +41,8 @@
         <th>Connection:<l:star/></th>
         <td>
             <c:choose>
-                <c:when test="${not empty projectFailure}">
-                    <c:out value="${projectFailure}"/>
+                <c:when test="${not empty parameterCollectionFailure}">
+                    <c:out value="${parameterCollectionFailure}"/>
                 </c:when>
                 <c:when test="${empty octopusConnections.connections}">
                     No suitable Octopus connections were found.

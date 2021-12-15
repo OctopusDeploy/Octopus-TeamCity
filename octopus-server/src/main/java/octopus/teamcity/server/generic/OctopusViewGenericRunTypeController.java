@@ -21,8 +21,10 @@ import java.util.Collection;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.intellij.openapi.diagnostic.Logger;
 import jetbrains.buildServer.controllers.BaseController;
 import jetbrains.buildServer.controllers.admin.projects.RunnerPropertiesBean;
+import jetbrains.buildServer.log.Loggers;
 import jetbrains.buildServer.serverSide.ProjectManager;
 import jetbrains.buildServer.serverSide.impl.auth.SecuredProject;
 import jetbrains.buildServer.serverSide.oauth.OAuthConnectionDescriptor;
@@ -41,13 +43,13 @@ public class OctopusViewGenericRunTypeController extends BaseController {
 
   private final PluginDescriptor pluginDescriptor;
   private final OAuthConnectionsManager oauthConnectionManager;
+  private final Logger logger = Loggers.SERVER;
 
   public OctopusViewGenericRunTypeController(
       final WebControllerManager webControllerManager,
       final PluginDescriptor pluginDescriptor,
       final OctopusGenericRunType octopusGenericRunType,
-      final OAuthConnectionsManager oauthConnectionManager,
-      final ProjectManager projectManager) {
+      final OAuthConnectionsManager oauthConnectionManager) {
     this.pluginDescriptor = pluginDescriptor;
     this.oauthConnectionManager = oauthConnectionManager;
 
@@ -72,19 +74,21 @@ public class OctopusViewGenericRunTypeController extends BaseController {
     // "contextProject" is a bit magic, unable to find docs to justify its existence
     final SecuredProject project = (SecuredProject) request.getAttribute("contextProject");
     if(project == null) {
+      modelAndView.addObject("parameterCollectionFailure", "Unable to identify containing project from request - "
+          + "please contact Octopus Deploy support");
+    } else {
+      final RunnerPropertiesBean propertiesBean =
+          (RunnerPropertiesBean) request.getAttribute("propertiesBean");
+      final String connectionId =
+          propertiesBean.getProperties().get(CommonStepPropertyNames.CONNECTION_ID);
 
+      final OAuthConnectionDescriptor connection = oauthConnectionManager.findConnectionById(project, connectionId);
+      if(connection != null) {
+        propertiesBean.getProperties().putAll(connection.getParameters());
+      } else {
+        logger.warn("Unable to find connection with Id " + connectionId);
+      }
     }
-    final Collection<OAuthConnectionDescriptor> availableConnections =
-        oauthConnectionManager.getAvailableConnectionsOfType(project, OctopusConnection.TYPE);
-
-    final RunnerPropertiesBean propertiesBean =
-        (RunnerPropertiesBean) request.getAttribute("propertiesBean");
-    final String connectionId =
-        propertiesBean.getProperties().get(CommonStepPropertyNames.CONNECTION_ID);
-    availableConnections.stream()
-        .filter(c -> c.getId().equals(connectionId))
-        .findFirst()
-        .ifPresent(c -> propertiesBean.getProperties().putAll(c.getParameters()));
 
     return modelAndView;
   }
