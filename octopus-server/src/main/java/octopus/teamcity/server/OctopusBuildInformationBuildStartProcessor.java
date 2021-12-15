@@ -57,32 +57,27 @@ public class OctopusBuildInformationBuildStartProcessor implements BuildStartCon
   private void insertConnectionPropertiesIntoOctopusBuildSteps(
       final BuildStartContext buildStartContext) {
     final SProject project = buildStartContext.getBuild().getBuildType().getProject();
-    final List<OAuthConnectionDescriptor> connections =
-        oAuthConnectionsManager.getAvailableConnectionsOfType(project, OctopusConnection.TYPE);
 
     // For each OctopusGenericBuildStep in the build, find the referenced connection, and copy
     // parameters into the runnerParams
     buildStartContext.getRunnerContexts().stream()
         .filter(rc -> rc.getRunType() instanceof OctopusGenericRunType)
-        .forEach(context -> updateBuildStepWithConnectionProperties(connections, context));
+        .forEach(context -> updateBuildStepWithConnectionProperties(project, context));
   }
 
   private void updateBuildStepWithConnectionProperties(
-      final List<OAuthConnectionDescriptor> connections, final SRunnerContext context) {
+      final SProject project, final SRunnerContext context) {
     final String connectionId = context.getParameters().get(CommonStepPropertyNames.CONNECTION_ID);
 
-    connections.stream()
-        .filter(c -> c.getId().equals(connectionId))
-        .findFirst()
-        .orElseThrow(
-            () ->
-                new IllegalArgumentException(
-                    "No Octopus connection '"
-                        + connectionId
-                        + "' exists for the current "
-                        + "project"))
-        .getParameters()
-        .forEach(context::addRunnerParameter);
+    final OAuthConnectionDescriptor connection =
+        oAuthConnectionsManager.findConnectionById(project, connectionId);
+
+    if(connection == null) {
+      throw new IllegalArgumentException(
+          "No Octopus connection '" + connectionId + "' exists for the current " + "project");
+    }
+
+    connection.getParameters().forEach(context::addRunnerParameter);
   }
 
   public void register() {

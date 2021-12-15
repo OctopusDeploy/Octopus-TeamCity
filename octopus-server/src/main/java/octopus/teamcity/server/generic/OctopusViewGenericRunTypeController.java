@@ -71,6 +71,9 @@ public class OctopusViewGenericRunTypeController extends BaseController {
 
     // "contextProject" is a bit magic, unable to find docs to justify its existence
     final SecuredProject project = (SecuredProject) request.getAttribute("contextProject");
+    if(project == null) {
+
+    }
     final Collection<OAuthConnectionDescriptor> availableConnections =
         oauthConnectionManager.getAvailableConnectionsOfType(project, OctopusConnection.TYPE);
 

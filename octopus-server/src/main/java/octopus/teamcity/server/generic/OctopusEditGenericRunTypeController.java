@@ -77,15 +77,19 @@ public class OctopusEditGenericRunTypeController extends BaseController {
 
     // "contextProject" is a bit magic, unable to find docs
     final SecuredProject project = (SecuredProject) request.getAttribute("contextProject");
-    final Collection<OAuthConnectionDescriptor> availableConnections =
-        oauthConnectionManager.getAvailableConnectionsOfType(project, OctopusConnection.TYPE);
-
-    modelAndView.addObject("octopusConnections", new OctopusConnectionsBean(availableConnections));
-    modelAndView.addObject("user", user);
-    modelAndView.addObject("rootUrl", WebUtil.getRootUrl(request));
-    modelAndView.addObject("rootProject", projectManager.getRootProject());
-    modelAndView.addObject(
-        "editConnectionUrl", webLinks.getEditProjectPageUrl("_Root") + "&tab=oauthConnections");
+    if(project == null) {
+      modelAndView.addObject("projectFailure", "Unable to identify containing project from request - see OD People");
+    }
+    else {
+      final Collection<OAuthConnectionDescriptor> availableConnections =
+          oauthConnectionManager.getAvailableConnectionsOfType(project, OctopusConnection.TYPE);
+      modelAndView.addObject("octopusConnections", new OctopusConnectionsBean(availableConnections));
+      modelAndView.addObject("user", user);
+      modelAndView.addObject("rootUrl", WebUtil.getRootUrl(request));
+      modelAndView.addObject("rootProject", projectManager.getRootProject());
+      modelAndView.addObject(
+          "editConnectionUrl", webLinks.getEditProjectPageUrl("_Root") + "&tab=oauthConnections");
+    }
 
     return modelAndView;
   }
