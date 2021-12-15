@@ -1,10 +1,11 @@
 package octopus.teamcity.server;
 
-import java.util.List;
-
+import com.intellij.openapi.diagnostic.Logger;
 import jetbrains.buildServer.ExtensionHolder;
+import jetbrains.buildServer.log.Loggers;
 import jetbrains.buildServer.serverSide.BuildStartContext;
 import jetbrains.buildServer.serverSide.BuildStartContextProcessor;
+import jetbrains.buildServer.serverSide.SBuildType;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.SRunnerContext;
 import jetbrains.buildServer.serverSide.SRunningBuild;
@@ -13,12 +14,14 @@ import jetbrains.buildServer.serverSide.oauth.OAuthConnectionsManager;
 import jetbrains.buildServer.util.StringUtil;
 import jetbrains.buildServer.vcs.VcsRootInstanceEntry;
 import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
-import octopus.teamcity.server.connection.OctopusConnection;
+
+import java.util.List;
 
 public class OctopusBuildInformationBuildStartProcessor implements BuildStartContextProcessor {
 
   private final ExtensionHolder extensionHolder;
   private final OAuthConnectionsManager oAuthConnectionsManager;
+  private final Logger logger = Loggers.SERVER;
 
   public OctopusBuildInformationBuildStartProcessor(
       final ExtensionHolder extensionHolder,
@@ -56,6 +59,13 @@ public class OctopusBuildInformationBuildStartProcessor implements BuildStartCon
 
   private void insertConnectionPropertiesIntoOctopusBuildSteps(
       final BuildStartContext buildStartContext) {
+    final SBuildType buildType = buildStartContext.getBuild().getBuildType();
+    if (buildType == null) {
+      logger.error(
+          "Unable to find the buildType, connection data not included in buildStartContext");
+      return;
+    }
+
     final SProject project = buildStartContext.getBuild().getBuildType().getProject();
 
     // For each OctopusGenericBuildStep in the build, find the referenced connection, and copy
