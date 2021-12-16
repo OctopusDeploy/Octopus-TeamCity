@@ -67,14 +67,7 @@ public class OctopusViewGenericRunTypeController extends BaseController {
 
     // "contextProject" is a bit magic, unable to find docs to justify its existence
     final SecuredProject project = (SecuredProject) request.getAttribute("contextProject");
-    if (project == null) {
-      modelAndView.addObject(
-          "parameterCollectionFailure",
-          "Unable to identify containing project from request - "
-              + "please contact Octopus Deploy support");
-    } else {
-      modelAndView.addObject("parameterCollectionFailure", "");
-
+    if (project != null) {
       final RunnerPropertiesBean propertiesBean =
           (RunnerPropertiesBean) request.getAttribute("propertiesBean");
       final String connectionId =
