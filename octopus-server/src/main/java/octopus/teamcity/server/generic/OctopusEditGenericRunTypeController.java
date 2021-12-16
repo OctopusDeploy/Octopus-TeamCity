@@ -78,15 +78,19 @@ public class OctopusEditGenericRunTypeController extends BaseController {
 
     // "contextProject" is a bit magic, unable to find docs
     final SecuredProject project = (SecuredProject) request.getAttribute("contextProject");
-    if(project == null) {
-      modelAndView.addObject("parameterCollectionFailure", "Unable to identify containing project from request - "
-          + "please contact Octopus Deploy support");
-      modelAndView.addObject("octopusConnections", new OctopusConnectionsBean(Collections.emptyList()));
-    }
-    else {
+    if (project == null) {
+      modelAndView.addObject(
+          "parameterCollectionFailure",
+          "Unable to identify containing project from request - "
+              + "please contact Octopus Deploy support");
+      modelAndView.addObject(
+          "octopusConnections", new OctopusConnectionsBean(Collections.emptyList()));
+    } else {
+      modelAndView.addObject("parameterCollectionFailure", "");
       final Collection<OAuthConnectionDescriptor> availableConnections =
           oauthConnectionManager.getAvailableConnectionsOfType(project, OctopusConnection.TYPE);
-      modelAndView.addObject("octopusConnections", new OctopusConnectionsBean(availableConnections));
+      modelAndView.addObject(
+          "octopusConnections", new OctopusConnectionsBean(availableConnections));
     }
     modelAndView.addObject("user", user);
     modelAndView.addObject("rootUrl", WebUtil.getRootUrl(request));

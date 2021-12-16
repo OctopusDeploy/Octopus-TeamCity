@@ -1,5 +1,7 @@
 package octopus.teamcity.server;
 
+import java.util.List;
+
 import com.intellij.openapi.diagnostic.Logger;
 import jetbrains.buildServer.ExtensionHolder;
 import jetbrains.buildServer.log.Loggers;
@@ -14,8 +16,6 @@ import jetbrains.buildServer.serverSide.oauth.OAuthConnectionsManager;
 import jetbrains.buildServer.util.StringUtil;
 import jetbrains.buildServer.vcs.VcsRootInstanceEntry;
 import octopus.teamcity.common.commonstep.CommonStepPropertyNames;
-
-import java.util.List;
 
 public class OctopusBuildInformationBuildStartProcessor implements BuildStartContextProcessor {
 
@@ -82,7 +82,7 @@ public class OctopusBuildInformationBuildStartProcessor implements BuildStartCon
     final OAuthConnectionDescriptor connection =
         oAuthConnectionsManager.findConnectionById(project, connectionId);
 
-    if(connection == null) {
+    if (connection == null) {
       throw new IllegalArgumentException(
           "No Octopus connection '" + connectionId + "' exists for the current " + "project");
     }
