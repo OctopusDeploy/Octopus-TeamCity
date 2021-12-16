@@ -62,7 +62,6 @@
                 <c:otherwise>
                     <props:selectProperty
                             name="${keys.connectionIdPropertyName}"
-                            id="${keys.connectionIdPropertyName.replace(':', '-')}"
                             className="longField">
                         <props:option value="">-- Select Octopus connection --</props:option>
                         <c:forEach var="connection" items="${octopusConnections.connections}">
