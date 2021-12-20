@@ -46,8 +46,7 @@ public class OctopusViewGenericRunTypeController extends BaseController {
       final WebControllerManager webControllerManager,
       final PluginDescriptor pluginDescriptor,
       final OctopusGenericRunType octopusGenericRunType,
-      final OAuthConnectionsManager oauthConnectionManager,
-      final ProjectManager projectManager) {
+      final OAuthConnectionsManager oauthConnectionManager) {
     this.pluginDescriptor = pluginDescriptor;
     this.oauthConnectionManager = oauthConnectionManager;
 
@@ -71,17 +70,20 @@ public class OctopusViewGenericRunTypeController extends BaseController {
 
     // "contextProject" is a bit magic, unable to find docs to justify its existence
     final SecuredProject project = (SecuredProject) request.getAttribute("contextProject");
-    final Collection<OAuthConnectionDescriptor> availableConnections =
-        oauthConnectionManager.getAvailableConnectionsOfType(project, OctopusConnection.TYPE);
+    if (project != null) {
+      final RunnerPropertiesBean propertiesBean =
+          (RunnerPropertiesBean) request.getAttribute("propertiesBean");
+      final String connectionId =
+          propertiesBean.getProperties().get(CommonStepPropertyNames.CONNECTION_ID);
 
-    final RunnerPropertiesBean propertiesBean =
-        (RunnerPropertiesBean) request.getAttribute("propertiesBean");
-    final String connectionId =
-        propertiesBean.getProperties().get(CommonStepPropertyNames.CONNECTION_ID);
-    availableConnections.stream()
-        .filter(c -> c.getId().equals(connectionId))
-        .findFirst()
-        .ifPresent(c -> propertiesBean.getProperties().putAll(c.getParameters()));
+      final OAuthConnectionDescriptor connection =
+          oauthConnectionManager.findConnectionById(project, connectionId);
+      if (connection != null) {
+        propertiesBean.getProperties().putAll(connection.getParameters());
+      } else {
+        logger.warn("Unable to find connection with Id " + connectionId);
+      }
+    }
 
     return modelAndView;
   }
