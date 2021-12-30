@@ -1,7 +1,6 @@
 # Teamcity Plugin for Octopus Deploy Changelog
 
-
-## Version 6.1.10-SNAPSHOT
+## Version 6.1.10
 ### Features Added:
 * N/A
 
