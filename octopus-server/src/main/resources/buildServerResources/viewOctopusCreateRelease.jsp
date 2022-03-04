@@ -34,7 +34,7 @@
     Channel:
     <strong><props:displayValue name="${keys.channelNameKey}" emptyValue="not specified"/></strong>
 </div>
-<c:if test="${selectedOctopusVersion == keys.previewVersion}">
+<c:if test="${(selectedOctopusVersion == keys.previewVersion) or (selectedOctopusVersion == keys.version3)}">
     <div class="parameter">
         Git Ref:
         <strong><props:displayValue name="${keys.gitRefKey}" emptyValue="not specified"/></strong>

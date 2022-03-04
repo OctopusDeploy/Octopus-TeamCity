@@ -15,8 +15,9 @@
     function showHideGitRefField() {
         const gitRefRow  = document.getElementById("gitRefRow");
         const gitCommitRow  = document.getElementById("gitCommitRow");
-        let previewIsSelected = document.getElementById("${keys.octopusVersion}").value === "${keys.previewVersion}";
-        if (previewIsSelected) {
+        const versionSelected = document.getElementById("${keys.octopusVersion}").value;
+        let gitProjectsAreSupported = versionSelected === "${keys.version3}" || versionSelected === "${keys.previewVersion}";
+        if (gitProjectsAreSupported) {
             gitRefRow.style.display = "table-row";
             gitCommitRow.style.display = "table-row";
         } else {
