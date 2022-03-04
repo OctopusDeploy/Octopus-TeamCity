@@ -2,49 +2,48 @@ package octopus.teamcity.server;
 
 import java.util.List;
 
+import com.intellij.openapi.diagnostic.Logger;
 import jetbrains.buildServer.ExtensionHolder;
+import jetbrains.buildServer.log.Loggers;
 import jetbrains.buildServer.serverSide.BuildStartContext;
 import jetbrains.buildServer.serverSide.BuildStartContextProcessor;
 import jetbrains.buildServer.serverSide.SRunningBuild;
-import jetbrains.buildServer.serverSide.WebLinks;
 import jetbrains.buildServer.vcs.VcsRootInstanceEntry;
-import org.jetbrains.annotations.NotNull;
+import octopus.teamcity.common.OctopusConstants;
 
 public class OctopusBuildInformationBuildStartProcessor implements BuildStartContextProcessor {
 
-  private final ExtensionHolder extensionHolder;
+  private final Logger logger = Loggers.SERVER;
 
-  public OctopusBuildInformationBuildStartProcessor(
-      @NotNull final ExtensionHolder extensionHolder, @NotNull final WebLinks webLinks) {
-    this.extensionHolder = extensionHolder;
+  public OctopusBuildInformationBuildStartProcessor(final ExtensionHolder extensionHolder) {
+    extensionHolder.registerExtension(
+        BuildStartContextProcessor.class, this.getClass().getName(), this);
   }
 
   @Override
-  public void updateParameters(@NotNull BuildStartContext buildStartContext) {
+  public void updateParameters(final BuildStartContext buildStartContext) {
+    try {
+      boolean buildContainsBuildInformationStep =
+          buildStartContext.getRunnerContexts().stream()
+              .anyMatch(
+                  rc -> rc.getRunType().getType().equals(OctopusConstants.METADATA_RUNNER_TYPE));
 
-    final SRunningBuild build = buildStartContext.getBuild();
-    final List<VcsRootInstanceEntry> vcsRoots = build.getVcsRootEntries();
+      if (buildContainsBuildInformationStep) {
+        final SRunningBuild build = buildStartContext.getBuild();
+        final List<VcsRootInstanceEntry> vcsRoots = build.getVcsRootEntries();
 
-    if (vcsRoots.size() == 0) {
-      return;
-    }
-
-    boolean buildContainsBuildInformationStep =
-        buildStartContext.getRunnerContexts().stream()
-            .anyMatch(rc -> rc.getRunType() instanceof OctopusBuildInformationRunType);
-
-    if (buildContainsBuildInformationStep) {
-      final VcsRootInstanceEntry vcsRoot = vcsRoots.get(0);
-      String vcsType = "Unknown";
-      if (vcsRoot.getVcsName().contains("git")) {
-        vcsType = "Git";
+        if (vcsRoots.size() != 0) {
+          final VcsRootInstanceEntry vcsRoot = vcsRoots.get(0);
+          String vcsType = "Unknown";
+          if (vcsRoot.getVcsName().contains("git")) {
+            vcsType = "Git";
+          }
+          buildStartContext.addSharedParameter("octopus_vcstype", vcsType);
+        }
       }
-      buildStartContext.addSharedParameter("octopus_vcstype", vcsType);
+    } catch (final Throwable t) {
+      logger.error("Failed to write VCS type into the buildstartContext's shared parameters", t);
+      throw t;
     }
-  }
-
-  public void register() {
-    extensionHolder.registerExtension(
-        BuildStartContextProcessor.class, this.getClass().getName(), this);
   }
 }

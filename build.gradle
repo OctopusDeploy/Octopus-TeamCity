@@ -2,9 +2,9 @@
 import net.ltgt.gradle.errorprone.CheckSeverity
 
 plugins {
-  id 'com.diffplug.spotless' version '5.9.0'
+  id 'com.diffplug.spotless' version '5.15.0'
   id 'com.github.ben-manes.versions' version '0.36.0'
-  id 'com.github.hierynomus.license' version '0.15.0'
+  id 'com.github.hierynomus.license' version '0.16.1'
   id 'io.spring.dependency-management' version '1.0.11.RELEASE'
   id 'net.ltgt.errorprone' version '1.3.0'
   id 'maven-publish'
@@ -21,15 +21,6 @@ ext {
   build_timestamp_format = "yyyyMMddHHmm"
 }
 
-def buildAliases = ['dev': [
-    //'spotlessApply',
-    'build',
-    'checkLicenses',
-    'javadoc'
-  ]]
-
-
-
 allprojects {
   apply plugin: 'java-library'
   apply plugin: 'java'
@@ -44,6 +35,12 @@ allprojects {
     provided
   }
 
+  // this ensures SNAPSHOT versions are always pulled from maven repo (rather than using past
+  // cached version)
+  configurations.all {
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+  }
+
   sourceSets {
     main { compileClasspath += configurations.provided }
   }
@@ -51,12 +48,12 @@ allprojects {
   version = rootProject.version
 
   task sourcesJar(type: Jar, dependsOn: classes) {
-    classifier = 'sources'
+    archiveClassifier.set('sources')
     from sourceSets.main.allSource
   }
 
   task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
+    archiveClassifier.set("javadoc")
     from javadoc.destinationDir
   }
 
@@ -66,7 +63,7 @@ allprojects {
   repositories {
     mavenCentral()
     maven { url "https://download.jetbrains.com/teamcity-repository" }
-    maven { url "https://packages.jetbrains.team/maven/p/teamcity-rest-client/teamcity-rest-client" }
+    maven { url "https://packages.octopushq.com/artifactory/maven" }
   }
 
   dependencies {
@@ -80,13 +77,10 @@ allprojects {
   spotless {
     java {
       // This path needs to be relative to each project
-      target fileTree('.') {
-        include '**/src/*/java/**/*.java'
-        exclude '**/.gradle/**'
-      }
+      target '**/src/*/java/**/*.java'
       removeUnusedImports()
       googleJavaFormat('1.7')
-      importOrder 'org.hyperledger', 'java', ''
+      importOrder 'com.octopus', 'java', ''
       trimTrailingWhitespace()
       endWithNewline()
     }
@@ -141,6 +135,15 @@ allprojects {
 
     options.encoding = 'UTF-8'
   }
+
+  test {
+    useJUnitPlatform()
+  }
+
+  tasks.withType(Test) {
+    // If GRADLE_MAX_TEST_FORKS is not set, use half the available processors
+    maxParallelForks = (System.getenv('GRADLE_MAX_TEST_FORKS') ?: (Runtime.runtime.availableProcessors().intdiv(2) ?: 1)).toInteger()
+  }
 }
 
 
@@ -148,7 +151,7 @@ apply plugin: "distribution"
 
 
 distZip {
-  archiveName = "Octopus.TeamCity." + rootProject.version + ".zip"
+  archiveFileName = "Octopus.TeamCity." + rootProject.version + ".zip"
 }
 
 distributions {
@@ -169,6 +172,12 @@ distributions {
   }
 }
 
+task packageName {
+  doFirst {
+    println tasks.findByPath(":distZip").outputs.files.singleFile
+  }
+}
+
 
 task deployLocal(type: Copy) {
   def teamCityDataDir = System.getenv("TEAMCITY_DATA_DIR") ?: System.getenv("HOME") + "/.BuildServer"
@@ -178,16 +187,20 @@ task deployLocal(type: Copy) {
 }
 
 task updateJsp(type: Copy) {
+  outputs.upToDateWhen { false }
   def teamCityDataDir = System.getenv("TEAMCITY_INSTALL_DIR")
   def subPath = "/webapps/ROOT/plugins/Octopus.TeamCity"
+  def fullPath = teamCityDataDir + subPath
 
   doFirst() {
-    if(${teamCityData} == null) {
+    if(teamCityDataDir == null) {
       throw new GradleException("TEAMCITY_INSTALL_DIR env var not set, unable to copy jsps")
     }
+    logger.info("Copying files to ${fullPath}")
   }
 
   outputs.upToDateWhen { false }
-  into(teamCityDataDir + subPath)
-  from project(":octopus-server").absoluteProjectPath("src/main/resources/buildServerResources")
+  into(fullPath)
+  from fileTree("octopus-server/src/main/resources/buildServerResources")
+
 }

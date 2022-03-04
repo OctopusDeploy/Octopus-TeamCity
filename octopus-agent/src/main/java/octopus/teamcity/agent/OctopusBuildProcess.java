@@ -16,6 +16,8 @@
 
 package octopus.teamcity.agent;
 
+import static jetbrains.buildServer.messages.DefaultMessagesInfo.BLOCK_TYPE_BUILD_STEP;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -34,7 +36,6 @@ import jetbrains.buildServer.agent.BuildProcess;
 import jetbrains.buildServer.agent.BuildProgressLogger;
 import jetbrains.buildServer.agent.BuildRunnerContext;
 import jetbrains.buildServer.agent.runner.LoggingProcessListener;
-import jetbrains.buildServer.messages.DefaultMessagesInfo;
 import octopus.teamcity.common.OctopusConstants;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.util.StringUtils;
@@ -105,7 +106,7 @@ public abstract class OctopusBuildProcess implements BuildProcess {
       useOcto = OctopusOsUtils.HasOcto(runningBuild.getAgentConfiguration());
     }
 
-    logger.activityStarted("Octopus Deploy", DefaultMessagesInfo.BLOCK_TYPE_INDENTATION);
+    logger.activityStarted("Octopus Deploy", BLOCK_TYPE_BUILD_STEP);
     if (useExe) {
       logger.message(
           "Running command:   octo.exe "
@@ -210,7 +211,7 @@ public abstract class OctopusBuildProcess implements BuildProcess {
       standardOutput.join();
 
       logger.message("octo exit code: " + exitCode);
-      logger.activityFinished("Octopus Deploy", DefaultMessagesInfo.BLOCK_TYPE_INDENTATION);
+      logger.activityFinished("Octopus Deploy", BLOCK_TYPE_BUILD_STEP);
 
       isFinished = true;
     } catch (InterruptedException e) {

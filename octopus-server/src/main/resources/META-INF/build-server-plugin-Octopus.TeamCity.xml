@@ -8,9 +8,18 @@
     <bean class="octopus.teamcity.server.OctopusBuildRunTypeExtension"/>
     <bean class="octopus.teamcity.server.OctopusCreateReleaseRunType"/>
     <bean class="octopus.teamcity.server.OctopusDeployReleaseRunType"/>
-    <bean class="octopus.teamcity.server.OctopusBuildInformationBuildStartProcessor" init-method="register"/>
+    <bean class="octopus.teamcity.server.OctopusBuildInformationBuildStartProcessor"/>
+    <bean class="octopus.teamcity.server.generic.OctopusGenericRunnerBuildStartProcessor">
+        <constructor-arg value="#{ systemProperties['octopus.enable.step.vnext'] }"/>
+    </bean>
     <bean class="octopus.teamcity.server.OctopusBuildInformationRunType"/>
     <bean class="octopus.teamcity.server.OctopusPromoteReleaseRunType"/>
     <bean class="octopus.teamcity.server.OctopusPushPackageRunType"/>
     <bean class="octopus.teamcity.server.OctopusPackPackageRunType"/>
+    <bean class="octopus.teamcity.server.OctopusGenericRunType">
+        <constructor-arg value="#{ systemProperties['octopus.enable.step.vnext'] }"/>
+    </bean>
+    <bean class="octopus.teamcity.server.connection.OctopusConnection"/>
+    <bean class="octopus.teamcity.server.generic.OctopusEditGenericRunTypeController"/>
+    <bean class="octopus.teamcity.server.generic.OctopusViewGenericRunTypeController"/>
 </beans>

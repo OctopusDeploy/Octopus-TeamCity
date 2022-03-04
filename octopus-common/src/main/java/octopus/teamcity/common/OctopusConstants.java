@@ -171,4 +171,5 @@ public class OctopusConstants {
   public static final String PACK_PACKAGE_RUNNER_TYPE = "octopus.pack.package";
   public static final String PUSH_PACKAGE_RUNNER_TYPE = "octopus.push.package";
   public static final String METADATA_RUNNER_TYPE = "octopus.metadata";
+  public static final String GENERIC_RUNNER_TYPE = "octopus.generic";
 }

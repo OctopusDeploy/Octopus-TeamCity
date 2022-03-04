@@ -13,17 +13,28 @@ tasks.named('jar') {
 }
 
 dependencies {
+  provided files('./libs/agent.jar')
+  provided 'org.jetbrains.teamcity:agent-api'
+
   implementation project(':octopus-common')
   implementation 'org.jetbrains.teamcity:teamcity-rest-client'
   implementation 'com.google.code.gson:gson'
   implementation 'com.google.guava:guava'
-  provided files('./libs/agent.jar')
-  provided 'org.jetbrains.teamcity:agent-api'
+  implementation 'com.octopus:octopus-sdk'
+  implementation 'org.apache.logging.log4j:log4j-api'
+  implementation 'org.apache.logging.log4j:log4j-core'
+  implementation 'commons-io:commons-io'
 
+  testImplementation 'org.jetbrains.teamcity:agent-api'
   testImplementation 'org.junit.jupiter:junit-jupiter-api'
-  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
   testImplementation 'org.junit.jupiter:junit-jupiter-params'
   testImplementation 'org.assertj:assertj-core'
+  testImplementation 'org.mockito:mockito-core'
+  testImplementation 'org.mockito:mockito-junit-jupiter'
+  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+  testRuntimeOnly 'org.jetbrains.teamcity:agent-api'
+
+  //testImplementation group: 'com.octopus', name:'dsl', classifier: 'test-support'
 }
 
 distZip {
