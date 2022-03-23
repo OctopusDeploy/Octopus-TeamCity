@@ -17,7 +17,8 @@ public class OctopusBuildInformationBuildStartProcessor implements BuildStartCon
   private final Logger logger = Loggers.SERVER;
   private final WebLinks webLinks;
 
-  public OctopusBuildInformationBuildStartProcessor(final ExtensionHolder extensionHolder, final WebLinks webLinks) {
+  public OctopusBuildInformationBuildStartProcessor(
+      final ExtensionHolder extensionHolder, final WebLinks webLinks) {
     extensionHolder.registerExtension(
         BuildStartContextProcessor.class, this.getClass().getName(), this);
     this.webLinks = webLinks;

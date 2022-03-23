@@ -74,8 +74,7 @@ public class OctopusBuildInformationBuildProcess
         .collect(Collectors.toList());
   }
 
-  private URL constructBuildUrl(final String externalBuildUrl)
-      throws RunBuildException {
+  private URL constructBuildUrl(final String externalBuildUrl) throws RunBuildException {
 
     try {
       return new URL(externalBuildUrl);
