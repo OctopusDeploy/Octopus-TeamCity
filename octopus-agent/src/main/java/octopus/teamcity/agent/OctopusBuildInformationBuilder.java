@@ -15,8 +15,7 @@ public class OctopusBuildInformationBuilder {
       final String vcsCommitNumber,
       final String branch,
       final String commitsJson,
-      final String serverUrl,
-      final String buildId,
+      final String externalBuildUrl,
       final String buildNumber) {
 
     final OctopusBuildInformation buildInformation = new OctopusBuildInformation();
@@ -27,7 +26,7 @@ public class OctopusBuildInformationBuilder {
         gson.fromJson(commitsJson, new TypeToken<List<Commit>>() {}.getType());
     buildInformation.Branch = branch;
     buildInformation.BuildNumber = buildNumber;
-    buildInformation.BuildUrl = serverUrl + "/viewLog.html?buildId=" + buildId;
+    buildInformation.BuildUrl = externalBuildUrl;
     buildInformation.VcsType = vcsType;
     buildInformation.VcsRoot = vcsRoot;
     buildInformation.VcsCommitNumber = vcsCommitNumber;

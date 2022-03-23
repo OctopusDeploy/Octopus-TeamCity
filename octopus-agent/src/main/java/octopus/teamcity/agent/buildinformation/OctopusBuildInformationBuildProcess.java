@@ -52,9 +52,8 @@ public class OctopusBuildInformationBuildProcess
     final Map<String, String> sharedConfigParameters = runningBuild.getSharedConfigParameters();
 
     final BuildInfoUserData buildInfoUserData = new BuildInfoUserData(parameters);
-    final String buildId = Long.toString(runningBuild.getBuildId());
 
-    final URL buildUrl = constructBuildUrl(runningBuild, buildId);
+    final URL buildUrl = constructBuildUrl(sharedConfigParameters.get("externalBuildURL"));
 
     final BuildInformationUploaderContextBuilder buildInfoBuilder =
         new BuildInformationUploaderContextBuilder()
@@ -75,15 +74,13 @@ public class OctopusBuildInformationBuildProcess
         .collect(Collectors.toList());
   }
 
-  private URL constructBuildUrl(final AgentRunningBuild runningBuild, final String buildId)
+  private URL constructBuildUrl(final String externalBuildUrl)
       throws RunBuildException {
 
-    final String buildUrlString =
-        runningBuild.getAgentConfiguration().getServerUrl() + "/viewLog.html?buildId=" + buildId;
     try {
-      return new URL(buildUrlString);
+      return new URL(externalBuildUrl);
     } catch (final MalformedURLException e) {
-      throw new RunBuildException("Failed to construct a build URL from " + buildUrlString, e);
+      throw new RunBuildException("Failed to construct a build URL from " + externalBuildUrl, e);
     }
   }
 

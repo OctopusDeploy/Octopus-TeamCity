@@ -8,16 +8,19 @@ import jetbrains.buildServer.log.Loggers;
 import jetbrains.buildServer.serverSide.BuildStartContext;
 import jetbrains.buildServer.serverSide.BuildStartContextProcessor;
 import jetbrains.buildServer.serverSide.SRunningBuild;
+import jetbrains.buildServer.serverSide.WebLinks;
 import jetbrains.buildServer.vcs.VcsRootInstanceEntry;
 import octopus.teamcity.common.OctopusConstants;
 
 public class OctopusBuildInformationBuildStartProcessor implements BuildStartContextProcessor {
 
   private final Logger logger = Loggers.SERVER;
+  private final WebLinks webLinks;
 
-  public OctopusBuildInformationBuildStartProcessor(final ExtensionHolder extensionHolder) {
+  public OctopusBuildInformationBuildStartProcessor(final ExtensionHolder extensionHolder, final WebLinks webLinks) {
     extensionHolder.registerExtension(
         BuildStartContextProcessor.class, this.getClass().getName(), this);
+    this.webLinks = webLinks;
   }
 
   @Override
@@ -40,6 +43,8 @@ public class OctopusBuildInformationBuildStartProcessor implements BuildStartCon
           }
           buildStartContext.addSharedParameter("octopus_vcstype", vcsType);
         }
+        final String buildUrl = webLinks.getViewLogUrl(buildStartContext.getBuild());
+        buildStartContext.addSharedParameter("externalBuildURL", buildUrl);
       }
     } catch (final Throwable t) {
       logger.error("Failed to write VCS type into the buildstartContext's shared parameters", t);
