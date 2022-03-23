@@ -63,6 +63,7 @@ class OctopusBuildInformationBuildProcessTest {
     sharedConfigParameters.put("octopus_vcstype", "git");
     sharedConfigParameters.put("vcsroot.url", "git://git.git/git.git");
     sharedConfigParameters.put("build.vcs.number", "COMMIT_HASH");
+    sharedConfigParameters.put("externalBuildUrl", "http://teamcityServer.com/viewLog.html?tab=buildLog&buildId=BuildNumber");
 
     when(mockBuild.getBuildNumber()).thenReturn("BuildNumber");
     when(mockBuild.getSharedConfigParameters()).thenReturn(sharedConfigParameters);
