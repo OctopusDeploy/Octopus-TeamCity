@@ -89,7 +89,7 @@ public class OctopusBuildInformationBuildProcess extends OctopusBuildProcess {
               sharedConfigParameters.get("build.vcs.number"),
               restfulBuild.getBranch().getName(),
               createJsonCommitHistory(restfulBuild),
-              sharedConfigParameters.get("externalBuildURL"),
+              sharedConfigParameters.get("externalBuildUrl"),
               build.getBuildNumber());
 
       if (verboseLogging) {

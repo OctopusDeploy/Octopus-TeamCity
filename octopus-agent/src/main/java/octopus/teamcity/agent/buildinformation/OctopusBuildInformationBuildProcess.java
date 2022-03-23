@@ -53,7 +53,7 @@ public class OctopusBuildInformationBuildProcess
 
     final BuildInfoUserData buildInfoUserData = new BuildInfoUserData(parameters);
 
-    final URL buildUrl = constructBuildUrl(sharedConfigParameters.get("externalBuildURL"));
+    final URL buildUrl = constructBuildUrl(sharedConfigParameters.get("externalBuildUrl"));
 
     final BuildInformationUploaderContextBuilder buildInfoBuilder =
         new BuildInformationUploaderContextBuilder()

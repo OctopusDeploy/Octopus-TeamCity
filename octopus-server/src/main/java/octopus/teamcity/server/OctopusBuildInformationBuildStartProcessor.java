@@ -45,7 +45,7 @@ public class OctopusBuildInformationBuildStartProcessor implements BuildStartCon
           buildStartContext.addSharedParameter("octopus_vcstype", vcsType);
         }
         final String buildUrl = webLinks.getViewLogUrl(buildStartContext.getBuild());
-        buildStartContext.addSharedParameter("externalBuildURL", buildUrl);
+        buildStartContext.addSharedParameter("externalBuildUrl", buildUrl);
       }
     } catch (final Throwable t) {
       logger.error("Failed to write VCS type into the buildstartContext's shared parameters", t);
