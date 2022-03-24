@@ -85,7 +85,8 @@ public class OctopusBuildInformationBuildProcess extends OctopusBuildProcess {
       final String buildNumber = restfulBuild.getBuildNumber();
       String buildUrlString = sharedConfigParameters.get("externalBuildUrl");
       if (buildUrlString == null) {
-        // if the Global settings don't have a Server URL then fall back to using the agent's configuration for the server's URL
+        // if the Global settings don't have a Server URL then fall back to using the agent's
+        // configuration for the server's URL
         buildUrlString = teamCityServerUrl + "/viewLog.html?buildId=" + buildNumber;
       }
 

@@ -55,7 +55,8 @@ public class OctopusBuildInformationBuildProcess
 
     String buildUrlString = sharedConfigParameters.get("externalBuildUrl");
     if (buildUrlString == null) {
-      // if the Global settings don't have a Server URL then fall back to using the agent's configuration for the server's URL
+      // if the Global settings don't have a Server URL then fall back to using the agent's
+      // configuration for the server's URL
       final String buildId = Long.toString(runningBuild.getBuildId());
       buildUrlString = runningBuild.getAgentConfiguration().getServerUrl() + "/viewLog.html?buildId=" + buildId;
     }
