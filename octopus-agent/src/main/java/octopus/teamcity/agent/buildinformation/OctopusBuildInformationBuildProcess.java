@@ -53,7 +53,13 @@ public class OctopusBuildInformationBuildProcess
 
     final BuildInfoUserData buildInfoUserData = new BuildInfoUserData(parameters);
 
-    final URL buildUrl = constructBuildUrl(sharedConfigParameters.get("externalBuildUrl"));
+    String buildUrlString = sharedConfigParameters.get("externalBuildUrl");
+    if (buildUrlString == null) {
+      // if the Global settings don't have a Server URL then fall back to using the agent's configuration for the server's URL
+      final String buildId = Long.toString(runningBuild.getBuildId());
+      buildUrlString = runningBuild.getAgentConfiguration().getServerUrl() + "/viewLog.html?buildId=" + buildId;
+    }
+    final URL buildUrl = constructBuildUrl(buildUrlString);
 
     final BuildInformationUploaderContextBuilder buildInfoBuilder =
         new BuildInformationUploaderContextBuilder()
