@@ -50,13 +50,13 @@ The TeamCity Plugin uses Github actions for all CI/CD/Release operations.
 If the Octopus CLI has changed such that we need to update the version we embed with the plugin the
 steps are as follows:
 
-- Locate the build in TeamCity and navigate to the Artifacts tab
-- Expand the OctopusTools.*version*.nupkg file
-- Download `octo.exe` from the `tools` directory. Also download the OctopusTools.*version*
-  .portable.zip file
-  ![Artifacts](artifacts.png)
-- Rename the latter to `OctopusTools.portable.zip` and then copy them into
-  the `\octopus-agent\src\main\resources\resources\3\0` folder, over the existing files
+1. Navigate to the `OctopusTools.Zips` package repository in the Octopus Deploy deploy instance in the `Integrations` space.
+   - Download and extract the zip that corresponds to your version
+   - Copy the OctopusTools.*version* .portable.zip file into the `\octopus-agent\src\main\resources\resources\3\0` folder, renaming it to  `OctopusTools.portable.zip`, overriding the existing file.
+1. Navigate to the `OctopusTools` package repository in the Octopus Deploy deploy instance in the `Integrations` space.
+   - Download and open the nuspkg file corresponds to your version. (Renaming it to .zip will allow you to easily access its contents)
+   - Copy the octo.exe file into the `\octopus-agent\src\main\resources\resources\3\0` folder, overriding the existing file.
+  
 
 ## Using Docker
 
