@@ -113,10 +113,6 @@ public class BuildInformationEndToEndTest {
       LOG.info("Failed to execute build");
       LOG.info(teamCityContainers.getAgentContainer().getLogs());
       throw e;
-    } finally {
-      // Turns out, some files get written to this directory by TC (as the tcuser) - and they need
-      // to be destroyed.
-      cleanupContainers(teamCityContainers);
     }
   }
 
@@ -135,27 +131,5 @@ public class BuildInformationEndToEndTest {
     }
     LOG.warn("Build {} failed to complete within expected time limit", build.getId());
     throw new RuntimeException("Build Failed to complete within 30 seconds");
-  }
-
-  private void cleanupContainers(final TeamCityContainers teamCityContainers) {
-    final List<String> filesToDelete =
-        Lists.newArrayList(
-            "/data/teamcity_server/datadir/system/buildserver.tmp",
-            "/data/teamcity_server/datadir/system/artifacts",
-            "/data/teamcity_server/datadir/system/caches/plugins.unpacked",
-            "/data/teamcity_server/datadir/system/caches/pluginsDslCache/src",
-            "/data/teamcity_server/datadir/system/caches/buildsMetadata/metadataDB.tmp",
-            "/data/teamcity_server/datadir/system/caches/sources",
-            "/data/teamcity_server/datadir/system/caches/kotlinDslData",
-            "/data/teamcity_server/datadir/system/pluginData/avatars");
-
-    for (final String file : filesToDelete) {
-      try {
-        LOG.debug("Removing " + file);
-        teamCityContainers.getServerContainer().execInContainer("rm", "-rf", file);
-      } catch (final Exception e) {
-        LOG.error("Failed to delete " + file);
-      }
-    }
   }
 }
