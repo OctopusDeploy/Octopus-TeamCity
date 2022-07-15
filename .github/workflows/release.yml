@@ -66,7 +66,7 @@ jobs:
           echo "::set-output name=release-note-file::$OUTPUT_FILE"
 
       - name: Create a release in Octopus Deploy 🐙
-        uses: OctopusDeploy/create-release-action@v1.1.1
+        uses: OctopusDeploy/create-release-action@v2.0.0
         with:
           api_key: ${{ secrets.OCTOPUS_APIKEY }}
           server: ${{ secrets.OCTOPUS_SERVER }}
