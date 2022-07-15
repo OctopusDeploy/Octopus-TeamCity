@@ -29,7 +29,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 
-import com.google.common.collect.Lists;
 import com.google.common.io.Resources;
 import octopus.teamcity.e2e.dsl.TeamCityContainers;
 import octopus.teamcity.e2e.dsl.TeamCityFactory;
