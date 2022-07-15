@@ -95,7 +95,7 @@ public class TeamCityFactory {
             .waitingFor(Wait.forLogMessage(".*Super user authentication token.*", 1))
             .withNetwork(dockerNetwork)
             .withNetworkAliases("server")
-			.withUser("1000")
+			.withCreateContainerCmdModifier(cmd -> cmd.withUser("1000"))
             .withEnv(
                 "TEAMCITY_SERVER_OPTS",
                 "-Droot.log.level=TRACE -Dteamcity.development.mode=true "
