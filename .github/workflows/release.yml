@@ -42,7 +42,7 @@ jobs:
         uses: OctopusDeploy/install-octopus-cli-action@v1.1.7
 
       - name: Push a package to Octopus Deploy 🐙
-        uses: OctopusDeploy/push-package-action@v1.1.1
+        uses: OctopusDeploy/push-package-action@v2.0.0
         with:
           overwrite_mode: IgnoreIfExists
           api_key: ${{ secrets.OCTOPUS_APIKEY }}
