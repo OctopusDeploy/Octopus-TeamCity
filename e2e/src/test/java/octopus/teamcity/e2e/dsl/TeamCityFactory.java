@@ -47,14 +47,7 @@ public class TeamCityFactory {
     final String serverUrl =
         String.format("http://host.testcontainers.internal:%d", octopusServerPort);
     Testcontainers.exposeHostPorts(octopusServerPort);
-    final TeamCityContainers container =
-        createTeamCityServerAndAgent(serverUrl, octopusServerApiKey, projectZipToInstall);
-    try {
-      container.getServerContainer().execInContainer("chmod -R 777 /data/teamcity_server/datadir");
-    } catch (InterruptedException e) {
-      throw new RuntimeException(e);
-    }
-    return container;
+    return createTeamCityServerAndAgent(serverUrl, octopusServerApiKey, projectZipToInstall);
   }
 
   // When OctopusServer's URL can be fully specified

@@ -112,6 +112,8 @@ public class BuildInformationEndToEndTest {
       LOG.info("Failed to execute build");
       LOG.info(teamCityContainers.getAgentContainer().getLogs());
       throw e;
+    } finally {
+      teamCityContainers.getServerContainer().execInContainer("chmod -R 777 /data/teamcity_server/datadir");
     }
   }
 
