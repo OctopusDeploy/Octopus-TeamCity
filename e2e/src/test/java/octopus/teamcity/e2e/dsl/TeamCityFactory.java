@@ -42,8 +42,8 @@ public class TeamCityFactory {
 
   private final String TEAMCITY_SERVER_HOST = "server";
   private final int TEAMCITY_SERVER_PORT = 8111;
-  private final String TEAMCITY_SERVER_URL = String.format("http://%s:%s", TEAMCITY_SERVER_HOST, TEAMCITY_SERVER_PORT);
-
+  private final String TEAMCITY_SERVER_URL =
+      String.format("http://%s:%s", TEAMCITY_SERVER_HOST, TEAMCITY_SERVER_PORT);
 
   public TeamCityFactory(final Path teamCityDataDir, final Network dockerNetwork) {
     this.teamCityDataDir = teamCityDataDir;
@@ -83,7 +83,7 @@ public class TeamCityFactory {
     final Future<?> teamcityServerFuture = executor.submit(teamCityServer::start);
     final Future<?> teamcityAgentFuture = executor.submit(teamCityAgent::start);
 
-    //wait for teamcityServer to start
+    // wait for teamcityServer to start
     teamcityServerFuture.get();
     final String teamCityUrl =
         String.format(
