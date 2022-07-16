@@ -11,6 +11,10 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.util.Iterator;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import com.google.common.io.Resources;
 import net.lingala.zip4j.ZipFile;
@@ -36,6 +40,11 @@ public class TeamCityFactory {
   private final Path teamCityDataDir;
   private final Network dockerNetwork;
 
+  private final String TEAMCITY_SERVER_HOST = "server";
+  private final int TEAMCITY_SERVER_PORT = 8111;
+  private final String TEAMCITY_SERVER_URL = String.format("https://%s:%s", TEAMCITY_SERVER_HOST, TEAMCITY_SERVER_PORT);
+
+
   public TeamCityFactory(final Path teamCityDataDir, final Network dockerNetwork) {
     this.teamCityDataDir = teamCityDataDir;
     this.dockerNetwork = dockerNetwork;
@@ -55,7 +64,7 @@ public class TeamCityFactory {
       final String octopusServerUrl,
       final String octopusServerApiKey,
       final Path projectZipToInstall)
-      throws IOException, URISyntaxException {
+      throws IOException, URISyntaxException, ExecutionException, InterruptedException {
 
     setupDataDir(teamCityDataDir, projectZipToInstall);
 
@@ -66,15 +75,19 @@ public class TeamCityFactory {
             teamCityDataDir.toString(), "config", "projects", "StepVnext", "project-config.xml");
     updateProjectFile(projectFile, octopusServerUrl, octopusServerApiKey);
 
-    final GenericContainer<?> teamCityServer = createAndStartServer();
+    // Ensure containers are pulled in parallel
+    final ExecutorService executor = Executors.newFixedThreadPool(2);
+    final Future<GenericContainer<?>> teamcityServerFuture = executor.submit(this::createAndStartServer);
+    final Future<GenericContainer<?>> teamcityAgentFuture = executor.submit(this::createAndStartAgent);
 
+    final GenericContainer<?> teamCityServer = teamcityServerFuture.get();
     final String teamCityUrl =
         String.format(
             "http://%s:%d", teamCityServer.getHost(), teamCityServer.getFirstMappedPort());
     LOG.info("TeamCity server running on {}", teamCityUrl);
 
     try {
-      final GenericContainer<?> teamCityAgent = createAndStartAgent();
+      final GenericContainer<?> teamCityAgent = teamcityAgentFuture.get();
 
       final String tcServerUrlOnHost =
           String.format("http://localhost:%d", teamCityServer.getFirstMappedPort());
@@ -91,7 +104,7 @@ public class TeamCityFactory {
   private GenericContainer<?> createAndStartServer() {
     final GenericContainer<?> teamCityServer =
         new GenericContainer<>(DockerImageName.parse("jetbrains/teamcity-server:2021.2.3"))
-            .withExposedPorts(8111)
+            .withExposedPorts(TEAMCITY_SERVER_PORT)
             .waitingFor(Wait.forLogMessage(".*Super user authentication token.*", 1))
             .withNetwork(dockerNetwork)
             .withNetworkAliases("server")
@@ -113,7 +126,7 @@ public class TeamCityFactory {
     final GenericContainer<?> teamCityAgent =
         new GenericContainer<>(DockerImageName.parse("jetbrains/teamcity-agent:2021.2.3"))
             .withNetwork(dockerNetwork)
-            .withEnv("SERVER_URL", "http://server:8111")
+            .withEnv("SERVER_URL", TEAMCITY_SERVER_URL)
             .waitingFor(Wait.forLogMessage(".*jetbrains.buildServer.AGENT - Agent name was.*", 1))
             .withStartupTimeout(Duration.ofMinutes(5));
     teamCityAgent.start();
