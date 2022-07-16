@@ -47,7 +47,14 @@ public class TeamCityFactory {
     final String serverUrl =
         String.format("http://host.testcontainers.internal:%d", octopusServerPort);
     Testcontainers.exposeHostPorts(octopusServerPort);
-    return createTeamCityServerAndAgent(serverUrl, octopusServerApiKey, projectZipToInstall);
+    final TeamCityContainers container =
+        createTeamCityServerAndAgent(serverUrl, octopusServerApiKey, projectZipToInstall);
+    try {
+      container.getServerContainer().execInContainer("chmod -R 777 /data/teamcity_server/datadir");
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+    return container;
   }
 
   // When OctopusServer's URL can be fully specified
@@ -95,7 +102,6 @@ public class TeamCityFactory {
             .waitingFor(Wait.forLogMessage(".*Super user authentication token.*", 1))
             .withNetwork(dockerNetwork)
             .withNetworkAliases("server")
-            .withCreateContainerCmdModifier(cmd -> cmd.withUser("1000"))
             .withEnv(
                 "TEAMCITY_SERVER_OPTS",
                 "-Droot.log.level=TRACE -Dteamcity.development.mode=true "
