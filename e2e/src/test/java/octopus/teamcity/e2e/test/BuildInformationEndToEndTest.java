@@ -28,6 +28,7 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import com.google.common.io.Resources;
 import octopus.teamcity.e2e.dsl.TeamCityContainers;
@@ -53,7 +54,7 @@ public class BuildInformationEndToEndTest {
 
   @Test
   public void buildInformationStepPublishesToOctopusDeploy(@TempDir Path testDirectory)
-      throws InterruptedException, IOException, URISyntaxException {
+      throws InterruptedException, IOException, URISyntaxException, ExecutionException {
 
     final URL projectsImport = Resources.getResource("TeamCity_StepVnext.zip");
 
@@ -110,7 +111,6 @@ public class BuildInformationEndToEndTest {
       assertThat(items.get(0).getProperties().getPackageId()).isEqualTo("mypackage");
     } catch (final Exception e) {
       LOG.info("Failed to execute build");
-      LOG.info(teamCityContainers.getAgentContainer().getLogs());
       throw e;
     }
   }

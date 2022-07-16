@@ -40,7 +40,7 @@ dependencyManagement {
             entry 'error_prone_test_helpers'
         }
 
-        dependencySet(group: "org.testcontainers", version: '1.15.3') {
+        dependencySet(group: "org.testcontainers", version: '1.17.3') {
             entry 'testcontainers'
             entry 'junit-jupiter'
         }
