@@ -113,7 +113,9 @@ public class BuildInformationEndToEndTest {
       LOG.info(teamCityContainers.getAgentContainer().getLogs());
       throw e;
     } finally {
-      teamCityContainers.getServerContainer().execInContainer("chmod -R 777 /data/teamcity_server/datadir");
+      teamCityContainers
+          .getServerContainer()
+          .execInContainer("chmod -R 777 /data/teamcity_server/datadir");
     }
   }
 
