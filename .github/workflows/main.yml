@@ -17,30 +17,30 @@ jobs:
     name: "Build and Package"
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: '0'
+    - name: Checkout Code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: '0'
 
-      - name: Set up JDK 8
-        uses: actions/setup-java@v2
-        with:
-          java-version: '8'
-          distribution: 'adopt'
+    - name: Set up JDK 8
+      uses: actions/setup-java@v2
+      with:
+        java-version: '8'
+        distribution: 'adopt'
 
-      - name: Build with gradle
-        run: ./gradlew build test
+    - name: Build with gradle
+      run: ./gradlew build test
 
-      - name: Create Plugin Zip Deployment
-        run: ./gradlew distZip
+    - name: Create Plugin Zip Deployment
+      run: ./gradlew distZip
 
-      - uses: actions/upload-artifact@v3
-        with:
-          name: Octopus.TeamCity
-          path: **/Octopus.TeamCity.*.zip
+    - uses: actions/upload-artifact@v3
+      with:
+        name: Octopus.TeamCity
+        path: **/Octopus.TeamCity.*.zip
 
-      - name: Execute end-2-end tests
-        run: ./gradlew e2etest
-        env:
-          OCTOPUS_LICENSE: ${{ secrets.OCTOPUS_LICENSE }}
-          OCTOPUS_SDK_AT_USE_EXISTING_SERVER: false
+    - name: Execute end-2-end tests
+      run: ./gradlew e2etest
+      env:
+        OCTOPUS_LICENSE: ${{ secrets.OCTOPUS_LICENSE }}
+        OCTOPUS_SDK_AT_USE_EXISTING_SERVER: false
