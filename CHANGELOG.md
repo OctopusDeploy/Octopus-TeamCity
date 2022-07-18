@@ -1,21 +1,8 @@
-# Teamcity Plugin for Octopus Deploy Changelog
+# Changelog
 
-## Version 6.1.10
-### Features Added:
-* N/A
+## [6.1.14](https://github.com/OctopusDeploy/Octopus-TeamCity/compare/6.1.13...v6.1.14) (2022-07-18)
 
-### Bugs Resolved:
-* Updated Log4j to 2.17.1 to mitigate CVE-2021-44832
 
-### Known Issues:
-* N/A
+### Bug Fixes
 
-## Version 6.1.9
-### Features Added:
-* N/A
-
-### Bugs Resolved:
-* Updated log4j to 2.17.0 to address CVE-2021-45105 
-
-### Known Issues:
-* N/A
+* Fix embedded binaries, which had become corrupted in `6.1.13` ([#159](https://github.com/OctopusDeploy/Octopus-TeamCity/issues/159)) ([6dae6ee](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/6dae6ee86501217ee2c1648d9618dc5c26dc98c6))
