@@ -16,6 +16,10 @@ jobs:
   build:
     name: "Build and Package"
     runs-on: ubuntu-latest
+    env:
+      OCTOPUS_API_KEY: ${{ secrets.OCTOPUS_APIKEY }}
+      OCTOPUS_HOST: ${{ secrets.OCTOPUS_SERVER }}
+
     steps:
     - name: Checkout Code
       uses: actions/checkout@v3
@@ -28,19 +32,66 @@ jobs:
         java-version: '8'
         distribution: 'adopt'
 
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@v0.9.13
+      with:
+        versionSpec: '5.x'
+
+    - name: Call GitVersion
+      uses: gittools/actions/gitversion/execute@v0.9.13
+
+    - name: Determine Version
+      id: git-version
+      run: |
+        if [ "${{ github.event_name }}" == "schedule" ]
+        then
+          echo "::set-output name=nuGetVersion::${GITVERSION_MAJORMINORPATCH}-nightly-${{ github.run_number }}"
+          echo "Version: ${GITVERSION_MAJORMINORPATCH}-nightly-${{ github.run_number }}"
+        else
+          echo "::set-output name=nuGetVersion::${GITVERSION_FULLSEMVER}"
+          echo "Version: ${GITVERSION_FULLSEMVER}"
+        fi
+
     - name: Build with gradle
-      run: ./gradlew build test
+      run: ./gradlew build test -Pversion=${{ steps.git-version.outputs.nugetVersion }}
 
     - name: Create Plugin Zip Deployment
-      run: ./gradlew distZip
+      id: create-package
+      run: ./gradlew distZip -Pversion=${{ steps.git-version.outputs.nugetVersion }}
 
     - uses: actions/upload-artifact@v3
       with:
-        name: Octopus.TeamCity
-        path: '**/Octopus.TeamCity.*.zip'
+        name: Octopus.TeamCity.${{ steps.git-version.outputs.nugetVersion }}
+        path: '**/Octopus.TeamCity.${{ steps.git-version.outputs.nugetVersion }}.zip'
 
     - name: Execute end-2-end tests
       run: ./gradlew e2etest
       env:
         OCTOPUS_LICENSE: ${{ secrets.OCTOPUS_LICENSE }}
         OCTOPUS_SDK_AT_USE_EXISTING_SERVER: false
+
+    - name: Install Octopus CLI 🐙
+      uses: OctopusDeploy/install-octopus-cli-action@v1
+
+    - name: Push a package to Octopus Deploy 🐙
+      uses: OctopusDeploy/push-package-action@v2
+      with:
+        space: "Integrations"
+        packages: "${{ steps.create-package.outputs.package-created }}"
+
+    - name: Fetch Release Notes
+      id: fetch-release-notes
+      if: github.event_name == 'release'
+      run: |
+        echo "::debug::${{github.event_name}}"
+        OUTPUT_FILE="release_notes.txt"
+        jq --raw-output '.release.body' ${{ github.event_path }} | sed 's#\r#  #g' > $OUTPUT_FILE
+        echo "::set-output name=release-note-file::$OUTPUT_FILE"
+
+    - name: Create a release in Octopus Deploy 🐙
+      uses: OctopusDeploy/create-release-action@v2
+      with:
+        space: "Integrations"
+        project: "TeamCity Plugin"
+        package_version: ${{ steps.git-version.outputs.nugetVersion }}
+        release_notes_file: ${{ steps.fetch-release-notes.outputs.release-note-file }}
