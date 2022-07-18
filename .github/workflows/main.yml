@@ -37,7 +37,7 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: Octopus.TeamCity
-          path: Octopus.TeamCity.*.zip
+          path: **/Octopus.TeamCity.*.zip
 
       - name: Execute end-2-end tests
         run: ./gradlew e2etest
