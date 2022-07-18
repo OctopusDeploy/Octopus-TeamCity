@@ -57,15 +57,18 @@ jobs:
 
     - name: Create Plugin Zip Deployment
       id: create-package
-      run: ./gradlew distZip -Pversion=${{ steps.git-version.outputs.nugetVersion }}
+      run: |
+        ./gradlew distZip -Pversion=${{ steps.git-version.outputs.nugetVersion }}
+        PACKAGE_NAME=`./gradlew -q packageName  -Pversion=${{ steps.git-version.outputs.nugetVersion }}`
+        echo "::set-output name=package-created::$PACKAGE_NAME"
 
     - uses: actions/upload-artifact@v3
       with:
         name: Octopus.TeamCity.${{ steps.git-version.outputs.nugetVersion }}
-        path: '**/Octopus.TeamCity.${{ steps.git-version.outputs.nugetVersion }}.zip'
+        path: '${{ steps.create-package.outputs.package-created }}'
 
     - name: Execute end-2-end tests
-      run: ./gradlew e2etest
+      run: ./gradlew e2etest -Pversion=${{ steps.git-version.outputs.nugetVersion }}
       env:
         OCTOPUS_LICENSE: ${{ secrets.OCTOPUS_LICENSE }}
         OCTOPUS_SDK_AT_USE_EXISTING_SERVER: false
@@ -76,8 +79,8 @@ jobs:
     - name: Push a package to Octopus Deploy 🐙
       uses: OctopusDeploy/push-package-action@v2
       with:
-        space: "Integrations"
-        packages: "${{ steps.create-package.outputs.package-created }}"
+        space: 'Integrations'
+        packages: '${{ steps.create-package.outputs.package-created }}'
 
     - name: Fetch Release Notes
       id: fetch-release-notes
@@ -91,7 +94,7 @@ jobs:
     - name: Create a release in Octopus Deploy 🐙
       uses: OctopusDeploy/create-release-action@v2
       with:
-        space: "Integrations"
-        project: "TeamCity Plugin"
+        space: 'Integrations'
+        project: 'TeamCity Plugin'
         package_version: ${{ steps.git-version.outputs.nugetVersion }}
         release_notes_file: ${{ steps.fetch-release-notes.outputs.release-note-file }}
