@@ -83,7 +83,7 @@ jobs:
     - name: Push build information 🐙
       uses: OctopusDeploy/push-build-information-action@v1
       with:
-        packages: '${{ steps.create-package.outputs.package-created }}'
+        packages: 'Octopus.TeamCity'
         version: ${{ steps.git-version.outputs.nugetVersion }}
 
     - name: Install Octopus CLI 🐙
