@@ -88,7 +88,7 @@ jobs:
         service_account_id: 7dd778e4-c37d-4b45-a4c4-4d6c7442d180
         
     - name: Push build information 🐙
-      uses: OctopusDeploy/push-build-information-action@v2
+      uses: OctopusDeploy/push-build-information-action@v3
       with:
         packages: 'Octopus.TeamCity'
         version: ${{ steps.git-version.outputs.nugetVersion }}
