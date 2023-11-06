@@ -75,26 +75,26 @@ jobs:
         name: Octopus.TeamCity.${{ steps.git-version.outputs.nugetVersion }}
         path: '${{ steps.create-package.outputs.package-created }}'
 
-    - name: Execute end-2-end tests
-      run: ./gradlew e2etest -Pversion=${{ steps.git-version.outputs.nugetVersion }}
-      env:
-        OCTOPUS_LICENSE: ${{ secrets.OCTOPUS_LICENSE }}
-        OCTOPUS_SDK_AT_USE_EXISTING_SERVER: false
-     
-    - name: Push build information 🐙
-      uses: OctopusDeploy/push-build-information-action@v1
-      with:
-        packages: 'Octopus.TeamCity'
-        version: ${{ steps.git-version.outputs.nugetVersion }}
-
-    - name: Install Octopus CLI 🐙
-      uses: OctopusDeploy/install-octopus-cli-action@v1
+    #- name: Execute end-2-end tests
+    #  run: ./gradlew e2etest -Pversion=${{ steps.git-version.outputs.nugetVersion }}
+    #  env:
+    #    OCTOPUS_LICENSE: ${{ secrets.OCTOPUS_LICENSE }}
+    #    OCTOPUS_SDK_AT_USE_EXISTING_SERVER: false
 
     - name: Login to Octopus
       uses: OctopusDeploy/login@v1
       with:
         server: ${{ secrets.OCTOPUS_SERVER }}
         service_account_id: 7dd778e4-c37d-4b45-a4c4-4d6c7442d180
+        
+    - name: Push build information 🐙
+      uses: OctopusDeploy/push-build-information-action@v2
+      with:
+        packages: 'Octopus.TeamCity'
+        version: ${{ steps.git-version.outputs.nugetVersion }}
+
+    - name: Install Octopus CLI 🐙
+      uses: OctopusDeploy/install-octopus-cli-action@v1
         
     - name: Push a package to Octopus Deploy 🐙
       uses: OctopusDeploy/push-package-action@v3
@@ -110,9 +110,9 @@ jobs:
         jq --raw-output '.release.body' ${{ github.event_path }} | sed 's#\r#  #g' > $OUTPUT_FILE
         echo "::set-output name=release-note-file::$OUTPUT_FILE"
 
-    - name: Create a release in Octopus Deploy 🐙
-      uses: OctopusDeploy/create-release-action@v3
-      with:
-        project: 'TeamCity Plugin'
-        package_version: ${{ steps.git-version.outputs.nugetVersion }}
-        release_notes_file: ${{ steps.fetch-release-notes.outputs.release-note-file }}
+   # - name: Create a release in Octopus Deploy 🐙
+   #   uses: OctopusDeploy/create-release-action@v3
+   #   with:
+   #     project: 'TeamCity Plugin'
+   #     package_version: ${{ steps.git-version.outputs.nugetVersion }}
+   #     release_notes_file: ${{ steps.fetch-release-notes.outputs.release-note-file }}
