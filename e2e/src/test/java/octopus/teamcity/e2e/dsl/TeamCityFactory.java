@@ -21,11 +21,11 @@ import org.jetbrains.teamcity.rest.BuildAgent;
 import org.jetbrains.teamcity.rest.TeamCityInstance;
 import org.jetbrains.teamcity.rest.TeamCityInstanceFactory;
 import org.testcontainers.Testcontainers;
-import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.DockerImageName;
+import org.testcontainers.utility.MountableFile;
 
 public class TeamCityFactory {
 
@@ -101,10 +101,9 @@ public class TeamCityFactory {
                 "-Droot.log.level=TRACE -Dteamcity.development.mode=true "
                     + "-Doctopus.enable.step.vnext=true")
             .withStartupTimeout(Duration.ofMinutes(2))
-            .withFileSystemBind(
-                teamCityDataDir.toAbsolutePath().toString(),
-                "/data/teamcity_server/datadir",
-                BindMode.READ_WRITE);
+            .withCopyFileToContainer(
+                MountableFile.forHostPath(teamCityDataDir.toAbsolutePath().toString()),
+                "/data/teamcity_server/datadir");
 
     teamCityServer.start();
     return teamCityServer;
