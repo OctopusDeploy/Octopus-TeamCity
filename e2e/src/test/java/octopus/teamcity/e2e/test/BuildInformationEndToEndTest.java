@@ -28,8 +28,8 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
-import com.google.common.collect.Lists;
 import com.google.common.io.Resources;
 import octopus.teamcity.e2e.dsl.TeamCityContainers;
 import octopus.teamcity.e2e.dsl.TeamCityFactory;
@@ -54,7 +54,7 @@ public class BuildInformationEndToEndTest {
 
   @Test
   public void buildInformationStepPublishesToOctopusDeploy(@TempDir Path testDirectory)
-      throws InterruptedException, IOException, URISyntaxException {
+      throws InterruptedException, IOException, URISyntaxException, ExecutionException {
 
     final URL projectsImport = Resources.getResource("TeamCity_StepVnext.zip");
 
@@ -111,12 +111,7 @@ public class BuildInformationEndToEndTest {
       assertThat(items.get(0).getProperties().getPackageId()).isEqualTo("mypackage");
     } catch (final Exception e) {
       LOG.info("Failed to execute build");
-      LOG.info(teamCityContainers.getAgentContainer().getLogs());
       throw e;
-    } finally {
-      // Turns out, some files get written to this directory by TC (as the tcuser) - and they need
-      // to be destroyed.
-      cleanupContainers(teamCityContainers);
     }
   }
 
@@ -135,27 +130,5 @@ public class BuildInformationEndToEndTest {
     }
     LOG.warn("Build {} failed to complete within expected time limit", build.getId());
     throw new RuntimeException("Build Failed to complete within 30 seconds");
-  }
-
-  private void cleanupContainers(final TeamCityContainers teamCityContainers) {
-    final List<String> filesToDelete =
-        Lists.newArrayList(
-            "/data/teamcity_server/datadir/system/buildserver.tmp",
-            "/data/teamcity_server/datadir/system/artifacts",
-            "/data/teamcity_server/datadir/system/caches/plugins.unpacked",
-            "/data/teamcity_server/datadir/system/caches/pluginsDslCache/src",
-            "/data/teamcity_server/datadir/system/caches/buildsMetadata/metadataDB.tmp",
-            "/data/teamcity_server/datadir/system/caches/sources",
-            "/data/teamcity_server/datadir/system/caches/kotlinDslData",
-            "/data/teamcity_server/datadir/system/pluginData/avatars");
-
-    for (final String file : filesToDelete) {
-      try {
-        LOG.debug("Removing " + file);
-        teamCityContainers.getServerContainer().execInContainer("rm", "-rf", file);
-      } catch (final Exception e) {
-        LOG.error("Failed to delete " + file);
-      }
-    }
   }
 }
