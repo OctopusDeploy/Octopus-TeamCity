@@ -16,7 +16,6 @@ dependencies {
   provided files('./libs/agent.jar')
   provided 'org.jetbrains.teamcity:agent-api'
 
-  implementation project(':octopus-common')
   implementation 'org.jetbrains.teamcity:teamcity-rest-client'
   implementation 'com.google.code.gson:gson'
   implementation 'com.google.guava:guava'

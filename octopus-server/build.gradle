@@ -16,7 +16,6 @@ dependencies {
   provided 'org.jetbrains.teamcity:server-api'
   provided 'org.jetbrains.teamcity:oauth'
 
-  implementation project(':octopus-common')
   implementation 'com.google.guava:guava'
 
   testImplementation 'org.jetbrains.teamcity:server-api'

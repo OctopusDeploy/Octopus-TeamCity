@@ -10,7 +10,6 @@ import jetbrains.buildServer.serverSide.BuildStartContextProcessor;
 import jetbrains.buildServer.serverSide.SRunningBuild;
 import jetbrains.buildServer.serverSide.WebLinks;
 import jetbrains.buildServer.vcs.VcsRootInstanceEntry;
-import octopus.teamcity.common.OctopusConstants;
 
 public class OctopusBuildInformationBuildStartProcessor implements BuildStartContextProcessor {
 
