@@ -3,7 +3,6 @@ dependencyManagement {
     dependencies {
 
         dependencySet(group: 'com.octopus', version: '0.0.6') {
-            entry 'octopus-sdk'
             entry 'test-support'
         }
 

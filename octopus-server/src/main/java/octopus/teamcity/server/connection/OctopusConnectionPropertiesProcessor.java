@@ -15,8 +15,6 @@
 
 package octopus.teamcity.server.connection;
 
-import com.octopus.sdk.utils.ApiKeyValidator;
-
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
@@ -77,7 +75,7 @@ public class OctopusConnectionPropertiesProcessor implements PropertiesProcessor
     }
 
     try {
-      ApiKeyValidator.validate(apiKey);
+      //ApiKeyValidator.validate(apiKey);
     } catch (final IllegalArgumentException e) {
       return Optional.of(new InvalidProperty(propertyId, e.getMessage()));
     }
