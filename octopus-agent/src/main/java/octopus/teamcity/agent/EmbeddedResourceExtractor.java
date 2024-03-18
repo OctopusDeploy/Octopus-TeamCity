@@ -39,6 +39,11 @@ public class EmbeddedResourceExtractor {
     extractFile("/resources/3/0/octo.exe", destinationPath + "/3.0/octo.exe");
     extractFile("/resources/3/0/OctopusTools.portable.zip", destinationPath + "/3.0/Core.zip");
     unzip(destinationPath + "/3.0/Core.zip", destinationPath + "/3.0/Core");
+
+
+
+
+    
   }
 
   private void extractFile(String resourceName, String destinationName) throws Exception {
