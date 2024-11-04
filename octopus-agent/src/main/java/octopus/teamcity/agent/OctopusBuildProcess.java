@@ -100,13 +100,20 @@ public abstract class OctopusBuildProcess implements BuildProcess {
   private void startOcto(final OctopusCommandBuilder command) throws RunBuildException {
     String[] userVisibleCommand = command.buildMaskedCommand();
     String[] realCommand = command.buildCommand();
+
+    /*
     Boolean useOcto = false;
     Boolean useExe = runningBuild.getAgentConfiguration().getSystemInfo().isWindows();
     if (!useExe) {
       useOcto = OctopusOsUtils.HasOcto(runningBuild.getAgentConfiguration());
     }
+*/
+    logger.message("Bitness : "+ runningBuild.getAgentConfiguration().getSystemInfo().bitness());
+    logger.message("Unix : "+ runningBuild.getAgentConfiguration().getSystemInfo().isUnix());
+
 
     logger.activityStarted("Octopus Deploy", BLOCK_TYPE_BUILD_STEP);
+    /*
     if (useExe) {
       logger.message(
           "Running command:   octo.exe "
@@ -119,12 +126,18 @@ public abstract class OctopusBuildProcess implements BuildProcess {
           "Running command:   dotnet octo.dll "
               + StringUtils.arrayToDelimitedString(userVisibleCommand, " "));
     }
+*/
+    logger.message(
+            "Running command:   octopus "
+                    + StringUtils.arrayToDelimitedString(userVisibleCommand, " "));
+
     logger.progressMessage(getLogMessage());
 
     try {
-      final String octopusVersion = getSelectedOctopusVersion();
-
+      //final String octopusVersion = getSelectedOctopusVersion();
       final ArrayList<String> arguments = new ArrayList<>();
+
+      /*
       if (useExe) {
         arguments.add(new File(extractedTo, octopusVersion + "/octo.exe").getAbsolutePath());
       } else if (useOcto) {
@@ -134,6 +147,20 @@ public abstract class OctopusBuildProcess implements BuildProcess {
         String dllPath = new File(extractedTo, octopusVersion + "/Core/octo.dll").getAbsolutePath();
         arguments.add(dllPath);
       }
+       */
+
+    /*  String str = "cli-";
+       if(runningBuild.getAgentConfiguration().getSystemInfo().isWindows()){
+        str = str +"windows-";
+      } else if(runningBuild.getAgentConfiguration().getSystemInfo().isMac()){
+      str = str +"osx-";
+    }if(runningBuild.getAgentConfiguration().getSystemInfo().isUnix()) {
+        str = str + "linux-";
+      }
+      */
+
+      new File(extractedTo, "cli-linux-amd64/octopus").setExecutable(true);
+      arguments.add(new File(extractedTo, "cli-linux-amd64/octopus").getAbsolutePath());
 
       arguments.addAll(Arrays.asList(realCommand));
 
@@ -141,11 +168,28 @@ public abstract class OctopusBuildProcess implements BuildProcess {
 
       final ProcessBuilder builder = new ProcessBuilder();
 
+      final Map<String, String> parameters = getContext().getRunnerParameters();
+      final OctopusConstants constants = OctopusConstants.Instance;
+      final String serverUrl = parameters.get(constants.getServerKey());
+      final String apiKey = parameters.get(constants.getApiKey());
+      final String spaceName = parameters.get(constants.getSpaceName());
+
       Map<String, String> programEnvironmentVariables =
           context.getBuildParameters().getEnvironmentVariables();
       Map<String, String> environment = builder.environment();
       environment.put("OCTOEXTENSION", extensionVersion);
+      environment.put("OCTOPUS_URL", serverUrl);
+      environment.put("OCTOPUS_API_KEY", apiKey);
+      environment.put("OCTOPUS_SPACE", spaceName);
+
       environment.putAll(programEnvironmentVariables);
+
+      /*
+      * EnvOctopusUrl         = "OCTOPUS_URL"
+	EnvOctopusApiKey      = "OCTOPUS_API_KEY"
+	EnvOctopusAccessToken = "OCTOPUS_ACCESS_TOKEN"
+	EnvOctopusSpace       = "OCTOPUS_SPACE"
+      * */
 
       process = builder.command(arguments).directory(context.getWorkingDirectory()).start();
 
@@ -163,6 +207,7 @@ public abstract class OctopusBuildProcess implements BuildProcess {
     }
   }
 
+  /*
   private String getSelectedOctopusVersion() {
     final Map<String, String> parameters = getContext().getRunnerParameters();
     final OctopusConstants constants = OctopusConstants.Instance;
@@ -180,7 +225,7 @@ public abstract class OctopusBuildProcess implements BuildProcess {
     }
 
     return octopusVersion.replace("+", "");
-  }
+  }*/
 
   @Override
   public boolean isInterrupted() {
