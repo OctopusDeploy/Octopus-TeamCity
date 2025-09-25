@@ -33,7 +33,7 @@ jobs:
 
     steps:
     - name: Checkout Code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         fetch-depth: '0'
 
@@ -73,7 +73,7 @@ jobs:
         PACKAGE_NAME=`./gradlew -q packageName  -Pversion=${{ steps.git-version.outputs.nugetVersion }}`
         echo "::set-output name=package-created::$PACKAGE_NAME"
 
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: Octopus.TeamCity.${{ steps.git-version.outputs.nugetVersion }}
         path: '${{ steps.create-package.outputs.package-created }}'
