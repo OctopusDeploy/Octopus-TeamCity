@@ -17,6 +17,7 @@
 package octopus.teamcity.agent;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -106,7 +107,7 @@ public class OctopusBuildInformationBuildProcess extends OctopusBuildProcess {
 
       final OctopusBuildInformationWriter writer =
           new OctopusBuildInformationWriter(buildLogger, verboseLogging);
-      writer.writeToFile(buildInformation, dataFile);
+      writer.writeToFile(buildInformation, dataFile, StandardCharsets.UTF_16);
 
     } catch (Exception ex) {
       buildLogger.error("Error processing comment messages " + ex);
