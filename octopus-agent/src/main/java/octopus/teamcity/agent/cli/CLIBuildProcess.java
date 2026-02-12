@@ -214,7 +214,7 @@ public abstract class CLIBuildProcess implements BuildProcess {
 
     private String getCliVersion(Map<String, String> parameters, OctopusConstants constants) {
         String cliVersion = parameters.get(constants.getOctopusVersion());
-        if (cliVersion == null || constants.getVersion3().equals(cliVersion)) {
+        if (cliVersion == null || constants.getVersion3().equals(cliVersion) || constants.getVersion1().equals(cliVersion)) {
             cliVersion = constants.getVersion2();
         }
         return cliVersion;
