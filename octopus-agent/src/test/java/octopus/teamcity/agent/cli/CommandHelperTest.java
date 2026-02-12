@@ -11,7 +11,7 @@ import java.util.Map;
 class CommandHelperTest {
 
   @Test
-  void login_buildsExpectedLoginCommand() {
+  void loginCommand() {
     Map<String, String> params = new HashMap<>();
     final OctopusConstants constants = OctopusConstants.Instance;
     params.put(constants.getServerKey(), "https://octo.example");
@@ -30,7 +30,7 @@ class CommandHelperTest {
   }
 
   @Test
-  void deploy_buildsExpectedDeployCommand() {
+  void deployCommand() {
     Map<String, String> params = new HashMap<>();
     final OctopusConstants constants = OctopusConstants.Instance;
 
@@ -69,7 +69,7 @@ class CommandHelperTest {
   }
 
   @Test
-  void wait_buildsExpectedWaitCommand() {
+  void  waitCommand() {
     Map<String, String> params = new HashMap<>();
     final OctopusConstants constants = OctopusConstants.Instance;
 
