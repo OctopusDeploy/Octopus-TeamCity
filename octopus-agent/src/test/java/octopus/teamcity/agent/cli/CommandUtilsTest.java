@@ -39,17 +39,17 @@ class CommandUtilsTest {
 
   @Test
   void isDeployReleaseReturnsTrueWhenOutputContainsServerTaskId() {
-    assertThat(CommandUtils.isDeployRelease("[{\"ServerTaskId\": \"task-123\"}]")).isTrue();
+    assertThat(CommandUtils.isDeployReleaseCommand("[{\"ServerTaskId\": \"task-123\"}]")).isTrue();
   }
 
   @Test
   void isDeployReleaseReturnsFalseWhenNonServerTaskIdInOutput() {
-    assertThat(CommandUtils.isDeployRelease("[{\"State\": \"Success\"}]")).isFalse();
+    assertThat(CommandUtils.isDeployReleaseCommand("[{\"State\": \"Success\"}]")).isFalse();
   }
 
   @Test
   void isDeployReleaseReturnsFalseWhenOutputIsEmpty() {
-    assertThat(CommandUtils.isDeployRelease("")).isFalse();
+    assertThat(CommandUtils.isDeployReleaseCommand("")).isFalse();
   }
 
   @Test

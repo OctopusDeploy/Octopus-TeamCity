@@ -16,25 +16,18 @@
 
 package octopus.teamcity.agent.cli;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import jetbrains.buildServer.agent.AgentRunningBuild;
 import jetbrains.buildServer.agent.BuildRunnerContext;
-import jetbrains.buildServer.util.StringUtil;
 import octopus.teamcity.agent.OctopusBuildInformation;
 import octopus.teamcity.agent.OctopusBuildInformationBuilder;
 import octopus.teamcity.agent.OctopusBuildInformationWriter;
 import octopus.teamcity.agent.OctopusCommandBuilder;
-import octopus.teamcity.common.Commit;
 import octopus.teamcity.common.OctopusConstants;
-import octopus.teamcity.common.OverwriteMode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.teamcity.rest.Build;
 import org.jetbrains.teamcity.rest.BuildId;
-import org.jetbrains.teamcity.rest.Change;
 import org.jetbrains.teamcity.rest.TeamCityInstance;
 import org.jetbrains.teamcity.rest.TeamCityInstanceFactory;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -43,7 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static octopus.teamcity.agent.cli.CommandUtils.getOverwriteMode;
+import static octopus.teamcity.agent.BuildInfoUtils.createJsonCommitHistory;
 
 public class BuildInformationBuildProcess extends CLIBuildProcess {
 
@@ -93,7 +86,11 @@ public class BuildInformationBuildProcess extends CLIBuildProcess {
                 buildUrlString = teamCityServerUrl + "/viewLog.html?buildId=" + buildNumber;
             }
 
-            final OctopusBuildInformation buildInformation = builder.build(sharedConfigParameters.get("octopus_vcstype"), sharedConfigParameters.get("vcsroot.url"), sharedConfigParameters.get("build.vcs.number"), restfulBuild.getBranch().getName(), createJsonCommitHistory(restfulBuild), buildUrlString, buildNumber);
+            final OctopusBuildInformation buildInformation = builder.build(sharedConfigParameters.get("octopus_vcstype"),
+                    sharedConfigParameters.get("vcsroot.url"),
+                    sharedConfigParameters.get("build.vcs.number"),
+                    restfulBuild.getBranch().getName(),
+                    createJsonCommitHistory(restfulBuild), buildUrlString, buildNumber);
 
             if (verboseLogging) {
                 logger.message("Creating " + dataFile);
@@ -107,76 +104,9 @@ public class BuildInformationBuildProcess extends CLIBuildProcess {
             return null;
         }
         List<OctopusCommandBuilder> commands = new ArrayList<>();
+
         commands.add(CommandHelper.login(parameters));
-        commands.add(new OctopusCommandBuilder() {
-            @Override
-            protected String[] buildCommand(boolean masked) {
-                final ArrayList<String> commands = new ArrayList<String>();
-                final String spaceName = parameters.get(constants.getSpaceName());
-                final String packageIds = parameters.get(constants.getPackageIdKey());
-                final String packageVersion = parameters.get(constants.getPackageVersionKey());
-                final String commandLineArguments = parameters.get(constants.getCommandLineArgumentsKey());
-
-                final String forcePush = parameters.get(constants.getForcePushKey());
-                OverwriteMode overwriteMode = OverwriteMode.FailIfExists;
-                if ("true".equals(forcePush)) {
-                    overwriteMode = OverwriteMode.OverwriteExisting;
-                } else if (OverwriteMode.IgnoreIfExists.name().equals(forcePush)) {
-                    overwriteMode = OverwriteMode.IgnoreIfExists;
-                }
-
-                if (verboseLogging) {
-                    logger.message("ForcePush: " + forcePush);
-                    logger.message("OverwriteMode: " + overwriteMode.name());
-                }
-
-                commands.add("build-information");
-                commands.add("upload");
-
-                if (StringUtils.isNotBlank(spaceName)) {
-                    commands.add("--space");
-                    commands.add(spaceName);
-                }
-
-                for (String packageId : StringUtil.split(packageIds, "\n")) {
-                    commands.add("--package-id");
-                    commands.add(packageId);
-                }
-
-                commands.add("--version");
-                commands.add(packageVersion);
-
-                commands.add("--file");
-                commands.add(dataFile);
-
-                commands.add("--overwrite-mode");
-                commands.add(getOverwriteMode(overwriteMode));
-
-                if (StringUtils.isNotBlank(commandLineArguments)) {
-                    commands.addAll(splitSpaceSeparatedValues(commandLineArguments));
-                }
-
-                commands.add("--no-prompt");
-                return commands.toArray(new String[0]);
-            }
-        });
+        commands.add(CommandHelper.buildInformation(parameters, verboseLogging, dataFile, logger));
         return commands;
-    }
-
-    private String createJsonCommitHistory(final Build build) {
-        final List<Change> changes = build.fetchChanges();
-
-        final List<Commit> commits = new ArrayList<>();
-        for (Change change : changes) {
-
-            final Commit c = new Commit();
-            c.Id = change.getVersion();
-            c.Comment = change.getComment();
-
-            commits.add(c);
-        }
-
-        final Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
-        return gson.toJson(commits);
     }
 }

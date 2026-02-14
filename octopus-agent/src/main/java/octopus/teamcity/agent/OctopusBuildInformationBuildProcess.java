@@ -39,6 +39,8 @@ import org.jetbrains.teamcity.rest.Change;
 import org.jetbrains.teamcity.rest.TeamCityInstance;
 import org.jetbrains.teamcity.rest.TeamCityInstanceFactory;
 
+import static octopus.teamcity.agent.BuildInfoUtils.createJsonCommitHistory;
+
 public class OctopusBuildInformationBuildProcess extends OctopusBuildProcess {
 
   private final File checkoutDir;
@@ -172,22 +174,5 @@ public class OctopusBuildInformationBuildProcess extends OctopusBuildProcess {
         return commands.toArray(new String[commands.size()]);
       }
     };
-  }
-
-  private String createJsonCommitHistory(final Build build) {
-    final List<Change> changes = build.fetchChanges();
-
-    final List<Commit> commits = new ArrayList<>();
-    for (Change change : changes) {
-
-      final Commit c = new Commit();
-      c.Id = change.getVersion();
-      c.Comment = change.getComment();
-
-      commits.add(c);
-    }
-
-    final Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
-    return gson.toJson(commits);
   }
 }

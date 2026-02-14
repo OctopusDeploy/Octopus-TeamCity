@@ -22,9 +22,11 @@ public class DeployReleaseBuildProcess extends CLIBuildProcess {
     @Override
     public void processOutput(String output, int exitCode) {
         logger.message("Exit code: " + exitCode);
-        // update release number when not define in create command as it is required for deployment command
         if (exitCode == 0) {
-            if (CommandUtils.isDeployRelease(output)) {
+            final OctopusConstants constants = OctopusConstants.Instance;
+            final Map<String, String> parameters = getContext().getRunnerParameters();
+            final boolean wait = Boolean.parseBoolean(parameters.get(constants.getWaitForDeployments()));
+            if (wait && CommandUtils.isDeployReleaseCommand(output)) {
                 serverTaskId = getServerTaskId(output);
             }
         }
@@ -38,11 +40,10 @@ public class DeployReleaseBuildProcess extends CLIBuildProcess {
         final boolean wait = Boolean.parseBoolean(parameters.get(constants.getWaitForDeployments()));
 
         commands.add(CommandHelper.login(parameters));
-
         commands.add(new OctopusCommandBuilder() {
             @Override
             protected String[] buildCommand(boolean masked) {
-                return CommandHelper.deploy(parameters, null);
+                return CommandHelper.deployRelease(parameters, null);
             }
         });
 

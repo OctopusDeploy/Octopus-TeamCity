@@ -23,7 +23,7 @@ public class CommandUtils {
         return output != null && output.contains("Version");
     }
 
-    protected static boolean isDeployRelease(String output) {
+    protected static boolean isDeployReleaseCommand(String output) {
         return output != null && output.contains("ServerTaskId");
     }
 

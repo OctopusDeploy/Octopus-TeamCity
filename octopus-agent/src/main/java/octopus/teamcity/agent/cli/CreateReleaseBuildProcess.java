@@ -24,11 +24,15 @@ public class CreateReleaseBuildProcess extends CLIBuildProcess {
     @Override
     public void processOutput(String output, int exitCode) {
         logger.message("Exit code: " + exitCode);
-        // update release number when not define in create command as it is required for deployment command
         if (exitCode == 0) {
-            if (CommandUtils.isCreateReleaseCommand(output)) {
+            final OctopusConstants constants = OctopusConstants.Instance;
+            final Map<String, String> parameters = getContext().getRunnerParameters();
+            final String deployTo = parameters.get(constants.getDeployToKey());
+            final boolean wait = Boolean.parseBoolean(parameters.get(constants.getWaitForDeployments()));
+
+            if (StringUtils.isNotBlank(deployTo) && CommandUtils.isCreateReleaseCommand(output)) {
                 autoCreatedReleaseNumber = CommandUtils.getReleaseVersion(output);
-            } else if (CommandUtils.isDeployRelease(output)) {
+            } else if (wait && CommandUtils.isDeployReleaseCommand(output)) {
                 serverTaskId = getServerTaskId(output);
             }
         }
@@ -39,71 +43,17 @@ public class CreateReleaseBuildProcess extends CLIBuildProcess {
         final OctopusConstants constants = OctopusConstants.Instance;
         List<OctopusCommandBuilder> commands = new ArrayList<>();
         final Map<String, String> parameters = getContext().getRunnerParameters();
-        final String spaceName = parameters.get(constants.getSpaceName());
-        final String commandLineArguments = parameters.get(constants.getCommandLineArgumentsKey());
-        final String releaseNumber = parameters.get(constants.getReleaseNumberKey());
-        final String channelName = parameters.get(constants.getChannelNameKey());
         final String deployTo = parameters.get(constants.getDeployToKey());
-        final String projectName = parameters.get(constants.getProjectNameKey());
-        final String gitRef = parameters.get(constants.getGitRefKey());
-        final String gitCommit = parameters.get(constants.getGitCommitKey());
         final boolean wait = Boolean.parseBoolean(parameters.get(constants.getWaitForDeployments()));
 
         commands.add(CommandHelper.login(parameters));
-
-        commands.add(new OctopusCommandBuilder() {
-            @Override
-            protected String[] buildCommand(boolean masked) {
-                final ArrayList<String> createCommands = new ArrayList<>();
-
-                createCommands.add("release");
-                createCommands.add("create");
-
-                if (StringUtils.isNotBlank(spaceName)) {
-                    createCommands.add("--space");
-                    createCommands.add(spaceName);
-                }
-
-                createCommands.add("--project");
-                createCommands.add(projectName);
-
-                if (StringUtils.isNotBlank(releaseNumber)) {
-                    createCommands.add("--version");
-                    createCommands.add(releaseNumber);
-                }
-
-                if (StringUtils.isNotBlank(channelName)) {
-                    createCommands.add("--channel");
-                    createCommands.add(channelName);
-                }
-
-                if (StringUtils.isNotBlank(gitRef)) {
-                    createCommands.add("--git-ref");
-                    createCommands.add(gitRef);
-                }
-
-                if (StringUtils.isNotBlank(gitCommit)) {
-                    createCommands.add("--git-commit");
-                    createCommands.add(gitCommit);
-                }
-
-                createCommands.add("--output-format");
-                createCommands.add("json");
-
-                if (StringUtils.isNotBlank(commandLineArguments)) {
-                    createCommands.addAll(splitSpaceSeparatedValues(commandLineArguments));
-                }
-
-                createCommands.add("--no-prompt");
-                return createCommands.toArray(new String[commands.size()]);
-            }
-        });
+        commands.add(CommandHelper.createRelease(parameters));
 
         if (StringUtils.isNotBlank(deployTo)) {
             commands.add(new OctopusCommandBuilder() {
                 @Override
                 protected String[] buildCommand(boolean masked) {
-                    return CommandHelper.deploy(parameters, autoCreatedReleaseNumber);
+                    return CommandHelper.deployRelease(parameters, autoCreatedReleaseNumber);
                 }
             });
 

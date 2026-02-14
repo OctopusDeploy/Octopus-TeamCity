@@ -25,7 +25,6 @@ import jetbrains.buildServer.agent.BuildRunnerContext;
 import jetbrains.buildServer.messages.serviceMessages.ServiceMessage;
 import octopus.teamcity.agent.OctopusCommandBuilder;
 import octopus.teamcity.common.OctopusConstants;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -97,50 +96,8 @@ public class PackPackageBuildProcess extends CLIBuildProcess {
     protected List<OctopusCommandBuilder> createCommand() {
         List<OctopusCommandBuilder> commands = new ArrayList<>();
         final Map<String, String> parameters = getContext().getRunnerParameters();
-        final OctopusConstants constants = OctopusConstants.Instance;
 
-        //pack package command
-        commands.add(new OctopusCommandBuilder() {
-            @Override
-            protected String[] buildCommand(boolean masked) {
-                final ArrayList<String> commands = new ArrayList<String>();
-                final String packageId = parameters.get(constants.getPackageIdKey());
-                final String packageFormat = parameters.get(constants.getPackageFormatKey()).toLowerCase();
-                final String packageVersion = parameters.get(constants.getPackageVersionKey());
-                final String sourcePath = parameters.get(constants.getPackageSourcePathKey());
-                final String outputPath = parameters.get(constants.getPackageOutputPathKey());
-                final String commandLineArguments = parameters.get(constants.getCommandLineArgumentsKey());
-
-                commands.add("package");
-
-                String formatSubCommand = "nuget";
-                if ("zip".equals(packageFormat.toLowerCase())) {
-                    formatSubCommand = "zip";
-                }
-
-                commands.add(formatSubCommand);
-                commands.add("create");
-
-                commands.add("--id");
-                commands.add(packageId);
-
-                commands.add("--version");
-                commands.add(packageVersion);
-
-                commands.add("--base-path");
-                commands.add(sourcePath);
-
-                commands.add("--out-folder");
-                commands.add(outputPath);
-
-                if (StringUtils.isNotBlank(commandLineArguments)) {
-                    commands.addAll(splitSpaceSeparatedValues(commandLineArguments));
-                }
-
-                commands.add("--no-prompt");
-                return commands.toArray(new String[commands.size()]);
-            }
-        });
+        commands.add(CommandHelper.packPackage(parameters));
         return commands;
     }
 }

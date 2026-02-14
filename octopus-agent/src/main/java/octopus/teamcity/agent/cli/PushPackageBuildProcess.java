@@ -28,8 +28,6 @@ import jetbrains.buildServer.agent.impl.artifacts.ArtifactsCollection;
 import jetbrains.buildServer.messages.serviceMessages.ServiceMessage;
 import octopus.teamcity.agent.OctopusCommandBuilder;
 import octopus.teamcity.common.OctopusConstants;
-import octopus.teamcity.common.OverwriteMode;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -38,7 +36,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import static octopus.teamcity.agent.cli.CommandUtils.getOverwriteMode;
 
 public class PushPackageBuildProcess extends CLIBuildProcess {
 
@@ -101,53 +98,9 @@ public class PushPackageBuildProcess extends CLIBuildProcess {
     protected List<OctopusCommandBuilder> createCommand() {
         List<OctopusCommandBuilder> commands = new ArrayList<>();
         final Map<String, String> parameters = getContext().getRunnerParameters();
-        final OctopusConstants constants = OctopusConstants.Instance;
 
-        // login command
         commands.add(CommandHelper.login(parameters));
-        // push package command
-        commands.add(new OctopusCommandBuilder() {
-            @Override
-            protected String[] buildCommand(boolean masked) {
-                final ArrayList<String> commands = new ArrayList<String>();
-                final String spaceName = parameters.get(constants.getSpaceName());
-                final String commandLineArguments = parameters.get(constants.getCommandLineArgumentsKey());
-                final String forcePush = parameters.get(constants.getForcePushKey());
-
-                OverwriteMode overwriteMode = OverwriteMode.FailIfExists;
-                if ("true".equals(forcePush)) {
-                    overwriteMode = OverwriteMode.OverwriteExisting;
-                } else if (OverwriteMode.IgnoreIfExists.name().equals(forcePush)) {
-                    overwriteMode = OverwriteMode.IgnoreIfExists;
-                }
-
-                commands.add("package");
-                commands.add("upload");
-
-                if (StringUtils.isNotBlank(spaceName)) {
-                    commands.add("--space");
-                    commands.add(spaceName);
-                }
-
-                for (ArtifactsCollection artifactsCollection : artifactsCollections) {
-                    for (Map.Entry<File, String> fileStringEntry : artifactsCollection.getFilePathMap().entrySet()) {
-                        final File source = fileStringEntry.getKey();
-                        commands.add("--package");
-                        commands.add(source.getAbsolutePath());
-                    }
-                }
-
-                commands.add("--overwrite-mode");
-                commands.add(getOverwriteMode(overwriteMode));
-
-                if (StringUtils.isNotBlank(commandLineArguments)) {
-                    commands.addAll(splitSpaceSeparatedValues(commandLineArguments));
-                }
-
-                commands.add("--no-prompt");
-                return commands.toArray(new String[0]);
-            }
-        });
+        commands.add(CommandHelper.pushPackage(parameters,artifactsCollections));
         return commands;
     }
 }
