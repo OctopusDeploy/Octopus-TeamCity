@@ -5,7 +5,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import jetbrains.buildServer.agent.AgentRunningBuild;
-import jetbrains.buildServer.agent.BuildProgressLogger;
 import jetbrains.buildServer.agent.BuildRunnerContext;
 import jetbrains.buildServer.agent.impl.artifacts.ArtifactsCollection;
 import octopus.teamcity.agent.OctopusCommandBuilder;
@@ -18,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Arrays;
 
 class CommandHelperTest {
 
@@ -239,5 +239,32 @@ class CommandHelperTest {
                 "fail",
                 "--no-prompt"
         );
+    }
+
+    @Test
+    void sanitizeCommandExtraArgsRemovesForbiddenArgAndValue() {
+        List<String> args = Arrays.asList("project", "MyProject", "channel", "Release", "version", "1.0.0");
+
+        List<String> result = CommandHelper.sanitizeCommandArgs(args, "channel");
+
+        assertThat(result).containsExactly("project", "MyProject", "version", "1.0.0");
+    }
+
+    @Test
+    void sanitizeCommandExtraArgsRemovesMultipleForbiddenArgs() {
+        List<String> args = Arrays.asList("project", "MyProject", "channel", "Release", "tenant", "TenantA", "version", "1.0.0");
+
+        List<String> result = CommandHelper.sanitizeCommandArgs(args, "channel, tenant");
+
+        assertThat(result).containsExactly("project", "MyProject", "version", "1.0.0");
+    }
+
+    @Test
+    void sanitizeCommandExtraArgsKeepsArgsWhenNoForbiddenPresent() {
+        List<String> args = Arrays.asList("project", "MyProject", "version", "1.0.0");
+
+        List<String> result = CommandHelper.sanitizeCommandArgs(args, "channel");
+
+        assertThat(result).containsExactly("project", "MyProject", "version", "1.0.0");
     }
 }

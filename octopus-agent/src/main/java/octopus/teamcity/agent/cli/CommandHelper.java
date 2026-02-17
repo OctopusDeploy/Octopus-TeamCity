@@ -7,9 +7,11 @@ import octopus.teamcity.agent.OctopusCommandBuilder;
 import octopus.teamcity.common.OctopusConstants;
 
 import java.io.File;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
 
 import octopus.teamcity.common.OverwriteMode;
 import org.apache.commons.lang3.StringUtils;
@@ -18,12 +20,17 @@ import static octopus.teamcity.agent.OctopusCommandBuilder.splitCommaSeparatedVa
 import static octopus.teamcity.agent.OctopusCommandBuilder.splitSpaceSeparatedValues;
 import static octopus.teamcity.agent.cli.CommandUtils.getOverwriteMode;
 
+
 public class CommandHelper {
+
+    final static String deployReleaseAdditionalArgumentsToBeIgnored = "-e,--environment,--tenant,--tenant-tag,--deploy-at,--deploy-at-expiry,--variable,--update-variables,--skip,--guided-failure,--force-package-download,--deployment-target,--exclude-deployment-target,--deployment-freeze-name,--deployment-freeze-override-reason";
+    final static String createReleaseAdditionalArgumentsToBeIgnored = "-c,-r,-x,--channel,--git-ref,--git-commit,--package,--git-resource,--release-notes,--release-notes-file,--ignore-existing,--ignore-channel-rules,--custom-field";
+    final static String defaultSpace = "Default";
 
     public static String[] deployRelease(Map<String, String> params, String autoCreatedReleaseNumber) {
         final OctopusConstants constants = OctopusConstants.Instance;
         final ArrayList<String> commands = new ArrayList<>();
-        final String spaceName = params.get(constants.getSpaceName());
+        String spaceName = params.get(constants.getSpaceName());
         final String commandLineArguments = params.get(constants.getCommandLineArgumentsKey());
         final String releaseNumber = params.get(constants.getReleaseNumberKey());
         final String deployTo = params.get(constants.getDeployToKey());
@@ -34,10 +41,11 @@ public class CommandHelper {
         commands.add("release");
         commands.add("deploy");
 
-        if (StringUtils.isNotBlank(spaceName)) {
-            commands.add("--space");
-            commands.add(spaceName);
+        if (StringUtils.isBlank(spaceName)) {
+            spaceName = defaultSpace;
         }
+        commands.add("--space");
+        commands.add(spaceName);
 
         commands.add("--project");
         commands.add(projectName);
@@ -67,7 +75,9 @@ public class CommandHelper {
         commands.add("json");
 
         if (StringUtils.isNotBlank(commandLineArguments)) {
-            commands.addAll(splitSpaceSeparatedValues(commandLineArguments));
+            List<String> commandArgs = splitSpaceSeparatedValues(commandLineArguments);
+            List<String> updatedCommandArgs = sanitizeCommandArgs(commandArgs, createReleaseAdditionalArgumentsToBeIgnored);
+            commands.addAll(updatedCommandArgs);
         }
 
         commands.add("--no-prompt");
@@ -102,8 +112,8 @@ public class CommandHelper {
         return new OctopusCommandBuilder() {
             @Override
             protected String[] buildCommand(boolean masked) {
-                final ArrayList<String> createCommands = new ArrayList<>();
-                final String spaceName = parameters.get(constants.getSpaceName());
+                final ArrayList<String> commands = new ArrayList<>();
+                String spaceName = parameters.get(constants.getSpaceName());
                 final String commandLineArguments = parameters.get(constants.getCommandLineArgumentsKey());
                 final String releaseNumber = parameters.get(constants.getReleaseNumberKey());
                 final String channelName = parameters.get(constants.getChannelNameKey());
@@ -111,46 +121,50 @@ public class CommandHelper {
                 final String gitRef = parameters.get(constants.getGitRefKey());
                 final String gitCommit = parameters.get(constants.getGitCommitKey());
 
-                createCommands.add("release");
-                createCommands.add("create");
+                commands.add("release");
+                commands.add("create");
 
-                if (StringUtils.isNotBlank(spaceName)) {
-                    createCommands.add("--space");
-                    createCommands.add(spaceName);
+                if (StringUtils.isBlank(spaceName)) {
+                    spaceName = defaultSpace;
                 }
+                commands.add("--space");
+                commands.add(spaceName);
 
-                createCommands.add("--project");
-                createCommands.add(projectName);
+
+                commands.add("--project");
+                commands.add(projectName);
 
                 if (StringUtils.isNotBlank(releaseNumber)) {
-                    createCommands.add("--version");
-                    createCommands.add(releaseNumber);
+                    commands.add("--version");
+                    commands.add(releaseNumber);
                 }
 
                 if (StringUtils.isNotBlank(channelName)) {
-                    createCommands.add("--channel");
-                    createCommands.add(channelName);
+                    commands.add("--channel");
+                    commands.add(channelName);
                 }
 
                 if (StringUtils.isNotBlank(gitRef)) {
-                    createCommands.add("--git-ref");
-                    createCommands.add(gitRef);
+                    commands.add("--git-ref");
+                    commands.add(gitRef);
                 }
 
                 if (StringUtils.isNotBlank(gitCommit)) {
-                    createCommands.add("--git-commit");
-                    createCommands.add(gitCommit);
+                    commands.add("--git-commit");
+                    commands.add(gitCommit);
                 }
 
-                createCommands.add("--output-format");
-                createCommands.add("json");
+                commands.add("--output-format");
+                commands.add("json");
 
                 if (StringUtils.isNotBlank(commandLineArguments)) {
-                    createCommands.addAll(splitSpaceSeparatedValues(commandLineArguments));
+                    List<String> commandArgs = splitSpaceSeparatedValues(commandLineArguments);
+                    List<String> updatedCommandArgs = sanitizeCommandArgs(commandArgs, deployReleaseAdditionalArgumentsToBeIgnored);
+                    commands.addAll(updatedCommandArgs);
                 }
 
-                createCommands.add("--no-prompt");
-                return createCommands.toArray(new String[0]);
+                commands.add("--no-prompt");
+                return commands.toArray(new String[0]);
             }
         };
     }
@@ -200,13 +214,13 @@ public class CommandHelper {
         };
     }
 
-    public static OctopusCommandBuilder pushPackage(Map<String, String> parameters,List<ArtifactsCollection> artifactsCollections) {
+    public static OctopusCommandBuilder pushPackage(Map<String, String> parameters, List<ArtifactsCollection> artifactsCollections) {
         final OctopusConstants constants = OctopusConstants.Instance;
         return new OctopusCommandBuilder() {
             @Override
             protected String[] buildCommand(boolean masked) {
                 final ArrayList<String> commands = new ArrayList<String>();
-                final String spaceName = parameters.get(constants.getSpaceName());
+                String spaceName = parameters.get(constants.getSpaceName());
                 final String commandLineArguments = parameters.get(constants.getCommandLineArgumentsKey());
                 final String forcePush = parameters.get(constants.getForcePushKey());
 
@@ -220,10 +234,11 @@ public class CommandHelper {
                 commands.add("package");
                 commands.add("upload");
 
-                if (StringUtils.isNotBlank(spaceName)) {
-                    commands.add("--space");
-                    commands.add(spaceName);
+                if (StringUtils.isBlank(spaceName)) {
+                    spaceName = defaultSpace;
                 }
+                commands.add("--space");
+                commands.add(spaceName);
 
                 for (ArtifactsCollection artifactsCollection : artifactsCollections) {
                     for (Map.Entry<File, String> fileStringEntry : artifactsCollection.getFilePathMap().entrySet()) {
@@ -255,7 +270,7 @@ public class CommandHelper {
             @Override
             protected String[] buildCommand(boolean masked) {
                 final ArrayList<String> commands = new ArrayList<String>();
-                final String spaceName = parameters.get(constants.getSpaceName());
+                String spaceName = parameters.get(constants.getSpaceName());
                 final String packageIds = parameters.get(constants.getPackageIdKey());
                 final String packageVersion = parameters.get(constants.getPackageVersionKey());
                 final String commandLineArguments = parameters.get(constants.getCommandLineArgumentsKey());
@@ -276,10 +291,11 @@ public class CommandHelper {
                 commands.add("build-information");
                 commands.add("upload");
 
-                if (StringUtils.isNotBlank(spaceName)) {
-                    commands.add("--space");
-                    commands.add(spaceName);
+                if (StringUtils.isBlank(spaceName)) {
+                    spaceName = defaultSpace;
                 }
+                commands.add("--space");
+                commands.add(spaceName);
 
                 for (String packageId : StringUtil.split(packageIds, "\n")) {
                     commands.add("--package-id");
@@ -310,15 +326,16 @@ public class CommandHelper {
         final ArrayList<String> commands = new ArrayList<>();
         final String deploymentTimeout = params.get(constants.getDeploymentTimeout());
         final String cancelDeploymentTimeout = params.get(constants.getCancelDeploymentOnTimeout());
-        final String spaceName = params.get(constants.getSpaceName());
+        String spaceName = params.get(constants.getSpaceName());
         commands.add("task");
         commands.add("wait");
 
         commands.add(taskId);
-        if (StringUtils.isNotBlank(spaceName)) {
-            commands.add("--space");
-            commands.add(spaceName);
+        if (StringUtils.isBlank(spaceName)) {
+            spaceName = defaultSpace;
         }
+        commands.add("--space");
+        commands.add(spaceName);
 
         commands.add("--progress");
 
@@ -337,5 +354,18 @@ public class CommandHelper {
         commands.add("--no-prompt");
         return commands.toArray(new String[0]);
     }
-}
 
+    public static List<String> sanitizeCommandArgs(List<String> args, String argsToBeIgnore) {
+        List<String> result = new ArrayList<>();
+        int i = 0;
+        while (i < args.size()) {
+            if (argsToBeIgnore.contains(args.get(i))) {
+                i += 2; // skip this element and the next element
+            } else {
+                result.add(args.get(i));
+                i++;
+            }
+        }
+        return result;
+    }
+}
