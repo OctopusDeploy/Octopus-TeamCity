@@ -1,7 +1,6 @@
 package octopus.teamcity.agent.cli;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import octopus.teamcity.common.OverwriteMode;
 import org.junit.jupiter.api.Test;
@@ -22,8 +21,7 @@ class CommandUtilsTest {
 
   @Test
   void isCreateReleasereturnsTrueWhenOutputContainsVersion() {
-    assertThat(CommandUtils.isCreateReleaseCommand("{\"Version\": \"1.0.0\"}"))
-        .isTrue();
+    assertThat(CommandUtils.isCreateReleaseCommand("{\"Version\": \"1.0.0\"}")).isTrue();
   }
 
   @Test
@@ -64,7 +62,8 @@ class CommandUtilsTest {
 
   @Test
   void getOverwriteModeReturnsOverwriteForDefault() {
-    assertThat(CommandUtils.getOverwriteMode(OverwriteMode.OverwriteExisting)).isEqualTo("overwrite");
+    assertThat(CommandUtils.getOverwriteMode(OverwriteMode.OverwriteExisting))
+        .isEqualTo("overwrite");
   }
 
   @Test

@@ -89,14 +89,15 @@ public class OctopusOsUtils {
 
     return output.toString();
   }
+
   public static String getBinaryOsFolder(AgentRunningBuild runningBuild) {
-        runningBuild.getAgentConfiguration().getSystemInfo();
-        if (runningBuild.getAgentConfiguration().getSystemInfo().isWindows()) {
-            return "windows-os";
-        } else if (runningBuild.getAgentConfiguration().getSystemInfo().isMac()) {
-            return "mac-os";
-        } else {
-            return "unix-os";
-        }
+    runningBuild.getAgentConfiguration().getSystemInfo();
+    if (runningBuild.getAgentConfiguration().getSystemInfo().isWindows()) {
+      return "windows-os";
+    } else if (runningBuild.getAgentConfiguration().getSystemInfo().isMac()) {
+      return "mac-os";
+    } else {
+      return "unix-os";
     }
+  }
 }

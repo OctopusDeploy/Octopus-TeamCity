@@ -41,11 +41,16 @@ public class OctopusPackPackageRunner implements AgentBuildRunner {
   public BuildProcess createBuildProcess(
       @NotNull AgentRunningBuild runningBuild, @NotNull BuildRunnerContext context)
       throws RunBuildException {
-    boolean octopusNewCli = Boolean.parseBoolean(runningBuild.getSharedBuildParameters().getEnvironmentVariables().get("OCTOPUS_NEW_CLI"));
-        if (octopusNewCli) {
-            return new PackPackageBuildProcess(runningBuild, context, myExtensionHolder);
-        }
-        return new OctopusPackPackageBuildProcess(runningBuild, context, myExtensionHolder);
+    boolean octopusNewCli =
+        Boolean.parseBoolean(
+            runningBuild
+                .getSharedBuildParameters()
+                .getEnvironmentVariables()
+                .get("OCTOPUS_NEW_CLI"));
+    if (octopusNewCli) {
+      return new PackPackageBuildProcess(runningBuild, context, myExtensionHolder);
+    }
+    return new OctopusPackPackageBuildProcess(runningBuild, context, myExtensionHolder);
   }
 
   @Override

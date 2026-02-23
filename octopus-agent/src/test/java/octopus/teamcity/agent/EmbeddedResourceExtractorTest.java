@@ -2,17 +2,17 @@ package octopus.teamcity.agent;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.junit.jupiter.api.Test;
-
 import java.io.FileOutputStream;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.charset.StandardCharsets;
 import java.util.zip.GZIPOutputStream;
-import java.net.URL;
+
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
+import org.junit.jupiter.api.Test;
 
 class EmbeddedResourceExtractorTest {
 
@@ -32,8 +32,8 @@ class EmbeddedResourceExtractorTest {
 
     byte[] content = "hello-from-classpath".getBytes(StandardCharsets.UTF_8);
     try (FileOutputStream fos = new FileOutputStream(archivePath.toFile());
-         GZIPOutputStream gos = new GZIPOutputStream(fos);
-         TarArchiveOutputStream taos = new TarArchiveOutputStream(gos)) {
+        GZIPOutputStream gos = new GZIPOutputStream(fos);
+        TarArchiveOutputStream taos = new TarArchiveOutputStream(gos)) {
 
       TarArchiveEntry entry = new TarArchiveEntry("dir/hello.txt");
       entry.setSize(content.length);

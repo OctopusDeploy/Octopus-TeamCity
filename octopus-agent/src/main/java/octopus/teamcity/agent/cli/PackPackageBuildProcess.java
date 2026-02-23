@@ -16,6 +16,11 @@
 
 package octopus.teamcity.agent.cli;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import jetbrains.buildServer.ExtensionHolder;
 import jetbrains.buildServer.RunBuildException;
 import jetbrains.buildServer.agent.AgentRunningBuild;
@@ -27,77 +32,72 @@ import octopus.teamcity.agent.OctopusCommandBuilder;
 import octopus.teamcity.common.OctopusConstants;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 public class PackPackageBuildProcess extends CLIBuildProcess {
 
-    protected final ExtensionHolder myExtensionHolder;
-    protected final AgentRunningBuild myRunningBuild;
+  protected final ExtensionHolder myExtensionHolder;
+  protected final AgentRunningBuild myRunningBuild;
 
-    public PackPackageBuildProcess(
-            @NotNull AgentRunningBuild runningBuild,
-            @NotNull BuildRunnerContext context,
-            @NotNull final ExtensionHolder extensionHolder) {
-        super(runningBuild, context);
+  public PackPackageBuildProcess(
+      @NotNull AgentRunningBuild runningBuild,
+      @NotNull BuildRunnerContext context,
+      @NotNull final ExtensionHolder extensionHolder) {
+    super(runningBuild, context);
 
-        myExtensionHolder = extensionHolder;
-        myRunningBuild = runningBuild;
+    myExtensionHolder = extensionHolder;
+    myRunningBuild = runningBuild;
+  }
+
+  @Override
+  protected String getLogMessage() {
+    return "Creating package";
+  }
+
+  @NotNull
+  @Override
+  public BuildFinishedStatus waitFor() throws RunBuildException {
+    BuildFinishedStatus status = super.waitFor();
+
+    final Map<String, String> parameters = getContext().getRunnerParameters();
+    final OctopusConstants constants = OctopusConstants.Instance;
+    final String packageId = parameters.get(constants.getPackageIdKey());
+    final String packageFormat = parameters.get(constants.getPackageFormatKey()).toLowerCase();
+    final String packageVersion = parameters.get(constants.getPackageVersionKey());
+    final String outputPath = parameters.get(constants.getPackageOutputPathKey());
+    final boolean publishArtifacts =
+        Boolean.parseBoolean(parameters.get(constants.getPublishArtifactsKey()));
+
+    if (!publishArtifacts) {
+      return status;
     }
 
-    @Override
-    protected String getLogMessage() {
-        return "Creating package";
+    String packagePath = outputPath;
+    if (!packagePath.endsWith(File.separator)) {
+      packagePath += File.separator;
     }
+    packagePath += packageId + "." + packageVersion + "." + packageFormat;
 
-    @NotNull
-    @Override
-    public BuildFinishedStatus waitFor() throws RunBuildException {
-        BuildFinishedStatus status = super.waitFor();
+    BuildProgressLogger logger = myRunningBuild.getBuildLogger();
 
-        final Map<String, String> parameters = getContext().getRunnerParameters();
-        final OctopusConstants constants = OctopusConstants.Instance;
-        final String packageId = parameters.get(constants.getPackageIdKey());
-        final String packageFormat = parameters.get(constants.getPackageFormatKey()).toLowerCase();
-        final String packageVersion = parameters.get(constants.getPackageVersionKey());
-        final String outputPath = parameters.get(constants.getPackageOutputPathKey());
-        final boolean publishArtifacts =
-                Boolean.parseBoolean(parameters.get(constants.getPublishArtifactsKey()));
+    String message =
+        ServiceMessage.asString(
+            "publishArtifacts",
+            myRunningBuild.getCheckoutDirectory() + File.separator + packagePath);
+    logger.message(message);
 
-        if (!publishArtifacts) {
-            return status;
-        }
+    return status;
+  }
 
-        String packagePath = outputPath;
-        if (!packagePath.endsWith(File.separator)) {
-            packagePath += File.separator;
-        }
-        packagePath += packageId + "." + packageVersion + "." + packageFormat;
+  @Override
+  public void processOutput(String output, int exitCode) {
+    logger.message("Exit code: " + exitCode);
+  }
 
-        BuildProgressLogger logger = myRunningBuild.getBuildLogger();
+  @Override
+  protected List<OctopusCommandBuilder> createCommand() {
+    List<OctopusCommandBuilder> commands = new ArrayList<>();
+    final Map<String, String> parameters = getContext().getRunnerParameters();
 
-        String message =
-                ServiceMessage.asString(
-                        "publishArtifacts",
-                        myRunningBuild.getCheckoutDirectory() + File.separator + packagePath);
-        logger.message(message);
-
-        return status;
-    }
-
-    @Override
-    public void processOutput(String output, int exitCode) {
-        logger.message("Exit code: " + exitCode);
-    }
-
-    @Override
-    protected List<OctopusCommandBuilder> createCommand() {
-        List<OctopusCommandBuilder> commands = new ArrayList<>();
-        final Map<String, String> parameters = getContext().getRunnerParameters();
-
-        commands.add(CommandHelper.packPackage(parameters));
-        return commands;
-    }
+    commands.add(CommandHelper.packPackage(parameters));
+    return commands;
+  }
 }

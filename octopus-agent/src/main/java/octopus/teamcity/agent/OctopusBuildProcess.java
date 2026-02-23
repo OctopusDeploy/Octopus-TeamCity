@@ -18,12 +18,8 @@ package octopus.teamcity.agent;
 
 import static jetbrains.buildServer.messages.DefaultMessagesInfo.BLOCK_TYPE_BUILD_STEP;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
@@ -152,7 +148,8 @@ public abstract class OctopusBuildProcess implements BuildProcess {
       final LoggingProcessListener listener = new LoggingProcessListener(logger);
 
       standardError = new Output.ReaderThread(process.getErrorStream(), listener::onErrorOutput);
-      standardOutput = new Output.ReaderThread(process.getInputStream(), listener::onStandardOutput);
+      standardOutput =
+          new Output.ReaderThread(process.getInputStream(), listener::onStandardOutput);
 
       standardError.start();
       standardOutput.start();

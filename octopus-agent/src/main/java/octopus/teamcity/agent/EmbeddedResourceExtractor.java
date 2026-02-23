@@ -16,11 +16,6 @@
 
 package octopus.teamcity.agent;
 
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
-
-
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -40,6 +35,10 @@ import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
+
 public class EmbeddedResourceExtractor {
   public void extractTo(String destinationPath) throws Exception {
     ensureDirectory(destinationPath, "1.0");
@@ -56,10 +55,14 @@ public class EmbeddedResourceExtractor {
     unzip(destinationPath + "/3.0/Core.zip", destinationPath + "/3.0/Core");
   }
 
-public void extractCliTo(String destinationPath, String octopusVersion, String osFolder) throws Exception {
-        String binaryArchive = getArchiveName(String.format("resources/newcli/%s/%s", octopusVersion, osFolder));
-        extractTarGzResource(String.format("/resources/newcli/%s/%s/%s", octopusVersion, osFolder, binaryArchive), Paths.get(destinationPath));
-    }
+  public void extractCliTo(String destinationPath, String octopusVersion, String osFolder)
+      throws Exception {
+    String binaryArchive =
+        getArchiveName(String.format("resources/newcli/%s/%s", octopusVersion, osFolder));
+    extractTarGzResource(
+        String.format("/resources/newcli/%s/%s/%s", octopusVersion, osFolder, binaryArchive),
+        Paths.get(destinationPath));
+  }
 
   private void extractFile(String resourceName, String destinationName) throws Exception {
     int attempts = 0;
@@ -135,85 +138,88 @@ public void extractCliTo(String destinationPath, String octopusVersion, String o
     }
   }
 
-    public void extractTarGzResource(String resourcePath, Path destDir) throws IOException {
-        Files.createDirectories(destDir);
+  public void extractTarGzResource(String resourcePath, Path destDir) throws IOException {
+    Files.createDirectories(destDir);
 
-        try (InputStream fi = getClass().getResourceAsStream(resourcePath)) {
-            if (fi == null) {
-                throw new IOException("Resource not found: " + resourcePath);
+    try (InputStream fi = getClass().getResourceAsStream(resourcePath)) {
+      if (fi == null) {
+        throw new IOException("Resource not found: " + resourcePath);
+      }
+
+      try (BufferedInputStream bi = new BufferedInputStream(fi);
+          GzipCompressorInputStream gzi = new GzipCompressorInputStream(bi);
+          TarArchiveInputStream tarIn = new TarArchiveInputStream(gzi)) {
+
+        TarArchiveEntry entry;
+        byte[] buffer = new byte[4096];
+
+        while ((entry = tarIn.getNextTarEntry()) != null) {
+          Path entryPath = destDir.resolve(entry.getName());
+
+          if (entry.isDirectory()) {
+            Files.createDirectories(entryPath);
+          } else {
+            Files.createDirectories(entryPath.getParent());
+
+            try (OutputStream out = Files.newOutputStream(entryPath)) {
+              int bytesRead;
+              while ((bytesRead = tarIn.read(buffer)) != -1) {
+                out.write(buffer, 0, bytesRead);
+              }
             }
-
-            try (BufferedInputStream bi = new BufferedInputStream(fi);
-                 GzipCompressorInputStream gzi = new GzipCompressorInputStream(bi);
-                 TarArchiveInputStream tarIn = new TarArchiveInputStream(gzi)) {
-
-                TarArchiveEntry entry;
-                byte[] buffer = new byte[4096];
-
-                while ((entry = tarIn.getNextTarEntry()) != null) {
-                    Path entryPath = destDir.resolve(entry.getName());
-
-                    if (entry.isDirectory()) {
-                        Files.createDirectories(entryPath);
-                    } else {
-                        Files.createDirectories(entryPath.getParent());
-
-                        try (OutputStream out = Files.newOutputStream(entryPath)) {
-                            int bytesRead;
-                            while ((bytesRead = tarIn.read(buffer)) != -1) {
-                                out.write(buffer, 0, bytesRead);
-                            }
-                        }
-                    }
-                }
-            }
+          }
         }
+      }
+    }
+  }
+
+  private String getArchiveName(String resourceFolder) {
+    URL url = getClass().getClassLoader().getResource(resourceFolder);
+    if (url == null) {
+      throw new RuntimeException("Unable to find embedded resource folder: " + resourceFolder);
     }
 
-
-    private String getArchiveName(String resourceFolder) {
-        URL url = getClass().getClassLoader().getResource(resourceFolder);
-        if (url == null) {
-            throw new RuntimeException("Unable to find embedded resource folder: " + resourceFolder);
-        }
-
-        try {
-            if ("file".equals(url.getProtocol())) {
-                // Running from filesystem (IDE/development)
-                Path folderPath = Paths.get(url.toURI());
-                try (DirectoryStream<Path> stream = Files.newDirectoryStream(folderPath)) {
-                    for (Path entry : stream) {
-                        String name = entry.getFileName().toString();
-                        if (name.endsWith(".tar.gz") || name.endsWith(".zip") || name.endsWith(".tgz")) {
-                            return name;
-                        }
-                    }
-                }
-            } else if ("jar".equals(url.getProtocol())) {
-                // Running from JAR
-                JarURLConnection jarConnection = (JarURLConnection) url.openConnection();
-                try (JarFile jarFile = jarConnection.getJarFile()) {
-                    String folderPrefix = resourceFolder.endsWith("/") ? resourceFolder : resourceFolder + "/";
-
-                    return jarFile.stream()
-                            .map(JarEntry::getName)
-                            .filter(name -> name.startsWith(folderPrefix))
-                            .filter(name -> !name.equals(folderPrefix))  // Skip the folder itself
-                            .filter(name -> name.endsWith(".tar.gz") || name.endsWith(".zip") || name.endsWith(".tgz"))
-                            .map(name -> {
-                                // Extract just the filename from the full path
-                                String relativePath = name.substring(folderPrefix.length());
-                                int slashIndex = relativePath.indexOf('/');
-                                return slashIndex >= 0 ? relativePath.substring(0, slashIndex) : relativePath;
-                            })
-                            .findFirst()
-                            .orElseThrow(() -> new RuntimeException("No archive found in: " + resourceFolder));
-                }
+    try {
+      if ("file".equals(url.getProtocol())) {
+        // Running from filesystem (IDE/development)
+        Path folderPath = Paths.get(url.toURI());
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(folderPath)) {
+          for (Path entry : stream) {
+            String name = entry.getFileName().toString();
+            if (name.endsWith(".tar.gz") || name.endsWith(".zip") || name.endsWith(".tgz")) {
+              return name;
             }
-        } catch (URISyntaxException | IOException e) {
-            throw new RuntimeException("Error reading resource folder: " + resourceFolder, e);
+          }
         }
+      } else if ("jar".equals(url.getProtocol())) {
+        // Running from JAR
+        JarURLConnection jarConnection = (JarURLConnection) url.openConnection();
+        try (JarFile jarFile = jarConnection.getJarFile()) {
+          String folderPrefix =
+              resourceFolder.endsWith("/") ? resourceFolder : resourceFolder + "/";
 
-        throw new RuntimeException("No archive found in folder: " + resourceFolder);
+          return jarFile.stream()
+              .map(JarEntry::getName)
+              .filter(name -> name.startsWith(folderPrefix))
+              .filter(name -> !name.equals(folderPrefix)) // Skip the folder itself
+              .filter(
+                  name ->
+                      name.endsWith(".tar.gz") || name.endsWith(".zip") || name.endsWith(".tgz"))
+              .map(
+                  name -> {
+                    // Extract just the filename from the full path
+                    String relativePath = name.substring(folderPrefix.length());
+                    int slashIndex = relativePath.indexOf('/');
+                    return slashIndex >= 0 ? relativePath.substring(0, slashIndex) : relativePath;
+                  })
+              .findFirst()
+              .orElseThrow(() -> new RuntimeException("No archive found in: " + resourceFolder));
+        }
+      }
+    } catch (URISyntaxException | IOException e) {
+      throw new RuntimeException("Error reading resource folder: " + resourceFolder, e);
     }
+
+    throw new RuntimeException("No archive found in folder: " + resourceFolder);
+  }
 }
