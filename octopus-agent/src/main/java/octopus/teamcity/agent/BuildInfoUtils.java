@@ -17,11 +17,12 @@ package octopus.teamcity.agent;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import octopus.teamcity.common.Commit;
 import org.jetbrains.teamcity.rest.Build;
 import org.jetbrains.teamcity.rest.Change;
-import octopus.teamcity.common.Commit;
 
 public class BuildInfoUtils {
   public static String createJsonCommitHistory(final Build build) {
@@ -41,4 +42,3 @@ public class BuildInfoUtils {
     return gson.toJson(commits);
   }
 }
-
