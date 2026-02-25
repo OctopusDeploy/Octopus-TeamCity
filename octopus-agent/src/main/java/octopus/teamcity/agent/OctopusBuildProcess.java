@@ -18,12 +18,8 @@ package octopus.teamcity.agent;
 
 import static jetbrains.buildServer.messages.DefaultMessagesInfo.BLOCK_TYPE_BUILD_STEP;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
@@ -45,8 +41,8 @@ public abstract class OctopusBuildProcess implements BuildProcess {
   private final BuildRunnerContext context;
   private Process process;
   private File extractedTo;
-  private OutputReaderThread standardError;
-  private OutputReaderThread standardOutput;
+  private Output.ReaderThread standardError;
+  private Output.ReaderThread standardOutput;
   private boolean isFinished;
   private final BuildProgressLogger logger;
 
@@ -151,8 +147,9 @@ public abstract class OctopusBuildProcess implements BuildProcess {
 
       final LoggingProcessListener listener = new LoggingProcessListener(logger);
 
-      standardError = new OutputReaderThread(process.getErrorStream(), listener::onErrorOutput);
-      standardOutput = new OutputReaderThread(process.getInputStream(), listener::onStandardOutput);
+      standardError = new Output.ReaderThread(process.getErrorStream(), listener::onErrorOutput);
+      standardOutput =
+          new Output.ReaderThread(process.getInputStream(), listener::onStandardOutput);
 
       standardError.start();
       standardOutput.start();
@@ -236,35 +233,6 @@ public abstract class OctopusBuildProcess implements BuildProcess {
     } else {
       runningBuild.getBuildLogger().error(message);
       return BuildFinishedStatus.FINISHED_SUCCESS;
-    }
-  }
-
-  private interface OutputWriter {
-    void write(String text);
-  }
-
-  private static class OutputReaderThread extends Thread {
-    private final InputStream is;
-    private final OutputWriter output;
-
-    OutputReaderThread(InputStream is, OutputWriter output) {
-      this.is = is;
-      this.output = output;
-    }
-
-    @Override
-    public void run() {
-      final InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
-      final BufferedReader br = new BufferedReader(isr);
-      String line;
-
-      try {
-        while ((line = br.readLine()) != null) {
-          output.write(line.replaceAll("[\\r\\n]", ""));
-        }
-      } catch (IOException e) {
-        output.write("ERROR: " + e.getMessage());
-      }
     }
   }
 }

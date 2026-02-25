@@ -21,6 +21,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
 import com.intellij.openapi.diagnostic.Logger;
+import jetbrains.buildServer.agent.AgentRunningBuild;
 import jetbrains.buildServer.agent.BuildAgentConfiguration;
 import jetbrains.buildServer.log.Loggers;
 import org.jetbrains.annotations.NotNull;
@@ -87,5 +88,16 @@ public class OctopusOsUtils {
     }
 
     return output.toString();
+  }
+
+  public static String getBinaryOsFolder(AgentRunningBuild runningBuild) {
+    runningBuild.getAgentConfiguration().getSystemInfo();
+    if (runningBuild.getAgentConfiguration().getSystemInfo().isWindows()) {
+      return "windows-os";
+    } else if (runningBuild.getAgentConfiguration().getSystemInfo().isMac()) {
+      return "mac-os";
+    } else {
+      return "unix-os";
+    }
   }
 }

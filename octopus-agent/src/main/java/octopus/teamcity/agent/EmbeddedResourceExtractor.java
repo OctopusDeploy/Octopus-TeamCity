@@ -16,14 +16,28 @@
 
 package octopus.teamcity.agent;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.JarURLConnection;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 
 public class EmbeddedResourceExtractor {
   public void extractTo(String destinationPath) throws Exception {
@@ -113,5 +127,194 @@ public class EmbeddedResourceExtractor {
       zis.close();
       fis.close();
     }
+  }
+
+  public void extractCliTo(String destinationPath, String octopusVersion, String osFolder)
+      throws Exception {
+    String binaryArchive =
+        getArchiveName(String.format("resources/newcli/%s/%s", octopusVersion, osFolder));
+    extractTarGzResource(
+        String.format("/resources/newcli/%s/%s/%s", octopusVersion, osFolder, binaryArchive),
+        Paths.get(destinationPath));
+  }
+
+  public void extractTarGzResource(String resourcePath, Path destDir) throws IOException {
+    Files.createDirectories(destDir);
+
+    try (InputStream fi = getClass().getResourceAsStream(resourcePath)) {
+      if (fi == null) {
+        throw new IOException("Resource not found: " + resourcePath);
+      }
+
+      try (BufferedInputStream bi = new BufferedInputStream(fi);
+          GzipCompressorInputStream gzi = new GzipCompressorInputStream(bi);
+          TarArchiveInputStream tarIn = new TarArchiveInputStream(gzi)) {
+
+        TarArchiveEntry entry;
+        byte[] buffer = new byte[4096];
+        while ((entry = tarIn.getNextTarEntry()) != null) {
+          Path entryPath = destDir.resolve(entry.getName()).normalize();
+
+          if (!entryPath.startsWith(destDir.toRealPath())) {
+            throw new IOException(
+                "Zip Slip detected! Entry is outside of the target directory: " + entry.getName());
+          }
+
+          if (entry.isDirectory()) {
+            Files.createDirectories(entryPath);
+          } else {
+            Files.createDirectories(entryPath.getParent());
+
+            try (OutputStream out = Files.newOutputStream(entryPath)) {
+              int bytesRead;
+              while ((bytesRead = tarIn.read(buffer)) != -1) {
+                out.write(buffer, 0, bytesRead);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Validates and sanitizes a JAR entry name to prevent Zip Slip attacks.
+   *
+   * @param entryName the JAR entry name to validate
+   * @return true if the entry name is safe, false otherwise
+   */
+  private boolean isSafeEntryName(String entryName) {
+    if (entryName == null || entryName.isEmpty()) {
+      return false;
+    }
+    // Reject any entry name containing path traversal sequences
+    if (entryName.contains("..")) {
+      return false;
+    }
+    // Normalize and check for path traversal
+    try {
+      Path namePath = Paths.get(entryName).normalize();
+      if (namePath.toString().contains("..") || namePath.isAbsolute()) {
+        return false;
+      }
+    } catch (Exception e) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Extracts and sanitizes a filename from a relative path to prevent Zip Slip attacks.
+   *
+   * @param relativePath the relative path to extract filename from
+   * @param fullEntryName the full entry name for error messages
+   * @return the sanitized filename
+   * @throws RuntimeException if the path is unsafe
+   */
+  private String extractSafeFilename(String relativePath, String fullEntryName) {
+    // Sanitize the relative path first to prevent path traversal attacks
+    Path relativePathObj = Paths.get(relativePath).normalize();
+
+    // Reject if the relative path contains parent directory references or is absolute
+    if (relativePathObj.isAbsolute()
+        || relativePath.contains("..")
+        || relativePathObj.toString().contains("..")) {
+      throw new RuntimeException(
+          "Invalid archive path detected (potential Zip Slip): " + fullEntryName);
+    }
+
+    // Extract the filename component
+    int slashIndex = relativePath.indexOf('/');
+    String filename = slashIndex >= 0 ? relativePath.substring(0, slashIndex) : relativePath;
+
+    // Additional sanitization of the filename
+    Path path = Paths.get(filename);
+    Path normalizedPath = path.normalize();
+
+    // Reject if the path is absolute, contains parent directory references, or is empty
+    if (normalizedPath.isAbsolute()
+        || normalizedPath.toString().contains("..")
+        || filename.isEmpty()
+        || filename.equals(".")
+        || filename.equals("..")) {
+      throw new RuntimeException("Invalid archive name detected (potential Zip Slip): " + filename);
+    }
+
+    // Get only the filename component (last part of the path)
+    String sanitizedFilename = normalizedPath.getFileName().toString();
+    if (sanitizedFilename.isEmpty()) {
+      throw new RuntimeException("Invalid archive name detected (potential Zip Slip): " + filename);
+    }
+
+    return sanitizedFilename;
+  }
+
+  private String getArchiveName(String resourceFolder) {
+    // Validate resourceFolder parameter to prevent path traversal
+    if (resourceFolder == null || resourceFolder.contains("..")) {
+      throw new RuntimeException("Invalid resource folder path: " + resourceFolder);
+    }
+
+    URL url = getClass().getClassLoader().getResource(resourceFolder);
+    if (url == null) {
+      throw new RuntimeException("Unable to find embedded resource folder: " + resourceFolder);
+    }
+
+    try {
+      if ("file".equals(url.getProtocol())) {
+        // Running from filesystem (IDE/development)
+        Path folderPath = Paths.get(url.toURI());
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(folderPath)) {
+          for (Path entry : stream) {
+            String name = entry.getFileName().toString();
+            // Validate filename to prevent Zip Slip
+            if (!isSafeEntryName(name)) {
+              continue;
+            }
+            if (name.endsWith(".tar.gz") || name.endsWith(".zip") || name.endsWith(".tgz")) {
+              return name;
+            }
+          }
+        }
+      } else if ("jar".equals(url.getProtocol())) {
+        // Running from JAR
+        JarURLConnection jarConnection = (JarURLConnection) url.openConnection();
+        try (JarFile jarFile = jarConnection.getJarFile()) {
+          String folderPrefix =
+              resourceFolder.endsWith("/") ? resourceFolder : resourceFolder + "/";
+
+          // Use explicit enumeration to ensure CodeQL recognizes the sanitization
+          java.util.Enumeration<JarEntry> entries = jarFile.entries();
+          while (entries.hasMoreElements()) {
+            JarEntry entry = entries.nextElement();
+            // CRITICAL: Validate entry name immediately after retrieval to prevent Zip Slip
+            String name = entry.getName();
+            if (!isSafeEntryName(name)) {
+              continue;
+            }
+
+            // Check if entry matches our criteria
+            if (!name.startsWith(folderPrefix) || name.equals(folderPrefix)) {
+              continue;
+            }
+
+            if (!name.endsWith(".tar.gz") && !name.endsWith(".zip") && !name.endsWith(".tgz")) {
+              continue;
+            }
+
+            // Extract just the filename from the full path and sanitize to prevent Zip Slip
+            String relativePath = name.substring(folderPrefix.length());
+            String sanitizedFilename = extractSafeFilename(relativePath, name);
+            return sanitizedFilename;
+          }
+
+          throw new RuntimeException("No archive found in: " + resourceFolder);
+        }
+      }
+    } catch (URISyntaxException | IOException e) {
+      throw new RuntimeException("Error reading resource folder: " + resourceFolder, e);
+    }
+
+    throw new RuntimeException("No archive found in folder: " + resourceFolder);
   }
 }

@@ -15,7 +15,9 @@ tasks.named('jar') {
 dependencies {
   provided files('./libs/agent.jar')
   provided 'org.jetbrains.teamcity:agent-api'
-
+  implementation 'org.apache.commons:commons-compress:1.26.0'
+  implementation 'org.apache.commons:commons-lang3:3.18.0'
+  implementation 'com.google.code.gson:gson'
   implementation project(':octopus-common')
   implementation 'org.jetbrains.teamcity:teamcity-rest-client'
   implementation 'com.google.code.gson:gson'
@@ -25,6 +27,7 @@ dependencies {
   implementation 'commons-io:commons-io'
 
   testImplementation 'org.jetbrains.teamcity:agent-api'
+  testImplementation files('./libs/agent.jar')
   testImplementation 'org.junit.jupiter:junit-jupiter-api'
   testImplementation 'org.junit.jupiter:junit-jupiter-params'
   testImplementation 'org.assertj:assertj-core'
