@@ -140,6 +140,7 @@ public class EmbeddedResourceExtractor {
 
   public void extractTarGzResource(String resourcePath, Path destDir) throws IOException {
     Files.createDirectories(destDir);
+    Path realDestDir = destDir.toRealPath();
 
     try (InputStream fi = getClass().getResourceAsStream(resourcePath)) {
       if (fi == null) {
@@ -153,9 +154,9 @@ public class EmbeddedResourceExtractor {
         TarArchiveEntry entry;
         byte[] buffer = new byte[4096];
         while ((entry = tarIn.getNextTarEntry()) != null) {
-          Path entryPath = destDir.resolve(entry.getName()).normalize();
+          Path entryPath = realDestDir.resolve(entry.getName()).normalize();
 
-          if (!entryPath.startsWith(destDir.toRealPath())) {
+          if (!entryPath.startsWith(realDestDir)) {
             throw new IOException(
                 "Zip Slip detected! Entry is outside of the target directory: " + entry.getName());
           }

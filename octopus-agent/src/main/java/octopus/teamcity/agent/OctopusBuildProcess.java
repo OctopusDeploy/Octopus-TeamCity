@@ -39,12 +39,12 @@ import org.springframework.util.StringUtils;
 public abstract class OctopusBuildProcess implements BuildProcess {
   private final AgentRunningBuild runningBuild;
   private final BuildRunnerContext context;
-  private Process process;
+  private volatile Process process;
   private File extractedTo;
-  private Output.ReaderThread standardError;
-  private Output.ReaderThread standardOutput;
   private boolean isFinished;
   private final BuildProgressLogger logger;
+  private OctopusCliRetryExecutor.CliResult cliResult;
+  private OctopusCliRetryExecutor retryExecutor;
 
   protected OctopusBuildProcess(
       @NotNull AgentRunningBuild runningBuild, @NotNull BuildRunnerContext context) {
@@ -57,6 +57,9 @@ public abstract class OctopusBuildProcess implements BuildProcess {
   @Override
   public void start() throws RunBuildException {
     extractOctoExe();
+
+    retryExecutor =
+        new OctopusCliRetryExecutor(logger, context.getBuildParameters().getEnvironmentVariables());
 
     OctopusCommandBuilder arguments = createCommand();
     startOcto(arguments);
@@ -118,46 +121,81 @@ public abstract class OctopusBuildProcess implements BuildProcess {
     logger.progressMessage(getLogMessage());
 
     try {
-      final String octopusVersion = getSelectedOctopusVersion();
+      final Boolean finalUseExe = useExe;
+      final Boolean finalUseOcto = useOcto;
 
-      final ArrayList<String> arguments = new ArrayList<>();
-      if (useExe) {
-        arguments.add(new File(extractedTo, octopusVersion + "/octo.exe").getAbsolutePath());
-      } else if (useOcto) {
-        arguments.add("octo");
-      } else {
-        arguments.add("dotnet");
-        String dllPath = new File(extractedTo, octopusVersion + "/Core/octo.dll").getAbsolutePath();
-        arguments.add(dllPath);
-      }
+      // Execute the CLI process, wrapped in retry logic. On transient failures (connection
+      // refused, 502/503/504, DNS errors, timeouts), the retry executor will re-launch the
+      // entire CLI process with exponential backoff. The CaptureWriter on stdout/stderr
+      // collects output so the error classifier can inspect it after each attempt.
+      cliResult =
+          retryExecutor.executeWithRetry(
+              () -> executeOctoProcess(realCommand, finalUseExe, finalUseOcto));
 
-      arguments.addAll(Arrays.asList(realCommand));
+      logger.message("octo exit code: " + cliResult.getExitCode());
 
-      final String extensionVersion = getClass().getPackage().getImplementationVersion();
-
-      final ProcessBuilder builder = new ProcessBuilder();
-
-      Map<String, String> programEnvironmentVariables =
-          context.getBuildParameters().getEnvironmentVariables();
-      Map<String, String> environment = builder.environment();
-      environment.put("OCTOEXTENSION", extensionVersion);
-      environment.putAll(programEnvironmentVariables);
-
-      process = builder.command(arguments).directory(context.getWorkingDirectory()).start();
-
-      final LoggingProcessListener listener = new LoggingProcessListener(logger);
-
-      standardError = new Output.ReaderThread(process.getErrorStream(), listener::onErrorOutput);
-      standardOutput =
-          new Output.ReaderThread(process.getInputStream(), listener::onStandardOutput);
-
-      standardError.start();
-      standardOutput.start();
     } catch (IOException e) {
       final String message = "Error from octo: " + e.getMessage();
       Logger.getInstance(getClass().getName()).error(message, e);
       throw new RunBuildException(message);
+    } catch (InterruptedException e) {
+      isFinished = true;
+      final String message = "Unable to wait for octo: " + e.getMessage();
+      Logger.getInstance(getClass().getName()).error(message, e);
+      throw new RunBuildException(message);
     }
+  }
+
+  private OctopusCliRetryExecutor.CliResult executeOctoProcess(
+      String[] realCommand, boolean useExe, boolean useOcto)
+      throws IOException, InterruptedException {
+    final String octopusVersion = getSelectedOctopusVersion();
+
+    final ArrayList<String> arguments = new ArrayList<>();
+    if (useExe) {
+      arguments.add(new File(extractedTo, octopusVersion + "/octo.exe").getAbsolutePath());
+    } else if (useOcto) {
+      arguments.add("octo");
+    } else {
+      arguments.add("dotnet");
+      String dllPath = new File(extractedTo, octopusVersion + "/Core/octo.dll").getAbsolutePath();
+      arguments.add(dllPath);
+    }
+
+    arguments.addAll(Arrays.asList(realCommand));
+
+    final String extensionVersion = getClass().getPackage().getImplementationVersion();
+
+    final ProcessBuilder builder = new ProcessBuilder();
+
+    Map<String, String> programEnvironmentVariables =
+        context.getBuildParameters().getEnvironmentVariables();
+    Map<String, String> environment = builder.environment();
+    environment.put("OCTOEXTENSION", extensionVersion);
+    environment.putAll(programEnvironmentVariables);
+
+    process = builder.command(arguments).directory(context.getWorkingDirectory()).start();
+
+    final LoggingProcessListener listener = new LoggingProcessListener(logger);
+
+    CaptureWriter stderrCapture = new CaptureWriter(listener::onErrorOutput);
+    CaptureWriter stdoutCapture = new CaptureWriter(listener::onStandardOutput);
+
+    Output.ReaderThread standardError =
+        new Output.ReaderThread(process.getErrorStream(), stderrCapture);
+    Output.ReaderThread standardOutput =
+        new Output.ReaderThread(process.getInputStream(), stdoutCapture);
+
+    standardError.start();
+    standardOutput.start();
+
+    int exitCode = process.waitFor();
+
+    standardError.join();
+    standardOutput.join();
+
+    String combinedOutput = stdoutCapture.getCapturedOutput() + stderrCapture.getCapturedOutput();
+    return new OctopusCliRetryExecutor.CliResult(exitCode, combinedOutput);
   }
 
   private String getSelectedOctopusVersion() {
@@ -199,26 +237,10 @@ public abstract class OctopusBuildProcess implements BuildProcess {
   @Override
   @NotNull
   public BuildFinishedStatus waitFor() throws RunBuildException {
-    int exitCode;
+    logger.activityFinished("Octopus Deploy", BLOCK_TYPE_BUILD_STEP);
+    isFinished = true;
 
-    try {
-      exitCode = process.waitFor();
-
-      standardError.join();
-      standardOutput.join();
-
-      logger.message("octo exit code: " + exitCode);
-      logger.activityFinished("Octopus Deploy", BLOCK_TYPE_BUILD_STEP);
-
-      isFinished = true;
-    } catch (InterruptedException e) {
-      isFinished = true;
-      final String message = "Unable to wait for octo: " + e.getMessage();
-      Logger.getInstance(getClass().getName()).error(message, e);
-      throw new RunBuildException(message);
-    }
-
-    if (exitCode == 0) {
+    if (cliResult != null && cliResult.getExitCode() == 0) {
       return BuildFinishedStatus.FINISHED_SUCCESS;
     }
 

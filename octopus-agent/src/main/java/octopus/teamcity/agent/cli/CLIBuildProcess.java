@@ -34,6 +34,7 @@ import jetbrains.buildServer.agent.BuildProgressLogger;
 import jetbrains.buildServer.agent.BuildRunnerContext;
 import jetbrains.buildServer.agent.runner.LoggingProcessListener;
 import octopus.teamcity.agent.EmbeddedResourceExtractor;
+import octopus.teamcity.agent.OctopusCliRetryExecutor;
 import octopus.teamcity.agent.OctopusCommandBuilder;
 import octopus.teamcity.agent.OctopusOsUtils;
 import octopus.teamcity.agent.Output;
@@ -44,13 +45,14 @@ import org.springframework.util.StringUtils;
 public abstract class CLIBuildProcess implements BuildProcess {
   private final AgentRunningBuild runningBuild;
   private final BuildRunnerContext context;
-  private Process process;
+  private volatile Process process;
   private int exitCode;
   private File extractedTo;
   private Output.ReaderThread standardOutput;
   private boolean isFinished;
   private String octopusBinaryName;
   protected final BuildProgressLogger logger;
+  private OctopusCliRetryExecutor retryExecutor;
 
   protected CLIBuildProcess(
       @NotNull AgentRunningBuild runningBuild, @NotNull BuildRunnerContext context) {
@@ -71,7 +73,12 @@ public abstract class CLIBuildProcess implements BuildProcess {
   @Override
   public void start() throws RunBuildException {
     extractOctopusBinary();
-    // run commands
+    retryExecutor =
+        new OctopusCliRetryExecutor(logger, context.getBuildParameters().getEnvironmentVariables());
+    // Execute each CLI command in sequence (e.g. login → create-release → deploy → wait).
+    // If any command fails (exitCode == 1), skip remaining commands. Each individual command
+    // is independently wrapped in retry logic by startOctopus(), so a transient failure on
+    // one command won't skip subsequent commands until retries are exhausted.
     List<OctopusCommandBuilder> commandArgumentsList = createCommand();
     for (OctopusCommandBuilder commandArguments : commandArgumentsList) {
       if (exitCode == 1) {
@@ -166,49 +173,64 @@ public abstract class CLIBuildProcess implements BuildProcess {
     logger.progressMessage(getLogMessage());
 
     try {
-      final ArrayList<String> arguments = new ArrayList<>();
-      arguments.add(
-          new File(extractedTo, String.format("/%s", octopusBinaryName)).getAbsolutePath());
+      // Execute this CLI command wrapped in retry logic. Unlike the legacy path, the Go CLI
+      // has its own built-in retry on login, so this is a second safety net. On transient
+      // failures, the entire process (binary launch → login → command) is re-executed with
+      // exponential backoff. stdout and stderr are merged (redirectErrorStream) and captured
+      // in outputBuilder for error classification after each attempt.
+      OctopusCliRetryExecutor.CliResult result =
+          retryExecutor.executeWithRetry(
+              () -> {
+                final ArrayList<String> arguments = new ArrayList<>();
+                arguments.add(
+                    new File(extractedTo, String.format("/%s", octopusBinaryName))
+                        .getAbsolutePath());
 
-      arguments.addAll(Arrays.asList(realCommand));
-      final String extensionVersion = getClass().getPackage().getImplementationVersion();
-      final ProcessBuilder builder = new ProcessBuilder();
-      builder.redirectErrorStream(true);
-      Map<String, String> programEnvironmentVariables =
-          context.getBuildParameters().getEnvironmentVariables();
-      Map<String, String> environment = builder.environment();
+                arguments.addAll(Arrays.asList(realCommand));
+                final String extensionVersion = getClass().getPackage().getImplementationVersion();
+                final ProcessBuilder builder = new ProcessBuilder();
+                builder.redirectErrorStream(true);
+                Map<String, String> programEnvironmentVariables =
+                    context.getBuildParameters().getEnvironmentVariables();
+                Map<String, String> environment = builder.environment();
 
-      // Only set OCTOEXTENSION if the version is available (null when running from IDE)
-      if (extensionVersion != null) {
-        environment.put("OCTOEXTENSION", extensionVersion);
-      }
+                // Only set OCTOEXTENSION if the version is available (null when running from IDE)
+                if (extensionVersion != null) {
+                  environment.put("OCTOEXTENSION", extensionVersion);
+                }
 
-      // Filter out any null values from environment variables
-      for (Map.Entry<String, String> entry : programEnvironmentVariables.entrySet()) {
-        if (entry.getKey() != null && entry.getValue() != null) {
-          environment.put(entry.getKey(), entry.getValue());
-        }
-      }
+                // Filter out any null values from environment variables
+                for (Map.Entry<String, String> entry : programEnvironmentVariables.entrySet()) {
+                  if (entry.getKey() != null && entry.getValue() != null) {
+                    environment.put(entry.getKey(), entry.getValue());
+                  }
+                }
 
-      logger.message("Starting process...");
-      process = builder.command(arguments).directory(context.getWorkingDirectory()).start();
-      process.getOutputStream().close();
+                logger.message("Starting process...");
+                process =
+                    builder.command(arguments).directory(context.getWorkingDirectory()).start();
+                process.getOutputStream().close();
 
-      StringBuilder outputBuilder = new StringBuilder();
-      final LoggingProcessListener listener = new LoggingProcessListener(logger);
+                StringBuilder outputBuilder = new StringBuilder();
+                final LoggingProcessListener listener = new LoggingProcessListener(logger);
 
-      standardOutput =
-          new Output.ReaderThread(
-              process.getInputStream(),
-              line -> {
-                listener.onStandardOutput(line);
-                outputBuilder.append(line);
+                standardOutput =
+                    new Output.ReaderThread(
+                        process.getInputStream(),
+                        line -> {
+                          listener.onStandardOutput(line);
+                          outputBuilder.append(line);
+                        });
+                standardOutput.start();
+                int processExitCode = process.waitFor();
+                standardOutput.join();
+
+                return new OctopusCliRetryExecutor.CliResult(
+                    processExitCode, outputBuilder.toString());
               });
-      standardOutput.start();
-      exitCode = process.waitFor();
-      standardOutput.join();
 
-      processOutput(outputBuilder.toString(), exitCode);
+      exitCode = result.getExitCode();
+      processOutput(result.getCombinedOutput(), exitCode);
 
     } catch (IOException e) {
       final String message = "Error from octopus: " + e.getMessage();
