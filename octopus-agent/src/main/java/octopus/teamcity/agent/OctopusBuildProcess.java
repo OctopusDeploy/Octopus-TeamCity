@@ -124,6 +124,10 @@ public abstract class OctopusBuildProcess implements BuildProcess {
       final Boolean finalUseExe = useExe;
       final Boolean finalUseOcto = useOcto;
 
+      // Execute the CLI process, wrapped in retry logic. On transient failures (connection
+      // refused, 502/503/504, DNS errors, timeouts), the retry executor will re-launch the
+      // entire CLI process with exponential backoff. The CaptureWriter on stdout/stderr
+      // collects output so the error classifier can inspect it after each attempt.
       cliResult =
           retryExecutor.executeWithRetry(
               () -> executeOctoProcess(realCommand, finalUseExe, finalUseOcto));

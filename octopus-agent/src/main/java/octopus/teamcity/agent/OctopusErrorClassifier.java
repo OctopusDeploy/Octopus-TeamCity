@@ -20,6 +20,19 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
+/**
+ * Classifies CLI exit failures as transient (worth retrying) or permanent (fail immediately).
+ *
+ * <p>Both the legacy .NET CLI (octo.dll) and the Go CLI (octopus) produce different error messages
+ * for the same failure modes, so patterns cover both formats: - .NET: "The remote server returned
+ * an error: (502)" / "Unable to connect to the remote server" - Go: "server returned HTTP status
+ * 502" / "connection refused" / "i/o timeout"
+ *
+ * <p>Classification priority: permanent patterns are checked first. If neither matches, the error
+ * is treated as permanent (fail-safe: unknown errors are not retried).
+ *
+ * @see OctopusCliRetryExecutor
+ */
 public class OctopusErrorClassifier {
 
   public enum ErrorCategory {

@@ -22,6 +22,55 @@ import java.util.Random;
 
 import jetbrains.buildServer.agent.BuildProgressLogger;
 
+/**
+ * Wraps CLI execution with retry-on-transient-failure logic using exponential backoff.
+ *
+ * <h3>How it works</h3>
+ *
+ * <ol>
+ *   <li>Execute the CLI once (always runs at least once, even if retry is disabled).
+ *   <li>If exit code is 0, return success immediately.
+ *   <li>If retry is disabled, return the failure result as-is.
+ *   <li>Classify the error via {@link OctopusErrorClassifier}. Permanent errors (bad API key,
+ *       missing project) are returned without retry.
+ *   <li>For transient errors (connection refused, 502/503/504, DNS failure, timeouts), re-execute
+ *       with exponential backoff until either:
+ *       <ul>
+ *         <li>the CLI succeeds,
+ *         <li>the error becomes permanent (e.g. server comes back but credentials are wrong), or
+ *         <li>the total timeout elapses (default 15 minutes).
+ *       </ul>
+ * </ol>
+ *
+ * <h3>Backoff strategy</h3>
+ *
+ * Delay doubles each attempt (5s → 10s → 20s → ...) with up to 1s of random jitter, capped at
+ * {@code maxDelayMs} (default 2 minutes).
+ *
+ * <h3>Behavioural difference between CLI paths</h3>
+ *
+ * <ul>
+ *   <li><b>Legacy .NET CLI</b>: the CLI itself has no retry logic; this executor provides all
+ *       resilience. Each CLI invocation fails fast on connection errors (~76s TCP timeout), so the
+ *       executor's backoff controls the retry cadence.
+ *   <li><b>Go CLI</b>: the CLI has its own built-in exponential backoff on login. A single
+ *       invocation may run for several minutes retrying internally. This executor adds a second
+ *       layer if the CLI exhausts its internal retries and exits with a transient error.
+ * </ul>
+ *
+ * <h3>Configuration</h3>
+ *
+ * All settings are read from build environment variables:
+ *
+ * <ul>
+ *   <li>{@code OCTOPUS_RETRY_ENABLED} — disable retry entirely (default: true)
+ *   <li>{@code OCTOPUS_RETRY_TIMEOUT} — total retry window in ms (default: 900000 / 15min)
+ *   <li>{@code OCTOPUS_RETRY_INITIAL_DELAY} — first backoff delay in ms (default: 5000)
+ *   <li>{@code OCTOPUS_RETRY_MAX_DELAY} — backoff cap in ms (default: 120000 / 2min)
+ * </ul>
+ *
+ * @see OctopusErrorClassifier
+ */
 public class OctopusCliRetryExecutor {
 
   @FunctionalInterface

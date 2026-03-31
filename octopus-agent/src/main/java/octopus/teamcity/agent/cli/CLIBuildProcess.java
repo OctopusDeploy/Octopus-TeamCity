@@ -75,7 +75,10 @@ public abstract class CLIBuildProcess implements BuildProcess {
     extractOctopusBinary();
     retryExecutor =
         new OctopusCliRetryExecutor(logger, context.getBuildParameters().getEnvironmentVariables());
-    // run commands
+    // Execute each CLI command in sequence (e.g. login → create-release → deploy → wait).
+    // If any command fails (exitCode == 1), skip remaining commands. Each individual command
+    // is independently wrapped in retry logic by startOctopus(), so a transient failure on
+    // one command won't skip subsequent commands until retries are exhausted.
     List<OctopusCommandBuilder> commandArgumentsList = createCommand();
     for (OctopusCommandBuilder commandArguments : commandArgumentsList) {
       if (exitCode == 1) {
@@ -170,6 +173,11 @@ public abstract class CLIBuildProcess implements BuildProcess {
     logger.progressMessage(getLogMessage());
 
     try {
+      // Execute this CLI command wrapped in retry logic. Unlike the legacy path, the Go CLI
+      // has its own built-in retry on login, so this is a second safety net. On transient
+      // failures, the entire process (binary launch → login → command) is re-executed with
+      // exponential backoff. stdout and stderr are merged (redirectErrorStream) and captured
+      // in outputBuilder for error classification after each attempt.
       OctopusCliRetryExecutor.CliResult result =
           retryExecutor.executeWithRetry(
               () -> {
@@ -186,10 +194,12 @@ public abstract class CLIBuildProcess implements BuildProcess {
                     context.getBuildParameters().getEnvironmentVariables();
                 Map<String, String> environment = builder.environment();
 
+                // Only set OCTOEXTENSION if the version is available (null when running from IDE)
                 if (extensionVersion != null) {
                   environment.put("OCTOEXTENSION", extensionVersion);
                 }
 
+                // Filter out any null values from environment variables
                 for (Map.Entry<String, String> entry : programEnvironmentVariables.entrySet()) {
                   if (entry.getKey() != null && entry.getValue() != null) {
                     environment.put(entry.getKey(), entry.getValue());
