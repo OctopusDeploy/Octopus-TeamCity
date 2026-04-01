@@ -1,5 +1,13 @@
 # Changelog
 
+## [6.2.0](https://github.com/OctopusDeploy/Octopus-TeamCity/compare/v6.1.15...v6.2.0) (2026-04-01)
+
+
+### Features
+
+* new cli support ([#183](https://github.com/OctopusDeploy/Octopus-TeamCity/issues/183)) ([92c75d7](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/92c75d78caa0b70b1af8a795710d47d299ae4873))
+* Retry with exponential backoff when Octopus Deploy is unavailable ([#186](https://github.com/OctopusDeploy/Octopus-TeamCity/issues/186)) ([b643dc1](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/b643dc170b7a89adedcf5a657d782cfe6f5a7f68))
+
 ## [6.1.15](https://github.com/OctopusDeploy/Octopus-TeamCity/compare/v6.1.14...v6.1.15) (2024-03-18)
 
 
