@@ -25,8 +25,11 @@ import java.util.regex.Pattern;
  *
  * <p>Both the legacy .NET CLI (octo.dll) and the Go CLI (octopus) produce different error messages
  * for the same failure modes, so patterns cover both formats: - .NET: "The remote server returned
- * an error: (502)" / "Unable to connect to the remote server" - Go: "server returned HTTP status
- * 502" / "connection refused" / "i/o timeout"
+ * an error: (502)" / "Unable to connect to .*server" - Go: "server returned HTTP status 502" /
+ * "connection refused" / "i/o timeout"
+ *
+ * <p>Also handles the case where Octopus Cloud returns a maintenance HTML page (which masks the
+ * underlying HTTP 503 from octo.dll) by matching "undergoing maintenance" anywhere in the body.
  *
  * <p>Classification priority: permanent patterns are checked first. If neither matches, the error
  * is treated as permanent (fail-safe: unknown errors are not retried).
@@ -42,7 +45,7 @@ public class OctopusErrorClassifier {
 
   private static final List<Pattern> TRANSIENT_PATTERNS =
       Arrays.asList(
-          Pattern.compile("Unable to connect to the remote server", Pattern.CASE_INSENSITIVE),
+          Pattern.compile("Unable to connect to .*server", Pattern.CASE_INSENSITIVE),
           Pattern.compile(
               "The remote server returned an error: \\(50[234]\\)", Pattern.CASE_INSENSITIVE),
           Pattern.compile("The remote name could not be resolved", Pattern.CASE_INSENSITIVE),
@@ -52,7 +55,8 @@ public class OctopusErrorClassifier {
           Pattern.compile("i/o timeout", Pattern.CASE_INSENSITIVE),
           Pattern.compile("no such host", Pattern.CASE_INSENSITIVE),
           Pattern.compile("server returned HTTP status 50[234]", Pattern.CASE_INSENSITIVE),
-          Pattern.compile("The Octopus server .* is not available", Pattern.CASE_INSENSITIVE));
+          Pattern.compile("The Octopus server .* is not available", Pattern.CASE_INSENSITIVE),
+          Pattern.compile("undergoing maintenance", Pattern.CASE_INSENSITIVE));
 
   private static final List<Pattern> PERMANENT_PATTERNS =
       Arrays.asList(
