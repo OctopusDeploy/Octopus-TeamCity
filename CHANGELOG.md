@@ -1,5 +1,17 @@
 # Changelog
 
+## [6.3.0](https://github.com/OctopusDeploy/Octopus-TeamCity/compare/v6.2.0...v6.3.0) (2026-05-19)
+
+
+### Features
+
+* Update teamcity-plugin.xml to allow plugin to load on secondary node ([#191](https://github.com/OctopusDeploy/Octopus-TeamCity/issues/191)) ([ba3a4d0](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/ba3a4d01708d96bbdc675f9da68af53cc428783a))
+
+
+### Bug Fixes
+
+* classify Octopus Cloud maintenance response as transient ([#189](https://github.com/OctopusDeploy/Octopus-TeamCity/issues/189)) ([ce36099](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/ce36099ef36f18913bc72acf652d235e7ce17884))
+
 ## [6.2.0](https://github.com/OctopusDeploy/Octopus-TeamCity/compare/v6.1.15...v6.2.0) (2026-04-01)
 
 
