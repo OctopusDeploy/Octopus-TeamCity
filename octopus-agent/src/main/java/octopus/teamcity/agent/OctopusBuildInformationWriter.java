@@ -3,7 +3,7 @@ package octopus.teamcity.agent;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -21,7 +21,8 @@ public class OctopusBuildInformationWriter {
     this.verboseLogging = verboseLogging;
   }
 
-  public void writeToFile(final OctopusBuildInformation buildInformation, final String dataFile)
+  public void writeToFile(
+      final OctopusBuildInformation buildInformation, final String dataFile, Charset charset)
       throws IOException {
     try {
       final Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
@@ -34,8 +35,7 @@ public class OctopusBuildInformationWriter {
         buildLogger.message("Serialized Octopus build information - " + jsonData);
       }
 
-      final OutputStreamWriter bw =
-          new OutputStreamWriter(new FileOutputStream(dataFile), StandardCharsets.UTF_16);
+      final OutputStreamWriter bw = new OutputStreamWriter(new FileOutputStream(dataFile), charset);
       bw.write(jsonData);
       bw.close();
 

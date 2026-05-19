@@ -28,5 +28,4 @@
     <bean class="octopus.teamcity.agent.OctopusPromoteReleaseRunner"/>
     <bean class="octopus.teamcity.agent.OctopusPushPackageRunner"/>
     <bean class="octopus.teamcity.agent.OctopusPackPackageRunner"/>
-    <bean class="octopus.teamcity.agent.generic.OctopusGenericRunner"/>
 </beans>

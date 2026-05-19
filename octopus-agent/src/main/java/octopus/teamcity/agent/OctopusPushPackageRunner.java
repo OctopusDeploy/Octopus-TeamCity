@@ -24,6 +24,7 @@ import jetbrains.buildServer.agent.AgentRunningBuild;
 import jetbrains.buildServer.agent.BuildAgentConfiguration;
 import jetbrains.buildServer.agent.BuildProcess;
 import jetbrains.buildServer.agent.BuildRunnerContext;
+import octopus.teamcity.agent.cli.PushPackageBuildProcess;
 import octopus.teamcity.common.OctopusConstants;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,6 +40,15 @@ public class OctopusPushPackageRunner implements AgentBuildRunner {
   public BuildProcess createBuildProcess(
       @NotNull AgentRunningBuild runningBuild, @NotNull BuildRunnerContext context)
       throws RunBuildException {
+    boolean octopusNewCli =
+        Boolean.parseBoolean(
+            runningBuild
+                .getSharedBuildParameters()
+                .getEnvironmentVariables()
+                .get("OCTOPUS_NEW_CLI"));
+    if (octopusNewCli) {
+      return new PushPackageBuildProcess(runningBuild, context, myExtensionHolder);
+    }
     return new OctopusPushPackageBuildProcess(runningBuild, context, myExtensionHolder);
   }
 
