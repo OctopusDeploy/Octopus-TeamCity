@@ -63,10 +63,33 @@ class OctopusErrorClassifierTest {
         "server returned HTTP status 502",
         "server returned HTTP status 503",
         "server returned HTTP status 504",
-        "The Octopus server https://octopus.example.com is not available"
+        "The Octopus server https://octopus.example.com is not available",
+        "Unable to connect to the Octopus Deploy server",
+        "Octopus Cloud instance is Undergoing Maintenance",
+        "Your Octopus Cloud instance is currently undergoing maintenance and will be back soon."
       })
   void transientPatternsAreClassifiedCorrectly(String output) {
     assertThat(OctopusErrorClassifier.classify(1, output)).isEqualTo(ErrorCategory.TRANSIENT);
+  }
+
+  @Test
+  void octoDllMaintenancePageIsTransient() {
+    String output =
+        "System.Exception: Unable to connect to the Octopus Deploy server. "
+            + "See the inner exception for details.\n"
+            + " ---> Octopus.Client.Exceptions.OctopusServerException: <!DOCTYPE html>\n"
+            + "<html>\n"
+            + "  <head>\n"
+            + "    <title>Octopus Cloud instance is Undergoing Maintenance</title>\n"
+            + "  </head>\n"
+            + "  <body>\n"
+            + "    <h2>Octopus Cloud instance is Undergoing Maintenance</h2>\n"
+            + "    <p>Your Octopus Cloud instance is currently undergoing maintenance "
+            + "and will be back soon.</p>\n"
+            + "  </body>\n"
+            + "</html>\n"
+            + "Exit code: -3";
+    assertThat(OctopusErrorClassifier.classify(253, output)).isEqualTo(ErrorCategory.TRANSIENT);
   }
 
   @ParameterizedTest
