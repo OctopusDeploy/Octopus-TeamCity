@@ -114,7 +114,8 @@ At the top of each step's **Octopus Connection** settings group:
   version fields are **hidden**.
 - **Enter manually** (default when no `octopus_connection_id` is stored) → today's
   fields, unchanged.
-- The Space-name field is always shown (it can override the connection default).
+- The Space-name field is always shown (it can override the connection default). If the field is currently empty, and 
+  a connection is selected, it should set the step space name field to the connections space name.
 - Create release's existing Git-ref show/hide JS reads the selected connection's
   version (from the controller-supplied data) when a connection is in use,
   instead of the hidden version `<select>`.
