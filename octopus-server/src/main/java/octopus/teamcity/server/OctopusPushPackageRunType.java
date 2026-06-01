@@ -66,7 +66,7 @@ public class OctopusPushPackageRunType extends RunType {
           @NotNull final String key,
           @NotNull final String message,
           @NotNull final Collection<InvalidProperty> res) {
-        if (StringUtil.isEmptyOrSpaces(properties.get(key))) {
+        if (jetbrains.buildServer.util.StringUtil.isEmptyOrSpaces(properties.get(key))) {
           res.add(new InvalidProperty(key, message));
         }
       }
