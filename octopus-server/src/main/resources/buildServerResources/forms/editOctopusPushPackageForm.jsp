@@ -24,7 +24,8 @@
 <jsp:useBean id="propertiesBean" scope="request" type="jetbrains.buildServer.controllers.BasePropertiesBean"/>
 
 <l:settingsGroup title="Octopus Connection">
-  <tr>
+  <jsp:include page="../connectionSelector.jsp"/>
+  <tr class="octopusManualField">
     <th>Octopus URL:<l:star/></th>
     <td>
       <props:textProperty name="${keys.serverKey}" className="longField"/>
@@ -32,7 +33,7 @@
       <span class="smallNote">Specify Octopus web portal URL</span>
     </td>
   </tr>
-  <tr>
+  <tr class="octopusManualField">
     <th>API key:<l:star/></th>
     <td>
       <props:passwordProperty name="${keys.apiKey}" className="longField"/>
@@ -45,34 +46,23 @@
     <td>
       <props:textProperty name="${keys.spaceName}" className="longField"/>
       <span class="error" id="error_${keys.spaceName}"></span>
-      <span class="smallNote">Specify Octopus Space name. Leave blank to use the default space.</span>
+      <span class="smallNote">Specify the Octopus Space name to push to. Leave blank to use the default space.</span>
     </td>
   </tr>
 </l:settingsGroup>
 
-<l:settingsGroup title="Package">
-
+<l:settingsGroup title="Package Push">
   <tr>
-    <th>Package IDs:<l:star/></th>
+    <th>Package paths:<l:star/></th>
     <td>
-      <props:multilineProperty name="${keys.packageIdKey}" rows="5" cols="50" linkTitle="Package IDs" expanded="true" />
-      <span class="error" id="error_${keys.packageIdKey}"></span>
-      <span class="smallNote">
-        Newline-separated package IDs; e.g.<br/>MyCompany.MyApp<br/>MyCompany.MyApp2
+      <props:multilineProperty name="${keys.packagePathsKey}" rows="5" cols="50" linkTitle="Package path patterns" expanded="true" />
+      <span class="error" id="error_${keys.packagePathsKey}"></span>
+    <span class="smallNote">
+        Newline-separated paths of either package files, or directories to create packages from, that will be pushed. These follow the same rules as TeamCity artifact paths. Ant-style wildcards like <kbd>dir/**/*.zip</kbd> and directory transforms that produce a package
+        like <kbd>published-webapp/**/* =&gt; MyApp.%build.number%.zip</kbd> are supported.
       </span>
     </td>
   </tr>
-  <tr>
-    <th>Package version:<l:star/></th>
-    <td>
-      <props:textProperty name="${keys.packageVersionKey}" className="longField" />
-      <span class="error" id="error_${keys.packageVersionKey}"></span>
-      <span class="smallNote">
-        The package's version.
-      </span>
-    </td>
-  </tr>
-
   <tr class="advancedSetting">
     <th>Overwrite Mode:</th>
     <td>
@@ -82,15 +72,16 @@
         <props:option value="IgnoreIfExists">Ignore If Exists</props:option>
       </props:selectProperty>
       <span class="error" id="error_${keys.forcePushKey}"></span>
-      <span class="smallNote">Normally, if the same build information already exists on the server, the server will reject the build information push. This is a good practice as it ensures build information isn't accidentally overwritten or ignored. Use this setting to override this behavior.</span>
+      <span class="smallNote">Normally, if the same package already exists on the server, the server will reject the package push. This is a good practice as it ensures a package isn't accidentally overwritten or ignored. Use this setting to override this behavior.</span>
     </td>
   </tr>
-  <tr>
-    <th>Verbose logging:</th>
+
+  <tr class="advancedSetting">
+    <th>Publish packages as build artifacts:</th>
     <td>
-      <props:checkboxProperty name="${keys.verboseLoggingKey}" />
-      <span class="error" id="error_${keys.verboseLoggingKey}"></span>
-      <span class="smallNote">Set this to get more verbose logging.</span>
+      <props:checkboxProperty name="${keys.publishArtifactsKey}" />
+      <span class="error" id="error_${keys.publishArtifactsKey}"></span>
+      <span class="smallNote">Set this option to automatically publish any packages as TeamCity build artifacts. This is useful if you are creating a package from a directory, and want the package to appear in TeamCity as a build artifact.</span>
     </td>
   </tr>
 </l:settingsGroup>

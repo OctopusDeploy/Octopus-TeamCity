@@ -12,10 +12,23 @@
 
 <script type="text/javascript">
 
+    var octopusConnVersions = {};
+    <c:forEach var="conn" items="${octopusConnections}">
+      octopusConnVersions["${conn.id}"] = "${conn.version}";
+    </c:forEach>
+
+    function octopusEffectiveVersion() {
+      var connId = window.octopusSelectedConnectionId ? window.octopusSelectedConnectionId() : "";
+      if (connId && octopusConnVersions[connId]) {
+        return octopusConnVersions[connId];
+      }
+      return document.getElementById("${keys.octopusVersion}").value;
+    }
+
     function showHideGitRefField() {
         const gitRefRow  = document.getElementById("gitRefRow");
         const gitCommitRow  = document.getElementById("gitCommitRow");
-        const versionSelected = document.getElementById("${keys.octopusVersion}").value;
+        const versionSelected = octopusEffectiveVersion();
         let gitProjectsAreSupported = versionSelected === "${keys.version3}" || versionSelected === "${keys.previewVersion}";
         if (gitProjectsAreSupported) {
             gitRefRow.style.display = "table-row";
@@ -34,13 +47,19 @@
         // Bind the event
         document.getElementById("${keys.octopusVersion}").addEventListener("change", showHideGitRefField);
 
+        var octoConnSelect = document.getElementById("octopusConnectionId");
+        if (octoConnSelect) {
+            octoConnSelect.addEventListener("change", showHideGitRefField);
+        }
+
         // Run the check for the first time
         showHideGitRefField();
     });
 </script>
 
 <l:settingsGroup title="Octopus Connection">
-<tr>
+  <jsp:include page="../connectionSelector.jsp"/>
+<tr class="octopusManualField">
   <th>Octopus URL:<l:star/></th>
   <td>
     <props:textProperty name="${keys.serverKey}" className="longField"/>
@@ -48,7 +67,7 @@
     <span class="smallNote">Specify Octopus web portal URL</span>
   </td>
 </tr>
-<tr>
+<tr class="octopusManualField">
   <th>API key:<l:star/></th>
   <td>
     <props:passwordProperty name="${keys.apiKey}" className="longField"/>
@@ -56,7 +75,7 @@
     <span class="smallNote">Specify Octopus API key. You can get this from your user page in the Octopus web portal.</span>
   </td>
 </tr>
-<tr>
+<tr class="octopusManualField">
     <th>Octopus version:<l:star/></th>
     <td>
         <props:selectProperty name="${keys.octopusVersion}" multiple="false">
