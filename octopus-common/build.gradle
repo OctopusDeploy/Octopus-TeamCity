@@ -14,9 +14,4 @@ jar {
 
 dependencies {
   provided 'org.jetbrains.teamcity:common-api'
-
-  testImplementation 'org.junit.jupiter:junit-jupiter-api'
-  testImplementation 'org.junit.jupiter:junit-jupiter-params'
-  testImplementation 'org.assertj:assertj-core'
-  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
 }
