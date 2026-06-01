@@ -60,8 +60,12 @@ public class OctopusCreateReleaseRunType extends RunType {
         final Collection<InvalidProperty> result = new ArrayList<InvalidProperty>();
         if (p == null) return result;
 
-        checkNotEmpty(p, c.getApiKey(), "API key must be specified", result);
-        checkNotEmpty(p, c.getServerKey(), "Server must be specified", result);
+        final boolean usingConnection =
+            !jetbrains.buildServer.util.StringUtil.isEmptyOrSpaces(p.get(c.getConnectionIdKey()));
+        if (!usingConnection) {
+          checkNotEmpty(p, c.getApiKey(), "API key must be specified", result);
+          checkNotEmpty(p, c.getServerKey(), "Server must be specified", result);
+        }
         checkNotEmpty(p, c.getProjectNameKey(), "Project name must be specified", result);
 
         return result;
