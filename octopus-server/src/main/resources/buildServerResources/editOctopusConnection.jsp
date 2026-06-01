@@ -10,6 +10,7 @@
 <jsp:useBean id="keys" class="octopus.teamcity.common.connection.ConnectionPropertyNames"/>
 <jsp:useBean id="versionKeys" class="octopus.teamcity.common.OctopusConstants"/>
 <jsp:useBean id="propertiesBean" scope="request" type="jetbrains.buildServer.controllers.BasePropertiesBean"/>
+<c:set var="selectedOctopusVersion" value="${propertiesBean.properties[keys.versionPropertyName]}"/>
 
 <tr>
   <th>Connection Name:</th>
@@ -40,7 +41,11 @@
   <td>
     <props:selectProperty name="${keys.versionPropertyName}" multiple="false">
       <c:forEach var="version" items="${versionKeys.octopusVersions}">
-        <props:option value="${version}"><c:out value="${version}"/></props:option>
+        <c:set var="selected" value="false"/>
+        <c:if test="${selectedOctopusVersion == version}">
+          <c:set var="selected" value="true"/>
+        </c:if>
+        <props:option value="${version}" selected="${selected}"><c:out value="${version}"/></props:option>
       </c:forEach>
     </props:selectProperty>
     <span class="error" id="error_${keys.versionPropertyName}"></span>
