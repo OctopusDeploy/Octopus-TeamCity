@@ -19,8 +19,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import jetbrains.buildServer.serverSide.InvalidProperty;
 import jetbrains.buildServer.serverSide.PropertiesProcessor;
@@ -30,6 +32,8 @@ import octopus.teamcity.common.connection.ConnectionPropertyNames;
 
 public class OctopusConnectionPropertiesProcessor implements PropertiesProcessor {
   private static final ConnectionPropertyNames KEYS = new ConnectionPropertyNames();
+  private static final Set<String> KNOWN_VERSIONS =
+      new HashSet<>(Arrays.asList(OctopusConstants.Instance.getOctopusVersions()));
 
   @Override
   public List<InvalidProperty> process(final Map<String, String> properties) {
@@ -71,8 +75,7 @@ public class OctopusConnectionPropertiesProcessor implements PropertiesProcessor
       result.add(new InvalidProperty(id, "Octopus version must be specified"));
       return;
     }
-    final boolean known =
-        Arrays.asList(OctopusConstants.Instance.getOctopusVersions()).contains(version);
+    final boolean known = KNOWN_VERSIONS.contains(version);
     if (!known) {
       result.add(new InvalidProperty(id, "Unknown Octopus version: " + version));
     }

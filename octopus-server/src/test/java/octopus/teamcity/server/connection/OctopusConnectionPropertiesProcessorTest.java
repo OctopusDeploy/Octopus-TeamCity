@@ -68,4 +68,18 @@ class OctopusConnectionPropertiesProcessorTest {
     p.put(ConnectionPropertyNames.VERSION, "banana");
     assertThat(invalidKeys(p)).contains(ConnectionPropertyNames.VERSION);
   }
+
+  @Test
+  void httpServerUrlIsValid() {
+    final Map<String, String> p = validProps();
+    p.put(ConnectionPropertyNames.SERVER_URL, "http://octopus.example.com");
+    assertThat(invalidKeys(p)).doesNotContain(ConnectionPropertyNames.SERVER_URL);
+  }
+
+  @Test
+  void whitespaceApiKeyIsInvalid() {
+    final Map<String, String> p = validProps();
+    p.put(ConnectionPropertyNames.API_KEY, "   ");
+    assertThat(invalidKeys(p)).contains(ConnectionPropertyNames.API_KEY);
+  }
 }
