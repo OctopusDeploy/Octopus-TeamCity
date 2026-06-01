@@ -48,9 +48,7 @@ class OctopusConnectionBuildStartProcessorTest {
     lenient().when(build.getBuildType()).thenReturn(buildType);
     lenient().when(buildType.getProject()).thenReturn(project);
     // doReturn bypasses the wildcard Collection<? extends SRunnerContext> type mismatch
-    doReturn(Collections.singleton(runnerContext))
-        .when(buildStartContext)
-        .getRunnerContexts();
+    doReturn(Collections.singleton(runnerContext)).when(buildStartContext).getRunnerContexts();
     lenient().when(runnerContext.getType()).thenReturn(OctopusConstants.CREATE_RELEASE_RUNNER_TYPE);
   }
 

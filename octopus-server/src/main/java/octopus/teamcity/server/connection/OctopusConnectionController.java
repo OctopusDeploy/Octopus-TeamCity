@@ -49,7 +49,8 @@ public class OctopusConnectionController extends BaseController {
     PATH_TO_FORM.put("editOctopusDeployRelease.jsp", "forms/editOctopusDeployReleaseForm.jsp");
     PATH_TO_FORM.put("editOctopusPromoteRelease.jsp", "forms/editOctopusPromoteReleaseForm.jsp");
     PATH_TO_FORM.put("editOctopusPushPackage.jsp", "forms/editOctopusPushPackageForm.jsp");
-    PATH_TO_FORM.put("editOctopusBuildInformation.jsp", "forms/editOctopusBuildInformationForm.jsp");
+    PATH_TO_FORM.put(
+        "editOctopusBuildInformation.jsp", "forms/editOctopusBuildInformationForm.jsp");
   }
 
   private final OctopusConnectionsManager connectionsManager;
@@ -68,8 +69,7 @@ public class OctopusConnectionController extends BaseController {
     this.webLinks = webLinks;
 
     for (final String path : PATH_TO_FORM.keySet()) {
-      webControllerManager.registerController(
-          pluginDescriptor.getPluginResourcesPath(path), this);
+      webControllerManager.registerController(pluginDescriptor.getPluginResourcesPath(path), this);
     }
   }
 
@@ -86,8 +86,7 @@ public class OctopusConnectionController extends BaseController {
       // This controller is only registered against the five known edit-JSP paths, so an
       // unmatched path means TeamCity routed here unexpectedly. Log and let TC continue
       // rather than silently serving the wrong form.
-      LOG.warn(
-          "OctopusConnectionController invoked for unmapped path: " + pathInfo);
+      LOG.warn("OctopusConnectionController invoked for unmapped path: " + pathInfo);
       return null;
     }
 
@@ -113,8 +112,7 @@ public class OctopusConnectionController extends BaseController {
     // Link to the Root project's Connections tab; connections defined there are inherited by
     // all projects. (Connections on sub-projects are still listed in the dropdown.)
     modelAndView.addObject(
-        "editConnectionUrl",
-        webLinks.getEditProjectPageUrl("_Root") + "&tab=oauthConnections");
+        "editConnectionUrl", webLinks.getEditProjectPageUrl("_Root") + "&tab=oauthConnections");
     return modelAndView;
   }
 }
