@@ -11,16 +11,12 @@
        value="${propertiesBean.properties['octopus_version']}"/>
 
 <script type="text/javascript">
-
-    var octopusConnVersions = {};
-    <c:forEach var="conn" items="${octopusConnections}">
-      octopusConnVersions["${conn.id}"] = "${conn.version}";
-    </c:forEach>
-
+  (function () {
     function octopusEffectiveVersion() {
       var connId = window.octopusSelectedConnectionId ? window.octopusSelectedConnectionId() : "";
-      if (connId && octopusConnVersions[connId]) {
-        return octopusConnVersions[connId];
+      if (connId && window.octopusConnectionVersion) {
+        var v = window.octopusConnectionVersion(connId);
+        if (v) { return v; }
       }
       return document.getElementById("${keys.octopusVersion}").value;
     }
@@ -41,20 +37,15 @@
         }
     }
 
-    // Select the first version that isn't the preview version once the page has loaded
-    $j(document).ready(function ($) {
-
-        // Bind the event
+    $j(document).ready(function () {
         document.getElementById("${keys.octopusVersion}").addEventListener("change", showHideGitRefField);
-
         var octoConnSelect = document.getElementById("octopusConnectionId");
         if (octoConnSelect) {
             octoConnSelect.addEventListener("change", showHideGitRefField);
         }
-
-        // Run the check for the first time
         showHideGitRefField();
     });
+  })();
 </script>
 
 <l:settingsGroup title="Octopus Connection">

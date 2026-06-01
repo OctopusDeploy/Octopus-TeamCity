@@ -22,6 +22,7 @@
 
 <jsp:useBean id="keys" class="octopus.teamcity.common.OctopusConstants" />
 <jsp:useBean id="propertiesBean" scope="request" type="jetbrains.buildServer.controllers.BasePropertiesBean"/>
+<c:set var="selectedOctopusVersion" value="${propertiesBean.properties['octopus_version']}"/>
 
 <l:settingsGroup title="Octopus Connection">
   <jsp:include page="../connectionSelector.jsp"/>

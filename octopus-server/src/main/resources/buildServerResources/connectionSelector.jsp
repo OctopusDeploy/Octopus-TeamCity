@@ -15,6 +15,17 @@
         <props:option value="${conn.id}"><c:out value="${conn.displayName}"/></props:option>
       </c:forEach>
     </props:selectProperty>
+    <%-- Connection metadata exposed as HTML-escaped data attributes. JS reads these from the
+         DOM rather than from server-interpolated JS string literals, so admin-entered space
+         names / versions cannot break or inject script. --%>
+    <span id="octopusConnectionMeta" style="display:none;">
+      <c:forEach var="conn" items="${octopusConnections}">
+        <span class="octopusConnMeta"
+              data-conn-id="<c:out value='${conn.id}'/>"
+              data-conn-space="<c:out value='${conn.space}'/>"
+              data-conn-version="<c:out value='${conn.version}'/>"></span>
+      </c:forEach>
+    </span>
     <span class="smallNote">
       Reuse a connection defined under
       <a href="${editConnectionUrl}" target="_blank">Project Settings &raquo; Connections</a>,
@@ -25,10 +36,15 @@
 
 <script type="text/javascript">
   (function () {
-    var octopusConnSpaces = {};
-    <c:forEach var="conn" items="${octopusConnections}">
-      octopusConnSpaces["${conn.id}"] = "${conn.space}";
-    </c:forEach>
+    function octopusConnMetaFor(connId) {
+      var nodes = document.querySelectorAll("#octopusConnectionMeta .octopusConnMeta");
+      for (var i = 0; i < nodes.length; i++) {
+        if (nodes[i].getAttribute("data-conn-id") === connId) {
+          return nodes[i];
+        }
+      }
+      return null;
+    }
 
     function octopusToggleManualFields() {
       var select = document.getElementById("octopusConnectionId");
@@ -40,8 +56,12 @@
       }
       if (usingConnection) {
         var spaceField = document.getElementById("${keys.spaceName}");
-        if (spaceField && spaceField.value === "" && octopusConnSpaces[select.value]) {
-          spaceField.value = octopusConnSpaces[select.value];
+        var meta = octopusConnMetaFor(select.value);
+        if (spaceField && spaceField.value === "" && meta) {
+          var connSpace = meta.getAttribute("data-conn-space");
+          if (connSpace) {
+            spaceField.value = connSpace;
+          }
         }
       }
     }
@@ -58,6 +78,10 @@
     window.octopusSelectedConnectionId = function () {
       var s = document.getElementById("octopusConnectionId");
       return s ? s.value : "";
+    };
+    window.octopusConnectionVersion = function (connId) {
+      var meta = octopusConnMetaFor(connId);
+      return meta ? meta.getAttribute("data-conn-version") : "";
     };
   })();
 </script>
