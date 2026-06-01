@@ -25,6 +25,7 @@ import jetbrains.buildServer.serverSide.InvalidProperty;
 import jetbrains.buildServer.serverSide.PropertiesProcessor;
 import jetbrains.buildServer.serverSide.RunType;
 import jetbrains.buildServer.serverSide.RunTypeRegistry;
+import jetbrains.buildServer.util.StringUtil;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import octopus.teamcity.common.OctopusConstants;
 import org.jetbrains.annotations.NotNull;
@@ -65,7 +66,7 @@ public class OctopusPromoteReleaseRunType extends RunType {
           @NotNull final String key,
           @NotNull final String message,
           @NotNull final Collection<InvalidProperty> res) {
-        if (jetbrains.buildServer.util.StringUtil.isEmptyOrSpaces(properties.get(key))) {
+        if (StringUtil.isEmptyOrSpaces(properties.get(key))) {
           res.add(new InvalidProperty(key, message));
         }
       }
@@ -76,8 +77,7 @@ public class OctopusPromoteReleaseRunType extends RunType {
         final Collection<InvalidProperty> result = new ArrayList<InvalidProperty>();
         if (p == null) return result;
 
-        final boolean usingConnection =
-            !jetbrains.buildServer.util.StringUtil.isEmptyOrSpaces(p.get(c.getConnectionIdKey()));
+        final boolean usingConnection = !StringUtil.isEmptyOrSpaces(p.get(c.getConnectionIdKey()));
         if (!usingConnection) {
           checkNotEmpty(p, c.getApiKey(), "API key must be specified", result);
           checkNotEmpty(p, c.getServerKey(), "Server must be specified", result);
