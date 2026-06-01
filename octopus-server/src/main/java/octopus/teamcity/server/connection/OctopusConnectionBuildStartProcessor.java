@@ -37,6 +37,9 @@ import octopus.teamcity.common.connection.ConnectionPropertyNames;
 public class OctopusConnectionBuildStartProcessor implements BuildStartContextProcessor {
   private static final OctopusConstants C = new OctopusConstants();
   private static final ConnectionPropertyNames CONN = new ConnectionPropertyNames();
+  // Runner types that carry Octopus server credentials and therefore support connections.
+  // Deliberately excludes PACK_PACKAGE (local packaging only, no server connection) and
+  // GENERIC (not a registered run type on this branch).
   private static final Set<String> OCTOPUS_RUNNER_TYPES =
       new HashSet<>(
           Arrays.asList(

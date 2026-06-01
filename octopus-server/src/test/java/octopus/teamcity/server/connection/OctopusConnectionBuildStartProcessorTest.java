@@ -105,7 +105,12 @@ class OctopusConnectionBuildStartProcessorTest {
 
     processor.updateParameters(buildStartContext);
 
-    verify(runnerContext, never()).addRunnerParameter(C.getSpaceName(), "ConnSpace");
+    // Step already supplied a space, so the processor must not touch the space param at all
+    // (neither overwrite with the connection's value nor rewrite the step's own value).
+    verify(runnerContext, never())
+        .addRunnerParameter(
+            org.mockito.ArgumentMatchers.eq(C.getSpaceName()),
+            org.mockito.ArgumentMatchers.anyString());
   }
 
   @Test
