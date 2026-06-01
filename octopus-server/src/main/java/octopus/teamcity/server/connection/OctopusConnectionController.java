@@ -22,8 +22,9 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.intellij.openapi.diagnostic.Logger;
 import jetbrains.buildServer.controllers.BaseController;
-import jetbrains.buildServer.serverSide.ProjectManager;
+import jetbrains.buildServer.log.Loggers;
 import jetbrains.buildServer.serverSide.SBuildServer;
 import jetbrains.buildServer.serverSide.WebLinks;
 import jetbrains.buildServer.serverSide.oauth.OAuthConnectionDescriptor;
@@ -37,6 +38,7 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.web.servlet.ModelAndView;
 
 public class OctopusConnectionController extends BaseController {
+  private static final Logger LOG = Loggers.SERVER;
   private static final ConnectionPropertyNames CONN = new ConnectionPropertyNames();
 
   // Maps the registered controller path (the run type's edit path) -> physical form JSP.
@@ -57,7 +59,6 @@ public class OctopusConnectionController extends BaseController {
   public OctopusConnectionController(
       final WebControllerManager webControllerManager,
       final OctopusConnectionsManager connectionsManager,
-      final ProjectManager projectManager,
       final PluginDescriptor pluginDescriptor,
       final SBuildServer server,
       final WebLinks webLinks) {
@@ -78,15 +79,16 @@ public class OctopusConnectionController extends BaseController {
       @NotNull final HttpServletRequest request, @NotNull final HttpServletResponse response)
       throws Exception {
     final String pathInfo = request.getPathInfo();
-    String formJsp = null;
-    for (final Map.Entry<String, String> e : PATH_TO_FORM.entrySet()) {
-      if (pathInfo != null && pathInfo.endsWith(e.getKey())) {
-        formJsp = e.getValue();
-        break;
-      }
-    }
+    final String lastSegment =
+        pathInfo == null ? null : pathInfo.substring(pathInfo.lastIndexOf('/') + 1);
+    final String formJsp = lastSegment == null ? null : PATH_TO_FORM.get(lastSegment);
     if (formJsp == null) {
-      formJsp = "forms/editOctopusCreateReleaseForm.jsp"; // defensive fallback
+      // This controller is only registered against the five known edit-JSP paths, so an
+      // unmatched path means TeamCity routed here unexpectedly. Log and let TC continue
+      // rather than silently serving the wrong form.
+      LOG.warn(
+          "OctopusConnectionController invoked for unmapped path: " + pathInfo);
+      return null;
     }
 
     final ModelAndView modelAndView =
@@ -108,6 +110,8 @@ public class OctopusConnectionController extends BaseController {
     }
 
     modelAndView.addObject("octopusConnections", connections);
+    // Link to the Root project's Connections tab; connections defined there are inherited by
+    // all projects. (Connections on sub-projects are still listed in the dropdown.)
     modelAndView.addObject(
         "editConnectionUrl",
         webLinks.getEditProjectPageUrl("_Root") + "&tab=oauthConnections");
