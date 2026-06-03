@@ -15,6 +15,6 @@
     <bean class="octopus.teamcity.server.OctopusPackPackageRunType"/>
     <bean class="octopus.teamcity.server.connection.OctopusConnection"/>
     <bean class="octopus.teamcity.server.connection.OctopusConnectionsManager"/>
-    <bean class="octopus.teamcity.server.connection.OctopusConnectionController"/>
+    <bean class="octopus.teamcity.server.connection.OctopusConnectionUiData"/>
     <bean class="octopus.teamcity.server.connection.OctopusConnectionBuildStartProcessor"/>
 </beans>

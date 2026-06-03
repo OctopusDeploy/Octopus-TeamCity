@@ -95,7 +95,7 @@ public class OctopusPromoteReleaseRunType extends RunType {
   @Nullable
   @Override
   public String getEditRunnerParamsJspFilePath() {
-    return pluginDescriptor.getPluginResourcesPath("editOctopusPromoteRelease.jsp");
+    return pluginDescriptor.getPluginResourcesPath("forms/editOctopusPromoteReleaseForm.jsp");
   }
 
   @Nullable

@@ -93,7 +93,7 @@ public class OctopusBuildInformationRunType extends RunType {
   @Nullable
   @Override
   public String getEditRunnerParamsJspFilePath() {
-    return pluginDescriptor.getPluginResourcesPath("editOctopusBuildInformation.jsp");
+    return pluginDescriptor.getPluginResourcesPath("forms/editOctopusBuildInformationForm.jsp");
   }
 
   @Nullable

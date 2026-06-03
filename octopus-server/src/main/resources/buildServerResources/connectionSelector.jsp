@@ -2,9 +2,13 @@
 <%@ taglib prefix="props" tagdir="/WEB-INF/tags/props" %>
 <%@ taglib prefix="l" tagdir="/WEB-INF/tags/layout" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page import="octopus.teamcity.server.connection.OctopusConnectionUiData" %>
+<jsp:useBean id="keys" class="octopus.teamcity.common.OctopusConstants"/>
 
-<%-- Requires request attributes: octopusConnections (List<Map>), editConnectionUrl (String).
-     Requires page bean: keys (OctopusConstants), and a Space field named ${keys.spaceName}. --%>
+<%
+  pageContext.setAttribute("octopusConnections", OctopusConnectionUiData.availableConnections(request));
+  pageContext.setAttribute("editConnectionUrl", OctopusConnectionUiData.editConnectionUrl());
+%>
 
 <tr>
   <th>Connection:</th>
