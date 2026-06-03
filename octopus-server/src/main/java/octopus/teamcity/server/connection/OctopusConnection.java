@@ -44,7 +44,7 @@ public class OctopusConnection extends OAuthProvider {
   @NotNull
   @Override
   public String getDisplayName() {
-    return "OctopusDeploy Server";
+    return "Octopus Deploy";
   }
 
   @Override
@@ -65,10 +65,8 @@ public class OctopusConnection extends OAuthProvider {
   public String describeConnection(@NotNull final OAuthConnectionDescriptor connection) {
     final Map<String, String> params = connection.getParameters();
     final String url = params.getOrDefault(ConnectionPropertyNames.SERVER_URL, "(no URL)");
-    final String version = params.getOrDefault(ConnectionPropertyNames.VERSION, "");
-    return version.isEmpty()
-        ? "Octopus Server URL: " + url
-        : "Octopus Server URL: " + url + " (version " + version + ")";
+    final String space = params.getOrDefault(ConnectionPropertyNames.SPACE_NAME, "");
+    return space.isEmpty() ? "Octopus Server " + url : "Octopus Server " + url + " (" + space + ")";
   }
 
   @Override
