@@ -43,7 +43,10 @@
   <td>
     <props:passwordProperty name="${keys.apiKeyPropertyName}" className="longField"/>
     <span class="error" id="error_${keys.apiKeyPropertyName}"></span>
-    <span class="smallNote">You can get this from your user page in the Octopus web portal.</span>
+    <span class="smallNote">
+      Create a <a href="https://octopus.com/docs/security/users-and-teams/service-accounts">service account</a> in the
+      Octopus web portal.
+    </span>
   </td>
 </tr>
 <tr>

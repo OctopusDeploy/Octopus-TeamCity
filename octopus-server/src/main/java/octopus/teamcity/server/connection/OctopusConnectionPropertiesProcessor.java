@@ -65,7 +65,7 @@ public class OctopusConnectionPropertiesProcessor implements PropertiesProcessor
         result.add(new InvalidProperty(id, "Server URL must use the http or https protocol"));
       }
     } catch (final MalformedURLException e) {
-      result.add(new InvalidProperty(id, "Illegally formatted URL - " + e.getLocalizedMessage()));
+      result.add(new InvalidProperty(id, "Malformed URL - " + e.getLocalizedMessage()));
     }
   }
 

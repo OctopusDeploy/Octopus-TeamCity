@@ -39,7 +39,7 @@ public class OctopusConnectionBuildStartProcessor implements BuildStartContextPr
   private static final ConnectionPropertyNames CONN = new ConnectionPropertyNames();
   // Runner types that carry Octopus server credentials and therefore support connections.
   // Deliberately excludes PACK_PACKAGE (local packaging only, no server connection) and
-  // GENERIC (not a registered run type on this branch).
+  // GENERIC (isn't a registered run type for some reason?).
   private static final Set<String> OCTOPUS_RUNNER_TYPES =
       new HashSet<>(
           Arrays.asList(

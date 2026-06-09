@@ -13,10 +13,10 @@
 <script type="text/javascript">
   (function () {
     function octopusEffectiveVersion() {
-      var connId = window.octopusSelectedConnectionId ? window.octopusSelectedConnectionId() : "";
-      if (connId && window.octopusConnectionVersion) {
-        var v = window.octopusConnectionVersion(connId);
-        if (v) { return v; }
+      const connectionId = window.octopusSelectedConnectionId ? window.octopusSelectedConnectionId() : "";
+      if (connectionId && window.octopusConnectionVersion) {
+        const version = window.octopusConnectionVersion(connectionId);
+        if (version) { return version; }
       }
       return document.getElementById("${keys.octopusVersion}").value;
     }

@@ -39,9 +39,9 @@
 
 <script type="text/javascript">
   (function () {
-    function octopusConnMetaFor(connId) {
-      var nodes = document.querySelectorAll("#octopusConnectionMeta .octopusConnMeta");
-      for (var i = 0; i < nodes.length; i++) {
+    function getOctopusConnectionMetadataFor(connId) {
+      const nodes = document.querySelectorAll("#octopusConnectionMeta .octopusConnMeta");
+      for (let i = 0; i < nodes.length; i++) {
         if (nodes[i].getAttribute("data-conn-id") === connId) {
           return nodes[i];
         }
@@ -49,24 +49,23 @@
       return null;
     }
 
-    function octopusToggleManualFields() {
-      var select = document.getElementById("octopusConnectionId");
+    function toggleOctopusManualFields() {
+      const select = document.getElementById("octopusConnectionId");
       if (!select) return;
-      var usingConnection = select.value !== "";
-      var rows = document.querySelectorAll("tr.octopusManualField");
-      for (var i = 0; i < rows.length; i++) {
+      const usingConnection = select.value !== "";
+      const rows = document.querySelectorAll("tr.octopusManualField");
+      for (let i = 0; i < rows.length; i++) {
         rows[i].style.display = usingConnection ? "none" : "table-row";
       }
 
-      // The step's Space name field is hidden only when the selected connection defines its own
-      // space (the connection's space is then used). Otherwise it stays visible so it can be set
-      // per step.
-      var spaceField = document.getElementById("${keys.spaceName}");
-      var spaceRow = spaceField ? spaceField.closest("tr") : null;
+      // The step's Space name field is hidden when the selected connection defines its own
+      // space (the connection's space is then used), otherwise it stays visible so it can be set per step.
+      const spaceField = document.getElementById("${keys.spaceName}");
+      const spaceRow = spaceField ? spaceField.closest("tr") : null;
       if (spaceRow) {
-        var connSpace = "";
+        let connSpace = "";
         if (usingConnection) {
-          var meta = octopusConnMetaFor(select.value);
+          const meta = getOctopusConnectionMetadataFor(select.value);
           connSpace = meta ? meta.getAttribute("data-conn-space") : "";
         }
         spaceRow.style.display = connSpace ? "none" : "table-row";
@@ -74,20 +73,20 @@
     }
 
     $j(document).ready(function () {
-      var select = document.getElementById("octopusConnectionId");
+      const select = document.getElementById("octopusConnectionId");
       if (select) {
-        select.addEventListener("change", octopusToggleManualFields);
-        octopusToggleManualFields();
+        select.addEventListener("change", toggleOctopusManualFields);
+        toggleOctopusManualFields();
       }
     });
 
     // Exposed so step-specific scripts (e.g. Create release git-ref) can react.
     window.octopusSelectedConnectionId = function () {
-      var s = document.getElementById("octopusConnectionId");
+      const s = document.getElementById("octopusConnectionId");
       return s ? s.value : "";
     };
     window.octopusConnectionVersion = function (connId) {
-      var meta = octopusConnMetaFor(connId);
+      const meta = getOctopusConnectionMetadataFor(connId);
       return meta ? meta.getAttribute("data-conn-version") : "";
     };
   })();
