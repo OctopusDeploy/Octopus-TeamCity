@@ -12,7 +12,7 @@
 
 <script type="text/javascript">
   (function () {
-    function octopusEffectiveVersion() {
+    function getOctopusEffectiveVersion() {
       const connectionId = window.octopusSelectedConnectionId ? window.octopusSelectedConnectionId() : "";
       if (connectionId && window.octopusConnectionVersion) {
         const version = window.octopusConnectionVersion(connectionId);
@@ -24,7 +24,7 @@
     function showHideGitRefField() {
         const gitRefRow  = document.getElementById("gitRefRow");
         const gitCommitRow  = document.getElementById("gitCommitRow");
-        const versionSelected = octopusEffectiveVersion();
+        const versionSelected = getOctopusEffectiveVersion();
         let gitProjectsAreSupported = versionSelected === "${keys.version3}" || versionSelected === "${keys.previewVersion}";
         if (gitProjectsAreSupported) {
             gitRefRow.style.display = "table-row";

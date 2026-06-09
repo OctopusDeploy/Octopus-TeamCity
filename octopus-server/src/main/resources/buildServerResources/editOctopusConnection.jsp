@@ -70,6 +70,6 @@
   <td>
     <props:textProperty name="${keys.spaceNamePropertyName}" className="longField"/>
     <span class="error" id="error_${keys.spaceNamePropertyName}"></span>
-    <span class="smallNote">Optional Space. Individual build steps may override this.</span>
+    <span class="smallNote">Space name - optional. If not provided, individual build steps can specify.</span>
   </td>
 </tr>

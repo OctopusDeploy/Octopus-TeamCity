@@ -44,18 +44,17 @@ public class OctopusConnectionUiData {
   private static volatile OctopusConnectionsManager connectionsManager;
   private static volatile ProjectManager projectManager;
 
-  @SuppressWarnings("StaticAssignmentInConstructor") // JSPs have no Spring context; capture statically.
+  @SuppressWarnings(
+      "StaticAssignmentInConstructor") // JSPs have no Spring context; capture statically.
   public OctopusConnectionUiData(
-          final OctopusConnectionsManager connectionsManager,
-          final ProjectManager projectManager) {
+      final OctopusConnectionsManager connectionsManager, final ProjectManager projectManager) {
     OctopusConnectionUiData.connectionsManager = connectionsManager;
     OctopusConnectionUiData.projectManager = projectManager;
   }
 
   /**
-   * Connections available to the current user ({@code id}, {@code displayName},
-   * {@code url}, {@code version}, {@code space}) for the JSP. API key is
-   * deliberately not included.
+   * Connections available to the current user ({@code id}, {@code displayName}, {@code url}, {@code
+   * version}, {@code space}) for the JSP. API key is deliberately not included.
    */
   @NotNull
   public static List<Map<String, String>> availableConnections(final HttpServletRequest request) {
@@ -103,7 +102,8 @@ public class OctopusConnectionUiData {
     if (idParam == null || !idParam.startsWith("buildType:")) {
       return null;
     }
-    final SBuildType buildType = projectManager.findBuildTypeByExternalId(idParam.substring("buildType:".length()));
+    final SBuildType buildType =
+        projectManager.findBuildTypeByExternalId(idParam.substring("buildType:".length()));
     return buildType == null ? null : buildType.getProject().getExternalId();
   }
 }
