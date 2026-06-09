@@ -36,29 +36,39 @@ class OctopusConnectionTest {
   }
 
   @Test
-  void describeConnectionShowsTheUrlWithoutTheVersion() {
+  void describeConnectionOmitsTheDefaultVersion() {
     final Map<String, String> params = new HashMap<>();
     params.put(ConnectionPropertyNames.SERVER_URL, "https://octopus.example.com");
     params.put(ConnectionPropertyNames.VERSION, "3.0+");
 
-    final String description = provider.describeConnection(descriptorWith(params));
-    assertThat(description).isEqualTo("Octopus Server https://octopus.example.com");
-    assertThat(description).doesNotContain("version", "3.0+");
+    assertThat(provider.describeConnection(descriptorWith(params)))
+        .isEqualTo("Octopus URL: https://octopus.example.com");
   }
 
   @Test
-  void describeConnectionIncludesSpaceWhenSet() {
+  void describeConnectionShowsTheVersionOnItsOwnLineWhenNotTheDefault() {
     final Map<String, String> params = new HashMap<>();
     params.put(ConnectionPropertyNames.SERVER_URL, "https://octopus.example.com");
+    params.put(ConnectionPropertyNames.VERSION, "2019.1");
+
+    assertThat(provider.describeConnection(descriptorWith(params)))
+        .isEqualTo("Octopus URL: https://octopus.example.com\nVersion: 2019.1");
+  }
+
+  @Test
+  void describeConnectionIncludesSpaceOnItsOwnLineWhenSet() {
+    final Map<String, String> params = new HashMap<>();
+    params.put(ConnectionPropertyNames.SERVER_URL, "https://octopus.example.com");
+    params.put(ConnectionPropertyNames.VERSION, "3.0+");
     params.put(ConnectionPropertyNames.SPACE_NAME, "My Space");
 
     assertThat(provider.describeConnection(descriptorWith(params)))
-        .isEqualTo("Octopus Server https://octopus.example.com (My Space)");
+        .isEqualTo("Octopus URL: https://octopus.example.com\nSpace Name: My Space");
   }
 
   @Test
   void describeConnectionFallsBackWhenUrlMissing() {
     assertThat(provider.describeConnection(descriptorWith(new HashMap<>())))
-        .isEqualTo("Octopus Server (no URL)");
+        .isEqualTo("Octopus URL: (no URL)");
   }
 }

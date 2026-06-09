@@ -8,8 +8,11 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 
-import jetbrains.buildServer.serverSide.WebLinks;
+import jetbrains.buildServer.serverSide.ProjectManager;
+import jetbrains.buildServer.serverSide.SBuildType;
+import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.oauth.OAuthConnectionDescriptor;
 import jetbrains.buildServer.users.SUser;
 import octopus.teamcity.common.connection.ConnectionPropertyNames;
@@ -23,13 +26,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class OctopusConnectionUiDataTest {
 
   @Mock private OctopusConnectionsManager connectionsManager;
-  @Mock private WebLinks webLinks;
+  @Mock private ProjectManager projectManager;
   @Mock private SUser user;
 
   @BeforeEach
   void setUp() {
     // Constructing the bean captures the collaborators into the class's static fields.
-    new OctopusConnectionUiData(connectionsManager, webLinks);
+    new OctopusConnectionUiData(connectionsManager, projectManager);
   }
 
   private OAuthConnectionDescriptor connection(
@@ -86,11 +89,28 @@ class OctopusConnectionUiDataTest {
   }
 
   @Test
-  void editConnectionUrlPointsAtRootConnectionsTab() {
-    when(webLinks.getEditProjectPageUrl("_Root"))
-        .thenReturn("http://tc/admin/editProject.html?id=_Root");
+  void editConnectionUrlPointsAtCurrentProjectConnectionsTab() {
+    final SBuildType buildType = mock(SBuildType.class);
+    final SProject project = mock(SProject.class);
+    when(projectManager.findBuildTypeByExternalId("Rtest_Build")).thenReturn(buildType);
+    when(buildType.getProject()).thenReturn(project);
+    when(project.getExternalId()).thenReturn("Rtest");
 
-    assertThat(OctopusConnectionUiData.editConnectionUrl())
-        .isEqualTo("http://tc/admin/editProject.html?id=_Root&tab=oauthConnections");
+    final HttpServletRequest request = mock(HttpServletRequest.class);
+    when(request.getContextPath()).thenReturn("");
+    when(request.getParameter("id")).thenReturn("buildType:Rtest_Build");
+
+    assertThat(OctopusConnectionUiData.editConnectionUrl(request))
+        .isEqualTo("/admin/editProject.html?projectId=Rtest&tab=oauthConnections");
+  }
+
+  @Test
+  void editConnectionUrlFallsBackWhenProjectCannotBeResolved() {
+    final HttpServletRequest request = mock(HttpServletRequest.class);
+    when(request.getContextPath()).thenReturn("");
+    when(request.getParameter("id")).thenReturn(null);
+
+    assertThat(OctopusConnectionUiData.editConnectionUrl(request))
+        .isEqualTo("/admin/editProject.html?tab=oauthConnections");
   }
 }

@@ -21,7 +21,8 @@ import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
-import jetbrains.buildServer.serverSide.WebLinks;
+import jetbrains.buildServer.serverSide.ProjectManager;
+import jetbrains.buildServer.serverSide.SBuildType;
 import jetbrains.buildServer.serverSide.oauth.OAuthConnectionDescriptor;
 import jetbrains.buildServer.users.SUser;
 import jetbrains.buildServer.web.util.SessionUser;
@@ -40,14 +41,14 @@ public class OctopusConnectionUiData {
   private static final ConnectionPropertyNames CONN = new ConnectionPropertyNames();
 
   private static volatile OctopusConnectionsManager connectionsManager;
-  private static volatile WebLinks webLinks;
+  private static volatile ProjectManager projectManager;
 
   @SuppressWarnings(
       "StaticAssignmentInConstructor") // JSPs have no Spring context; capture statically.
   public OctopusConnectionUiData(
-      final OctopusConnectionsManager connectionsManager, final WebLinks webLinks) {
+      final OctopusConnectionsManager connectionsManager, final ProjectManager projectManager) {
     OctopusConnectionUiData.connectionsManager = connectionsManager;
-    OctopusConnectionUiData.webLinks = webLinks;
+    OctopusConnectionUiData.projectManager = projectManager;
   }
 
   /**
@@ -78,10 +79,30 @@ public class OctopusConnectionUiData {
     return result;
   }
 
-  /** URL of the Root project's Connections tab (where connections are added). */
-  public static String editConnectionUrl() {
-    return webLinks == null
-        ? "#"
-        : webLinks.getEditProjectPageUrl("_Root") + "&tab=oauthConnections";
+  /**
+   * URL of the current project's Connections tab (where connections are added). Built relative to
+   * the request's context path so the browser resolves it against the host it is actually viewing —
+   * avoiding a stale/absolute server root URL (wrong port, {@code init=1}). Falls back to the
+   * Connections tab without a project id if the current project cannot be resolved.
+   */
+  public static String editConnectionUrl(final HttpServletRequest request) {
+    final String base = request.getContextPath() + "/admin/editProject.html";
+    final String projectExternalId = currentProjectExternalId(request);
+    return projectExternalId == null
+        ? base + "?tab=oauthConnections"
+        : base + "?projectId=" + projectExternalId + "&tab=oauthConnections";
+  }
+
+  private static String currentProjectExternalId(final HttpServletRequest request) {
+    if (projectManager == null) {
+      return null;
+    }
+    final String idParam = request.getParameter("id");
+    if (idParam == null || !idParam.startsWith("buildType:")) {
+      return null;
+    }
+    final SBuildType buildType =
+        projectManager.findBuildTypeByExternalId(idParam.substring("buildType:".length()));
+    return buildType == null ? null : buildType.getProject().getExternalId();
   }
 }

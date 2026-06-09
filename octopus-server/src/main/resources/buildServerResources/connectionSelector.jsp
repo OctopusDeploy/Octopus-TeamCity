@@ -7,14 +7,14 @@
 
 <%
   pageContext.setAttribute("octopusConnections", OctopusConnectionUiData.availableConnections(request));
-  pageContext.setAttribute("editConnectionUrl", OctopusConnectionUiData.editConnectionUrl());
+  pageContext.setAttribute("editConnectionUrl", OctopusConnectionUiData.editConnectionUrl(request));
 %>
 
 <tr>
   <th>Connection:</th>
   <td>
     <props:selectProperty name="${keys.connectionIdKey}" id="octopusConnectionId" className="longField">
-      <props:option value="">-- Enter connection details manually --</props:option>
+      <props:option value="">(Dont use a connection)</props:option>
       <c:forEach var="conn" items="${octopusConnections}">
         <props:option value="${conn.id}"><c:out value="${conn.displayName}"/></props:option>
       </c:forEach>
@@ -32,8 +32,7 @@
     </span>
     <span class="smallNote">
       Reuse a connection defined under
-      <a href="${editConnectionUrl}" target="_blank">Project Settings &raquo; Connections</a>,
-      or leave blank to enter details manually below.
+      <a href="${editConnectionUrl}" target="_blank">Project Settings &raquo; Connections</a>.
     </span>
   </td>
 </tr>
@@ -58,15 +57,19 @@
       for (var i = 0; i < rows.length; i++) {
         rows[i].style.display = usingConnection ? "none" : "table-row";
       }
-      if (usingConnection) {
-        var spaceField = document.getElementById("${keys.spaceName}");
-        var meta = octopusConnMetaFor(select.value);
-        if (spaceField && spaceField.value === "" && meta) {
-          var connSpace = meta.getAttribute("data-conn-space");
-          if (connSpace) {
-            spaceField.value = connSpace;
-          }
+
+      // The step's Space name field is hidden only when the selected connection defines its own
+      // space (the connection's space is then used). Otherwise it stays visible so it can be set
+      // per step.
+      var spaceField = document.getElementById("${keys.spaceName}");
+      var spaceRow = spaceField ? spaceField.closest("tr") : null;
+      if (spaceRow) {
+        var connSpace = "";
+        if (usingConnection) {
+          var meta = octopusConnMetaFor(select.value);
+          connSpace = meta ? meta.getAttribute("data-conn-space") : "";
         }
+        spaceRow.style.display = connSpace ? "none" : "table-row";
       }
     }
 
