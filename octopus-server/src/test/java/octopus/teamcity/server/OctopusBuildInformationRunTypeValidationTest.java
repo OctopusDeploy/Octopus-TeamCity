@@ -36,7 +36,7 @@ class OctopusBuildInformationRunTypeValidationTest {
   @Test
   void connectionOnlyIsValidForServerAndKey() {
     final Map<String, String> properties = withMandatoryNonCredentialFields(new HashMap<>());
-    properties.put(CONSTANTS.getConnectionIdKey(), "c1");
+    properties.put(CONSTANTS.getConnectionIdKey(), "PROJECT_EXT_1");
     final Collection<String> errors = validate(properties);
     assertThat(errors).doesNotContain(CONSTANTS.getServerKey(), CONSTANTS.getApiKey());
   }

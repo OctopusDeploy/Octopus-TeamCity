@@ -66,7 +66,6 @@ class OctopusConnectionBuildStartProcessorTest {
     if (space != null) {
       params.put(ConnectionPropertyNames.SPACE_NAME, space);
     }
-    // Stubbing must complete before this descriptor is passed into another when() chain.
     when(descriptor.getParameters()).thenReturn(params);
     return descriptor;
   }
@@ -74,13 +73,12 @@ class OctopusConnectionBuildStartProcessorTest {
   @Test
   void injectsConnectionValuesWhenConnectionSelected() {
     final Map<String, String> properties = new HashMap<>();
-    properties.put(CONSTANTS.getConnectionIdKey(), "c1");
+    properties.put(CONSTANTS.getConnectionIdKey(), "PROJECT_EXT_1");
     when(runnerContext.getParameters()).thenReturn(properties);
 
-    // Build descriptor before entering the outer when() chain.
     final OAuthConnectionDescriptor descriptor =
         connectionWith("https://octo", "API-KEY", "3.0+", "Spaces-1");
-    when(connectionsManager.resolve(project, "c1")).thenReturn(Optional.of(descriptor));
+    when(connectionsManager.resolve(project, "PROJECT_EXT_1")).thenReturn(Optional.of(descriptor));
 
     processor.updateParameters(buildStartContext);
 
@@ -93,13 +91,13 @@ class OctopusConnectionBuildStartProcessorTest {
   @Test
   void stepSpaceOverridesConnectionSpace() {
     final Map<String, String> properties = new HashMap<>();
-    properties.put(CONSTANTS.getConnectionIdKey(), "c1");
+    properties.put(CONSTANTS.getConnectionIdKey(), "PROJECT_EXT_1");
     properties.put(CONSTANTS.getSpaceName(), "StepSpace");
     when(runnerContext.getParameters()).thenReturn(properties);
 
     final OAuthConnectionDescriptor descriptor =
         connectionWith("https://octo", "API-KEY", "3.0+", "ConnSpace");
-    when(connectionsManager.resolve(project, "c1")).thenReturn(Optional.of(descriptor));
+    when(connectionsManager.resolve(project, "PROJECT_EXT_1")).thenReturn(Optional.of(descriptor));
 
     processor.updateParameters(buildStartContext);
 
