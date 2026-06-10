@@ -39,7 +39,7 @@ import org.jetbrains.annotations.NotNull;
  * static fields at startup so the JSP (which has no Spring context) can reach them.
  */
 public class OctopusConnectionUiData {
-  private static final ConnectionPropertyNames CONN = new ConnectionPropertyNames();
+  private static final ConnectionPropertyNames CONNECTION_KEYS = new ConnectionPropertyNames();
 
   private static volatile OctopusConnectionsManager connectionsManager;
   private static volatile ProjectManager projectManager;
@@ -73,9 +73,9 @@ public class OctopusConnectionUiData {
       final Map<String, String> view = new HashMap<>();
       view.put("id", descriptor.getId());
       view.put("displayName", descriptor.getConnectionDisplayName());
-      view.put("url", params.getOrDefault(CONN.getServerUrlPropertyName(), ""));
-      view.put("version", params.getOrDefault(CONN.getVersionPropertyName(), ""));
-      view.put("space", params.getOrDefault(CONN.getSpaceNamePropertyName(), ""));
+      view.put("url", params.getOrDefault(CONNECTION_KEYS.getServerUrlPropertyName(), ""));
+      view.put("version", params.getOrDefault(CONNECTION_KEYS.getVersionPropertyName(), ""));
+      view.put("space", params.getOrDefault(CONNECTION_KEYS.getSpaceNamePropertyName(), ""));
       result.add(view);
     }
     return result;

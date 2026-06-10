@@ -36,7 +36,7 @@ import octopus.teamcity.common.connection.ConnectionPropertyNames;
 
 public class OctopusConnectionBuildStartProcessor implements BuildStartContextProcessor {
   private static final OctopusConstants CONSTANTS = new OctopusConstants();
-  private static final ConnectionPropertyNames CONN = new ConnectionPropertyNames();
+  private static final ConnectionPropertyNames CONNECTION_KEYS = new ConnectionPropertyNames();
   // Runner types that carry Octopus server credentials and therefore support connections.
   // Deliberately excludes PACK_PACKAGE (local packaging only, no server connection) and
   // GENERIC (isn't a registered run type for some reason?).
@@ -89,15 +89,22 @@ public class OctopusConnectionBuildStartProcessor implements BuildStartContextPr
 
       final Map<String, String> connParams = resolved.get().getParameters();
       setIfPresent(
-          runner, CONSTANTS.getServerKey(), connParams.get(CONN.getServerUrlPropertyName()));
-      setIfPresent(runner, CONSTANTS.getApiKey(), connParams.get(CONN.getApiKeyPropertyName()));
+          runner,
+          CONSTANTS.getServerKey(),
+          connParams.get(CONNECTION_KEYS.getServerUrlPropertyName()));
       setIfPresent(
-          runner, CONSTANTS.getOctopusVersion(), connParams.get(CONN.getVersionPropertyName()));
+          runner, CONSTANTS.getApiKey(), connParams.get(CONNECTION_KEYS.getApiKeyPropertyName()));
+      setIfPresent(
+          runner,
+          CONSTANTS.getOctopusVersion(),
+          connParams.get(CONNECTION_KEYS.getVersionPropertyName()));
 
       // Space precedence: keep the step's value if it set one; otherwise use the connection's.
       if (StringUtil.isEmptyOrSpaces(stepParams.get(CONSTANTS.getSpaceName()))) {
         setIfPresent(
-            runner, CONSTANTS.getSpaceName(), connParams.get(CONN.getSpaceNamePropertyName()));
+            runner,
+            CONSTANTS.getSpaceName(),
+            connParams.get(CONNECTION_KEYS.getSpaceNamePropertyName()));
       }
     }
   }
