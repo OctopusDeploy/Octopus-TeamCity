@@ -16,15 +16,15 @@ class OctopusConnectionPropertiesProcessorTest {
       new OctopusConnectionPropertiesProcessor();
 
   private Map<String, String> validProps() {
-    final Map<String, String> p = new HashMap<>();
-    p.put(ConnectionPropertyNames.SERVER_URL, "https://octopus.example.com");
-    p.put(ConnectionPropertyNames.API_KEY, "API-XXXXXXXXXXXXXXXXXXXXXXXX");
-    p.put(ConnectionPropertyNames.VERSION, "3.0+");
-    return p;
+    final Map<String, String> properties = new HashMap<>();
+    properties.put(ConnectionPropertyNames.SERVER_URL, "https://octopus.example.com");
+    properties.put(ConnectionPropertyNames.API_KEY, "API-XXXXXXXXXXXXXXXXXXXXXXXX");
+    properties.put(ConnectionPropertyNames.VERSION, "3.0+");
+    return properties;
   }
 
-  private List<String> invalidKeys(final Map<String, String> p) {
-    return processor.process(p).stream()
+  private List<String> invalidKeys(final Map<String, String> properties) {
+    return processor.process(properties).stream()
         .map(InvalidProperty::getPropertyName)
         .collect(Collectors.toList());
   }
@@ -36,50 +36,50 @@ class OctopusConnectionPropertiesProcessorTest {
 
   @Test
   void missingServerUrlIsInvalid() {
-    final Map<String, String> p = validProps();
-    p.remove(ConnectionPropertyNames.SERVER_URL);
-    assertThat(invalidKeys(p)).contains(ConnectionPropertyNames.SERVER_URL);
+    final Map<String, String> properties = validProps();
+    properties.remove(ConnectionPropertyNames.SERVER_URL);
+    assertThat(invalidKeys(properties)).contains(ConnectionPropertyNames.SERVER_URL);
   }
 
   @Test
   void nonHttpServerUrlIsInvalid() {
-    final Map<String, String> p = validProps();
-    p.put(ConnectionPropertyNames.SERVER_URL, "ftp://octopus.example.com");
-    assertThat(invalidKeys(p)).contains(ConnectionPropertyNames.SERVER_URL);
+    final Map<String, String> properties = validProps();
+    properties.put(ConnectionPropertyNames.SERVER_URL, "ftp://octopus.example.com");
+    assertThat(invalidKeys(properties)).contains(ConnectionPropertyNames.SERVER_URL);
   }
 
   @Test
   void malformedServerUrlIsInvalid() {
-    final Map<String, String> p = validProps();
-    p.put(ConnectionPropertyNames.SERVER_URL, "not a url");
-    assertThat(invalidKeys(p)).contains(ConnectionPropertyNames.SERVER_URL);
+    final Map<String, String> properties = validProps();
+    properties.put(ConnectionPropertyNames.SERVER_URL, "not a url");
+    assertThat(invalidKeys(properties)).contains(ConnectionPropertyNames.SERVER_URL);
   }
 
   @Test
   void missingApiKeyIsInvalid() {
-    final Map<String, String> p = validProps();
-    p.remove(ConnectionPropertyNames.API_KEY);
-    assertThat(invalidKeys(p)).contains(ConnectionPropertyNames.API_KEY);
+    final Map<String, String> properties = validProps();
+    properties.remove(ConnectionPropertyNames.API_KEY);
+    assertThat(invalidKeys(properties)).contains(ConnectionPropertyNames.API_KEY);
   }
 
   @Test
   void unknownVersionIsInvalid() {
-    final Map<String, String> p = validProps();
-    p.put(ConnectionPropertyNames.VERSION, "banana");
-    assertThat(invalidKeys(p)).contains(ConnectionPropertyNames.VERSION);
+    final Map<String, String> properties = validProps();
+    properties.put(ConnectionPropertyNames.VERSION, "banana");
+    assertThat(invalidKeys(properties)).contains(ConnectionPropertyNames.VERSION);
   }
 
   @Test
   void httpServerUrlIsValid() {
-    final Map<String, String> p = validProps();
-    p.put(ConnectionPropertyNames.SERVER_URL, "http://octopus.example.com");
-    assertThat(invalidKeys(p)).doesNotContain(ConnectionPropertyNames.SERVER_URL);
+    final Map<String, String> properties = validProps();
+    properties.put(ConnectionPropertyNames.SERVER_URL, "http://octopus.example.com");
+    assertThat(invalidKeys(properties)).doesNotContain(ConnectionPropertyNames.SERVER_URL);
   }
 
   @Test
   void whitespaceApiKeyIsInvalid() {
-    final Map<String, String> p = validProps();
-    p.put(ConnectionPropertyNames.API_KEY, "   ");
-    assertThat(invalidKeys(p)).contains(ConnectionPropertyNames.API_KEY);
+    final Map<String, String> properties = validProps();
+    properties.put(ConnectionPropertyNames.API_KEY, "   ");
+    assertThat(invalidKeys(properties)).contains(ConnectionPropertyNames.API_KEY);
   }
 }

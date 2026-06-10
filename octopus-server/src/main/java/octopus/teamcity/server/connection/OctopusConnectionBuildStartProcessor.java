@@ -35,7 +35,7 @@ import octopus.teamcity.common.OctopusConstants;
 import octopus.teamcity.common.connection.ConnectionPropertyNames;
 
 public class OctopusConnectionBuildStartProcessor implements BuildStartContextProcessor {
-  private static final OctopusConstants C = new OctopusConstants();
+  private static final OctopusConstants CONSTANTS = new OctopusConstants();
   private static final ConnectionPropertyNames CONN = new ConnectionPropertyNames();
   // Runner types that carry Octopus server credentials and therefore support connections.
   // Deliberately excludes PACK_PACKAGE (local packaging only, no server connection) and
@@ -72,7 +72,7 @@ public class OctopusConnectionBuildStartProcessor implements BuildStartContextPr
         continue;
       }
       final Map<String, String> stepParams = runner.getParameters();
-      final String connectionId = stepParams.get(C.getConnectionIdKey());
+      final String connectionId = stepParams.get(CONSTANTS.getConnectionIdKey());
       if (StringUtil.isEmptyOrSpaces(connectionId)) {
         continue;
       }
@@ -88,13 +88,16 @@ public class OctopusConnectionBuildStartProcessor implements BuildStartContextPr
       }
 
       final Map<String, String> connParams = resolved.get().getParameters();
-      setIfPresent(runner, C.getServerKey(), connParams.get(CONN.getServerUrlPropertyName()));
-      setIfPresent(runner, C.getApiKey(), connParams.get(CONN.getApiKeyPropertyName()));
-      setIfPresent(runner, C.getOctopusVersion(), connParams.get(CONN.getVersionPropertyName()));
+      setIfPresent(
+          runner, CONSTANTS.getServerKey(), connParams.get(CONN.getServerUrlPropertyName()));
+      setIfPresent(runner, CONSTANTS.getApiKey(), connParams.get(CONN.getApiKeyPropertyName()));
+      setIfPresent(
+          runner, CONSTANTS.getOctopusVersion(), connParams.get(CONN.getVersionPropertyName()));
 
       // Space precedence: keep the step's value if it set one; otherwise use the connection's.
-      if (StringUtil.isEmptyOrSpaces(stepParams.get(C.getSpaceName()))) {
-        setIfPresent(runner, C.getSpaceName(), connParams.get(CONN.getSpaceNamePropertyName()));
+      if (StringUtil.isEmptyOrSpaces(stepParams.get(CONSTANTS.getSpaceName()))) {
+        setIfPresent(
+            runner, CONSTANTS.getSpaceName(), connParams.get(CONN.getSpaceNamePropertyName()));
       }
     }
   }

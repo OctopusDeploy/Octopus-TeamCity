@@ -41,22 +41,22 @@ class OctopusConnectionUiDataTest {
       final String url,
       final String version,
       final String space) {
-    final OAuthConnectionDescriptor d = mock(OAuthConnectionDescriptor.class);
-    when(d.getId()).thenReturn(id);
-    when(d.getConnectionDisplayName()).thenReturn(name);
+    final OAuthConnectionDescriptor descriptor = mock(OAuthConnectionDescriptor.class);
+    when(descriptor.getId()).thenReturn(id);
+    when(descriptor.getConnectionDisplayName()).thenReturn(name);
     final Map<String, String> params = new HashMap<>();
     params.put(ConnectionPropertyNames.SERVER_URL, url);
     params.put(ConnectionPropertyNames.VERSION, version);
     params.put(ConnectionPropertyNames.SPACE_NAME, space);
-    when(d.getParameters()).thenReturn(params);
-    return d;
+    when(descriptor.getParameters()).thenReturn(params);
+    return descriptor;
   }
 
   @Test
   void mapsConnectionFieldsForTheView() {
-    final OAuthConnectionDescriptor d =
+    final OAuthConnectionDescriptor descriptor =
         connection("PROJECT_EXT_1", "Prod", "https://octo", "3.0+", "Spaces-1");
-    when(connectionsManager.listAvailableConnections(user)).thenReturn(Arrays.asList(d));
+    when(connectionsManager.listAvailableConnections(user)).thenReturn(Arrays.asList(descriptor));
 
     final List<Map<String, String>> result = OctopusConnectionUiData.availableConnections(user);
 
@@ -71,11 +71,11 @@ class OctopusConnectionUiDataTest {
 
   @Test
   void doesNotExposeTheApiKey() {
-    final OAuthConnectionDescriptor d =
+    final OAuthConnectionDescriptor descriptor =
         connection("PROJECT_EXT_1", "Prod", "https://octo", "3.0+", "Spaces-1");
     // Even if the descriptor carried a secret, the view map must not contain it.
-    d.getParameters().put(ConnectionPropertyNames.API_KEY, "API-SECRETVALUE");
-    when(connectionsManager.listAvailableConnections(user)).thenReturn(Arrays.asList(d));
+    descriptor.getParameters().put(ConnectionPropertyNames.API_KEY, "API-SECRETVALUE");
+    when(connectionsManager.listAvailableConnections(user)).thenReturn(Arrays.asList(descriptor));
 
     final Map<String, String> view = OctopusConnectionUiData.availableConnections(user).get(0);
 

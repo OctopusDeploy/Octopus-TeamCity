@@ -17,9 +17,9 @@ class OctopusConnectionTest {
   private final OctopusConnection provider = new OctopusConnection(mock(PluginDescriptor.class));
 
   private OAuthConnectionDescriptor descriptorWith(final Map<String, String> params) {
-    final OAuthConnectionDescriptor d = mock(OAuthConnectionDescriptor.class);
-    when(d.getParameters()).thenReturn(params);
-    return d;
+    final OAuthConnectionDescriptor descriptor = mock(OAuthConnectionDescriptor.class);
+    when(descriptor.getParameters()).thenReturn(params);
+    return descriptor;
   }
 
   @Test

@@ -67,11 +67,12 @@ public class OctopusConnectionUiData {
     if (user == null || connectionsManager == null) {
       return result;
     }
-    for (final OAuthConnectionDescriptor d : connectionsManager.listAvailableConnections(user)) {
-      final Map<String, String> params = d.getParameters();
+    for (final OAuthConnectionDescriptor descriptor :
+        connectionsManager.listAvailableConnections(user)) {
+      final Map<String, String> params = descriptor.getParameters();
       final Map<String, String> view = new HashMap<>();
-      view.put("id", d.getId());
-      view.put("displayName", d.getConnectionDisplayName());
+      view.put("id", descriptor.getId());
+      view.put("displayName", descriptor.getConnectionDisplayName());
       view.put("url", params.getOrDefault(CONN.getServerUrlPropertyName(), ""));
       view.put("version", params.getOrDefault(CONN.getVersionPropertyName(), ""));
       view.put("space", params.getOrDefault(CONN.getSpaceNamePropertyName(), ""));

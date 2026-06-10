@@ -34,9 +34,10 @@ class OctopusConnectionsManagerTest {
   }
 
   private OAuthConnectionDescriptor connection(final String id) {
-    final OAuthConnectionDescriptor d = org.mockito.Mockito.mock(OAuthConnectionDescriptor.class);
-    when(d.getId()).thenReturn(id);
-    return d;
+    final OAuthConnectionDescriptor descriptor =
+        org.mockito.Mockito.mock(OAuthConnectionDescriptor.class);
+    when(descriptor.getId()).thenReturn(id);
+    return descriptor;
   }
 
   @Test
@@ -44,10 +45,10 @@ class OctopusConnectionsManagerTest {
     when(projectManager.getProjects()).thenReturn(Collections.singletonList(project));
     when(project.getProjectId()).thenReturn("p1");
     when(user.isPermissionGrantedForProject("p1", Permission.VIEW_PROJECT)).thenReturn(true);
-    final OAuthConnectionDescriptor a = connection("c1");
-    final OAuthConnectionDescriptor b = connection("c1");
+    final OAuthConnectionDescriptor first = connection("c1");
+    final OAuthConnectionDescriptor duplicate = connection("c1");
     when(teamcityOAuth.getAvailableConnectionsOfType(project, OctopusConnection.TYPE))
-        .thenReturn(Arrays.asList(a, b));
+        .thenReturn(Arrays.asList(first, duplicate));
 
     final List<OAuthConnectionDescriptor> result = manager.listAvailableConnections(user);
 
@@ -66,10 +67,11 @@ class OctopusConnectionsManagerTest {
 
   @Test
   void resolveReturnsConnectionById() {
-    final OAuthConnectionDescriptor a = org.mockito.Mockito.mock(OAuthConnectionDescriptor.class);
-    when(teamcityOAuth.findConnectionById(project, "c1")).thenReturn(a);
+    final OAuthConnectionDescriptor connection =
+        org.mockito.Mockito.mock(OAuthConnectionDescriptor.class);
+    when(teamcityOAuth.findConnectionById(project, "c1")).thenReturn(connection);
 
-    assertThat(manager.resolve(project, "c1")).contains(a);
+    assertThat(manager.resolve(project, "c1")).contains(connection);
   }
 
   @Test

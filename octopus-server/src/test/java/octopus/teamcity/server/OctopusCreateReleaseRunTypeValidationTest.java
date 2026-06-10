@@ -15,40 +15,42 @@ import octopus.teamcity.common.OctopusConstants;
 import org.junit.jupiter.api.Test;
 
 class OctopusCreateReleaseRunTypeValidationTest {
-  private static final OctopusConstants C = new OctopusConstants();
+  private static final OctopusConstants CONSTANTS = new OctopusConstants();
 
-  private Collection<String> validate(final Map<String, String> p) {
+  private Collection<String> validate(final Map<String, String> properties) {
     final OctopusCreateReleaseRunType runType =
         new OctopusCreateReleaseRunType(mock(RunTypeRegistry.class), mock(PluginDescriptor.class));
-    return runType.getRunnerPropertiesProcessor().process(p).stream()
+    return runType.getRunnerPropertiesProcessor().process(properties).stream()
         .map(InvalidProperty::getPropertyName)
         .collect(Collectors.toList());
   }
 
-  private Map<String, String> withMandatoryNonCredentialFields(final Map<String, String> p) {
-    p.put(C.getProjectNameKey(), "MyProject");
-    return p;
+  private Map<String, String> withMandatoryNonCredentialFields(
+      final Map<String, String> properties) {
+    properties.put(CONSTANTS.getProjectNameKey(), "MyProject");
+    return properties;
   }
 
   @Test
   void connectionOnlyIsValidForServerAndKey() {
-    final Map<String, String> p = withMandatoryNonCredentialFields(new HashMap<>());
-    p.put(C.getConnectionIdKey(), "c1");
-    final Collection<String> errors = validate(p);
-    assertThat(errors).doesNotContain(C.getServerKey(), C.getApiKey());
+    final Map<String, String> properties = withMandatoryNonCredentialFields(new HashMap<>());
+    properties.put(CONSTANTS.getConnectionIdKey(), "c1");
+    final Collection<String> errors = validate(properties);
+    assertThat(errors).doesNotContain(CONSTANTS.getServerKey(), CONSTANTS.getApiKey());
   }
 
   @Test
   void manualOnlyIsValid() {
-    final Map<String, String> p = withMandatoryNonCredentialFields(new HashMap<>());
-    p.put(C.getServerKey(), "https://octo");
-    p.put(C.getApiKey(), "API-KEY");
-    assertThat(validate(p)).doesNotContain(C.getServerKey(), C.getApiKey());
+    final Map<String, String> properties = withMandatoryNonCredentialFields(new HashMap<>());
+    properties.put(CONSTANTS.getServerKey(), "https://octo");
+    properties.put(CONSTANTS.getApiKey(), "API-KEY");
+    assertThat(validate(properties))
+        .doesNotContain(CONSTANTS.getServerKey(), CONSTANTS.getApiKey());
   }
 
   @Test
   void neitherConnectionNorManualIsInvalid() {
-    final Map<String, String> p = withMandatoryNonCredentialFields(new HashMap<>());
-    assertThat(validate(p)).contains(C.getServerKey(), C.getApiKey());
+    final Map<String, String> properties = withMandatoryNonCredentialFields(new HashMap<>());
+    assertThat(validate(properties)).contains(CONSTANTS.getServerKey(), CONSTANTS.getApiKey());
   }
 }

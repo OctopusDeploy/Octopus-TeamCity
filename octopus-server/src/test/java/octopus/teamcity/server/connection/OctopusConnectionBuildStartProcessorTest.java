@@ -29,7 +29,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class OctopusConnectionBuildStartProcessorTest {
-  private static final OctopusConstants C = new OctopusConstants();
+  private static final OctopusConstants CONSTANTS = new OctopusConstants();
 
   @Mock private ExtensionHolder extensionHolder;
   @Mock private OctopusConnectionsManager connectionsManager;
@@ -58,7 +58,7 @@ class OctopusConnectionBuildStartProcessorTest {
    */
   private OAuthConnectionDescriptor connectionWith(
       final String url, final String key, final String version, final String space) {
-    final OAuthConnectionDescriptor d = mock(OAuthConnectionDescriptor.class);
+    final OAuthConnectionDescriptor descriptor = mock(OAuthConnectionDescriptor.class);
     final Map<String, String> params = new HashMap<>();
     params.put(ConnectionPropertyNames.SERVER_URL, url);
     params.put(ConnectionPropertyNames.API_KEY, key);
@@ -67,15 +67,15 @@ class OctopusConnectionBuildStartProcessorTest {
       params.put(ConnectionPropertyNames.SPACE_NAME, space);
     }
     // Stubbing must complete before this descriptor is passed into another when() chain.
-    when(d.getParameters()).thenReturn(params);
-    return d;
+    when(descriptor.getParameters()).thenReturn(params);
+    return descriptor;
   }
 
   @Test
   void injectsConnectionValuesWhenConnectionSelected() {
-    final Map<String, String> p = new HashMap<>();
-    p.put(C.getConnectionIdKey(), "c1");
-    when(runnerContext.getParameters()).thenReturn(p);
+    final Map<String, String> properties = new HashMap<>();
+    properties.put(CONSTANTS.getConnectionIdKey(), "c1");
+    when(runnerContext.getParameters()).thenReturn(properties);
 
     // Build descriptor before entering the outer when() chain.
     final OAuthConnectionDescriptor descriptor =
@@ -84,18 +84,18 @@ class OctopusConnectionBuildStartProcessorTest {
 
     processor.updateParameters(buildStartContext);
 
-    verify(runnerContext).addRunnerParameter(C.getServerKey(), "https://octo");
-    verify(runnerContext).addRunnerParameter(C.getApiKey(), "API-KEY");
-    verify(runnerContext).addRunnerParameter(C.getOctopusVersion(), "3.0+");
-    verify(runnerContext).addRunnerParameter(C.getSpaceName(), "Spaces-1");
+    verify(runnerContext).addRunnerParameter(CONSTANTS.getServerKey(), "https://octo");
+    verify(runnerContext).addRunnerParameter(CONSTANTS.getApiKey(), "API-KEY");
+    verify(runnerContext).addRunnerParameter(CONSTANTS.getOctopusVersion(), "3.0+");
+    verify(runnerContext).addRunnerParameter(CONSTANTS.getSpaceName(), "Spaces-1");
   }
 
   @Test
   void stepSpaceOverridesConnectionSpace() {
-    final Map<String, String> p = new HashMap<>();
-    p.put(C.getConnectionIdKey(), "c1");
-    p.put(C.getSpaceName(), "StepSpace");
-    when(runnerContext.getParameters()).thenReturn(p);
+    final Map<String, String> properties = new HashMap<>();
+    properties.put(CONSTANTS.getConnectionIdKey(), "c1");
+    properties.put(CONSTANTS.getSpaceName(), "StepSpace");
+    when(runnerContext.getParameters()).thenReturn(properties);
 
     final OAuthConnectionDescriptor descriptor =
         connectionWith("https://octo", "API-KEY", "3.0+", "ConnSpace");
@@ -107,7 +107,7 @@ class OctopusConnectionBuildStartProcessorTest {
     // (neither overwrite with the connection's value nor rewrite the step's own value).
     verify(runnerContext, never())
         .addRunnerParameter(
-            org.mockito.ArgumentMatchers.eq(C.getSpaceName()),
+            org.mockito.ArgumentMatchers.eq(CONSTANTS.getSpaceName()),
             org.mockito.ArgumentMatchers.anyString());
   }
 
@@ -119,7 +119,7 @@ class OctopusConnectionBuildStartProcessorTest {
 
     verify(runnerContext, never())
         .addRunnerParameter(
-            org.mockito.ArgumentMatchers.eq(C.getServerKey()),
+            org.mockito.ArgumentMatchers.eq(CONSTANTS.getServerKey()),
             org.mockito.ArgumentMatchers.anyString());
   }
 
