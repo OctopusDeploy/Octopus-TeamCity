@@ -43,8 +43,8 @@ class OctopusConnectionsManagerTest {
   @Test
   void listAvailableDedupesById() {
     when(projectManager.getProjects()).thenReturn(Collections.singletonList(project));
-    when(project.getProjectId()).thenReturn("p1");
-    when(user.isPermissionGrantedForProject("p1", Permission.VIEW_PROJECT)).thenReturn(true);
+    when(project.getProjectId()).thenReturn("MyProject");
+    when(user.isPermissionGrantedForProject("MyProject", Permission.VIEW_PROJECT)).thenReturn(true);
     final OAuthConnectionDescriptor first = connection("PROJECT_EXT_1");
     final OAuthConnectionDescriptor duplicate = connection("PROJECT_EXT_1");
     when(teamcityOAuth.getAvailableConnectionsOfType(project, OctopusConnection.TYPE))
@@ -59,8 +59,9 @@ class OctopusConnectionsManagerTest {
   @Test
   void listAvailableSkipsProjectsUserCannotView() {
     when(projectManager.getProjects()).thenReturn(Collections.singletonList(project));
-    when(project.getProjectId()).thenReturn("p1");
-    when(user.isPermissionGrantedForProject("p1", Permission.VIEW_PROJECT)).thenReturn(false);
+    when(project.getProjectId()).thenReturn("MyProject");
+    when(user.isPermissionGrantedForProject("MyProject", Permission.VIEW_PROJECT))
+        .thenReturn(false);
 
     assertThat(manager.listAvailableConnections(user)).isEmpty();
   }
