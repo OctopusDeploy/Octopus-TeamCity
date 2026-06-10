@@ -16,9 +16,6 @@ dependencies {
   testImplementation 'org.testcontainers:junit-jupiter'
   testImplementation 'net.lingala.zip4j:zip4j'
 
-  testImplementation 'org.apache.logging.log4j:log4j-api'
-  testImplementation 'org.apache.logging.log4j:log4j-core'
-  testImplementation 'org.apache.logging.log4j:log4j-slf4j-impl'
   testImplementation 'org.jetbrains.teamcity:teamcity-rest-client'
   testImplementation 'org.mock-server:mockserver-netty'
 }
