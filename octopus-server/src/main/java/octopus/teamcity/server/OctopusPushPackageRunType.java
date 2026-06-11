@@ -25,6 +25,7 @@ import jetbrains.buildServer.serverSide.InvalidProperty;
 import jetbrains.buildServer.serverSide.PropertiesProcessor;
 import jetbrains.buildServer.serverSide.RunType;
 import jetbrains.buildServer.serverSide.RunTypeRegistry;
+import jetbrains.buildServer.util.StringUtil;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import octopus.teamcity.common.OctopusConstants;
 import org.jetbrains.annotations.NotNull;
@@ -76,8 +77,11 @@ public class OctopusPushPackageRunType extends RunType {
         final Collection<InvalidProperty> result = new ArrayList<InvalidProperty>();
         if (p == null) return result;
 
-        checkNotEmpty(p, c.getApiKey(), "API key must be specified", result);
-        checkNotEmpty(p, c.getServerKey(), "Server must be specified", result);
+        final boolean usingConnection = !StringUtil.isEmptyOrSpaces(p.get(c.getConnectionIdKey()));
+        if (!usingConnection) {
+          checkNotEmpty(p, c.getApiKey(), "API key must be specified", result);
+          checkNotEmpty(p, c.getServerKey(), "Server must be specified", result);
+        }
         checkNotEmpty(p, c.getPackagePathsKey(), "Package paths must be specified", result);
 
         return result;
@@ -88,7 +92,7 @@ public class OctopusPushPackageRunType extends RunType {
   @Nullable
   @Override
   public String getEditRunnerParamsJspFilePath() {
-    return pluginDescriptor.getPluginResourcesPath("editOctopusPushPackage.jsp");
+    return pluginDescriptor.getPluginResourcesPath("forms/editOctopusPushPackageForm.jsp");
   }
 
   @Nullable

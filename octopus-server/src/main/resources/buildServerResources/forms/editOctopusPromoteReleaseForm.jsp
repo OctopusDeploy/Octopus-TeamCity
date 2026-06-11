@@ -22,9 +22,11 @@
 
 <jsp:useBean id="keys" class="octopus.teamcity.common.OctopusConstants" />
 <jsp:useBean id="propertiesBean" scope="request" type="jetbrains.buildServer.controllers.BasePropertiesBean"/>
+<c:set var="selectedOctopusVersion" value="${propertiesBean.properties['octopus_version']}"/>
 
 <l:settingsGroup title="Octopus Connection">
-<tr>
+  <jsp:include page="../connectionSelector.jsp"/>
+<tr class="octopusInlineConnectionField">
   <th>Octopus URL:<l:star/></th>
   <td>
     <props:textProperty name="${keys.serverKey}" className="longField"/>
@@ -32,7 +34,7 @@
     <span class="smallNote">Specify Octopus web portal URL</span>
   </td>
 </tr>
-<tr>
+<tr class="octopusInlineConnectionField">
   <th>API key:<l:star/></th>
   <td>
     <props:passwordProperty name="${keys.apiKey}" className="longField"/>
@@ -40,7 +42,7 @@
     <span class="smallNote">Specify Octopus API key. You can get this from your user page in the Octopus web portal.</span>
   </td>
 </tr>
-<tr>
+<tr class="octopusInlineConnectionField">
     <th>Octopus version:<l:star/></th>
     <td>
         <props:selectProperty name="${keys.octopusVersion}" multiple="false">

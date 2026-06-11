@@ -11,11 +11,20 @@
        value="${propertiesBean.properties['octopus_version']}"/>
 
 <script type="text/javascript">
+  (function () {
+    function getOctopusEffectiveVersion() {
+      const connectionId = window.octopusSelectedConnectionId ? window.octopusSelectedConnectionId() : "";
+      if (connectionId && window.octopusConnectionVersion) {
+        const version = window.octopusConnectionVersion(connectionId);
+        if (version) { return version; }
+      }
+      return document.getElementById("${keys.octopusVersion}").value;
+    }
 
     function showHideGitRefField() {
         const gitRefRow  = document.getElementById("gitRefRow");
         const gitCommitRow  = document.getElementById("gitCommitRow");
-        const versionSelected = document.getElementById("${keys.octopusVersion}").value;
+        const versionSelected = getOctopusEffectiveVersion();
         let gitProjectsAreSupported = versionSelected === "${keys.version3}" || versionSelected === "${keys.previewVersion}";
         if (gitProjectsAreSupported) {
             gitRefRow.style.display = "table-row";
@@ -28,19 +37,20 @@
         }
     }
 
-    // Select the first version that isn't the preview version once the page has loaded
-    $j(document).ready(function ($) {
-
-        // Bind the event
+    $j(document).ready(function () {
         document.getElementById("${keys.octopusVersion}").addEventListener("change", showHideGitRefField);
-
-        // Run the check for the first time
+        var octoConnSelect = document.getElementById("octopusConnectionId");
+        if (octoConnSelect) {
+            octoConnSelect.addEventListener("change", showHideGitRefField);
+        }
         showHideGitRefField();
     });
+  })();
 </script>
 
 <l:settingsGroup title="Octopus Connection">
-<tr>
+  <jsp:include page="../connectionSelector.jsp"/>
+<tr class="octopusInlineConnectionField">
   <th>Octopus URL:<l:star/></th>
   <td>
     <props:textProperty name="${keys.serverKey}" className="longField"/>
@@ -48,7 +58,7 @@
     <span class="smallNote">Specify Octopus web portal URL</span>
   </td>
 </tr>
-<tr>
+<tr class="octopusInlineConnectionField">
   <th>API key:<l:star/></th>
   <td>
     <props:passwordProperty name="${keys.apiKey}" className="longField"/>
@@ -56,7 +66,7 @@
     <span class="smallNote">Specify Octopus API key. You can get this from your user page in the Octopus web portal.</span>
   </td>
 </tr>
-<tr>
+<tr class="octopusInlineConnectionField">
     <th>Octopus version:<l:star/></th>
     <td>
         <props:selectProperty name="${keys.octopusVersion}" multiple="false">

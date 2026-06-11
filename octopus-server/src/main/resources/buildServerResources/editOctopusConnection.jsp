@@ -1,6 +1,5 @@
 <%@ include file="/include-internal.jsp" %>
 <%@ taglib prefix="props" tagdir="/WEB-INF/tags/props" %>
-<%@ taglib prefix="forms" tagdir="/WEB-INF/tags/forms" %>
 <%@ taglib prefix="l" tagdir="/WEB-INF/tags/layout" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
@@ -19,39 +18,58 @@
   ~ specific language governing permissions and limitations under the License.
   --%>
 <jsp:useBean id="keys" class="octopus.teamcity.common.connection.ConnectionPropertyNames"/>
+<jsp:useBean id="versionKeys" class="octopus.teamcity.common.OctopusConstants"/>
+<jsp:useBean id="propertiesBean" scope="request" type="jetbrains.buildServer.controllers.BasePropertiesBean"/>
+<c:set var="selectedOctopusVersion" value="${propertiesBean.properties[keys.versionPropertyName]}"/>
 
 <tr>
-    <th>Connection Name:</th>
-    <td>
-        <props:textProperty name="${keys.displayName}" className="longField"/>
-        <span class="error" id="error_displayName"></span>
-        <span class="smallNote">Provide a uniquely distinguishable name for this connection</span>
-    </td>
+  <th>Connection Name:</th>
+  <td>
+    <props:textProperty name="${keys.displayName}" className="longField"/>
+    <span class="error" id="error_${keys.displayName}"></span>
+    <span class="smallNote">A uniquely distinguishable name for this connection.</span>
+  </td>
 </tr>
-<l:settingsGroup title="Server">
-    <tr>
-        <th>Octopus URL:<l:star/></th>
-        <td>
-            <props:textProperty name="${keys.serverUrlPropertyName}" className="longField"/>
-            <span class="error" id="error_${keys.serverUrlPropertyName}"></span>
-            <span class="smallNote">Specify Octopus server URL (eg. http(s)://{hostname}:{port})</span>
-        </td>
-    </tr>
-    <tr>
-        <th>API key:<l:star/></th>
-        <td>
-            <props:passwordProperty name="${keys.apiKeyPropertyName}" className="longField"/>
-            <span class="error" id="error_${keys.apiKeyPropertyName}"></span>
-            <span class="smallNote">Specify Octopus API key. You can get this from your user page in the Octopus web portal.</span>
-        </td>
-    </tr>
-</l:settingsGroup>
-
-<l:settingsGroup title="Proxy">
-    <props:selectSectionProperty name="${keys.proxyRequiredPropertyName}" title="Proxy Server Requried" note="">
-        <props:selectSectionPropertyContent value="false" caption="<No Proxy Required>"/>
-        <props:selectSectionPropertyContent value="true" caption="Use Proxy Server">
-            <jsp:include page="${teamcityPluginResourcesPath}/v2/subpages/editProxyParameters.jsp"/>
-        </props:selectSectionPropertyContent>
-    </props:selectSectionProperty>
-</l:settingsGroup>
+<tr>
+  <th>Octopus URL:<l:star/></th>
+  <td>
+    <props:textProperty name="${keys.serverUrlPropertyName}" className="longField"/>
+    <span class="error" id="error_${keys.serverUrlPropertyName}"></span>
+    <span class="smallNote">Specify the Octopus server URL (e.g. http(s)://{hostname}:{port}).</span>
+  </td>
+</tr>
+<tr>
+  <th>API key:<l:star/></th>
+  <td>
+    <props:passwordProperty name="${keys.apiKeyPropertyName}" className="longField"/>
+    <span class="error" id="error_${keys.apiKeyPropertyName}"></span>
+    <span class="smallNote">
+      Create a <a href="https://octopus.com/docs/security/users-and-teams/service-accounts">service account</a> in the
+      Octopus web portal.
+    </span>
+  </td>
+</tr>
+<tr>
+  <th>Octopus version:<l:star/></th>
+  <td>
+    <props:selectProperty name="${keys.versionPropertyName}" multiple="false">
+      <c:forEach var="version" items="${versionKeys.octopusVersions}">
+        <c:set var="selected" value="false"/>
+        <c:if test="${selectedOctopusVersion == version}">
+          <c:set var="selected" value="true"/>
+        </c:if>
+        <props:option value="${version}" selected="${selected}"><c:out value="${version}"/></props:option>
+      </c:forEach>
+    </props:selectProperty>
+    <span class="error" id="error_${keys.versionPropertyName}"></span>
+    <span class="smallNote">Which version of the Octopus Deploy server are you using?</span>
+  </td>
+</tr>
+<tr>
+  <th>Space name:</th>
+  <td>
+    <props:textProperty name="${keys.spaceNamePropertyName}" className="longField"/>
+    <span class="error" id="error_${keys.spaceNamePropertyName}"></span>
+    <span class="smallNote">Space name - optional. If not provided, individual build steps can specify.</span>
+  </td>
+</tr>
