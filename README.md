@@ -103,30 +103,34 @@ To create a new test the following must be performed:
   executes the build, then queries OctopusDeploy for outcomes.
 
 ## Versioning, Releasing and Publishing
-### Versioning
-The `gradle.properties` specifies the version of the TeamCity plugin - typically with a
-"SNAPSHOT" postfix (which gives all local builds a SNAPSHOT version).
 
-To create a release version:
-1. Update the version in `gradle.properties` to remove "-SNAPSHOT" postfix
-1. Create a PR in github for version increment, and merge once approved
-1. Create a Release in github
-    - Create a new tag as part of release - tag name should match version in gradle.properties
-    - The release/tag must reference the commit created in prior bullet point
-    - Populate the 'Description' field of the release with changes since last
-    - Save the release (do NOT check pre-release checkbox)
-1. Increment the version in `gradle.properties`, adding "-SNAPSHOT" postfix
-1. Create a PR in github for the increments, and merge once approved
-1. ... Develop features, then rinse and repeat.
+The version is computed from git, and releases are cut by
+[release-please](https://github.com/googleapis/release-please) from [Conventional Commit](https://www.conventionalcommits.org)
+messages.
+
+### Versioning
+The plugin version for a build is computed by [GitVersion](https://gitversion.net) (`GitVersion.yml`,
+`mode: ContinuousDeployment`) and passed to Gradle as `-Pversion=<computed>`: pull-request builds get
+a pre-release version (e.g. `6.3.1-PullRequest0192.31`) and release builds get the tagged version.
+The `version` in `gradle.properties` is the fallback for local builds (`./gradlew distZip` with no
+`-Pversion`).
+
+### Releasing
+Releases are driven by Conventional Commit messages and the `release-please` workflow
+(`.github/workflows/release.yml`, run on each push to `main`):
+
+1. Land changes on `main` via PRs with Conventional Commit messages: `fix:` bumps the patch, `feat:`
+   the minor, and `!`/`BREAKING CHANGE:` the major (`docs:`, `style:`, `test:`, `chore:` don't bump
+   the version).
+1. release-please maintains a **release PR** that bumps the version and updates `CHANGELOG.md`.
+1. Merging the release PR creates the git tag (`vX.Y.Z`) and the GitHub Release.
 
 ### Publishing
-Creating the release in github will trigger
-the [release](https://raw.githubusercontent.com/OctopusDeploy/Octopus-TeamCity/master/.github/workflows/release.yml)
-github action, which will build and test the release, before sending the built plugin zip file and
-creating a release in OctopusDeploy.
+Publishing the GitHub Release triggers the build workflow (`.github/workflows/main.yml`, on
+`release: [published]`), which builds and tests at the release version and creates a release in
+Octopus Deploy.
 
-The created package can be published to the JetBrains Marketplace via [Octopus Deploy]
-(https://deploy.octopus.app).
-Specifically, when the [TeamCity Plugin](https://deploy.octopus.
-app/app#/Spaces-62/projects/teamcity-plugin/deployments) is promoted from "Components - 
-Internal" to 'Components External', a script is executed which pushes the package to Jetbrains.
+The package reaches the JetBrains Marketplace via [Octopus Deploy](https://deploy.octopus.app):
+promoting the [TeamCity Plugin](https://deploy.octopus.app/app#/Spaces-62/projects/teamcity-plugin/deployments)
+from "Components - Internal" to "Components - External" runs a script that pushes the package to
+JetBrains.
