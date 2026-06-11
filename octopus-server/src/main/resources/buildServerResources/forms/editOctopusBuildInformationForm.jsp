@@ -25,7 +25,7 @@
 
 <l:settingsGroup title="Octopus Connection">
   <jsp:include page="../connectionSelector.jsp"/>
-  <tr class="octopusManualField">
+  <tr class="octopusInlineConnectionField">
     <th>Octopus URL:<l:star/></th>
     <td>
       <props:textProperty name="${keys.serverKey}" className="longField"/>
@@ -33,7 +33,7 @@
       <span class="smallNote">Specify Octopus web portal URL</span>
     </td>
   </tr>
-  <tr class="octopusManualField">
+  <tr class="octopusInlineConnectionField">
     <th>API key:<l:star/></th>
     <td>
       <props:passwordProperty name="${keys.apiKey}" className="longField"/>

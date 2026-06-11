@@ -14,7 +14,7 @@
   <th>Connection:</th>
   <td>
     <props:selectProperty name="${keys.connectionIdKey}" id="octopusConnectionId" className="longField">
-      <props:option value="">(Dont use a connection)</props:option>
+      <props:option value="">(Specify connection details inline)</props:option>
       <c:forEach var="conn" items="${octopusConnections}">
         <props:option value="${conn.id}"><c:out value="${conn.displayName}"/></props:option>
       </c:forEach>
@@ -49,11 +49,11 @@
       return null;
     }
 
-    function toggleOctopusManualFields() {
+    function toggleOctopusInlineConnectionFields() {
       const select = document.getElementById("octopusConnectionId");
       if (!select) return;
       const usingConnection = select.value !== "";
-      const rows = document.querySelectorAll("tr.octopusManualField");
+      const rows = document.querySelectorAll("tr.octopusInlineConnectionField");
       for (let i = 0; i < rows.length; i++) {
         rows[i].style.display = usingConnection ? "none" : "table-row";
       }
@@ -75,8 +75,8 @@
     $j(document).ready(function () {
       const select = document.getElementById("octopusConnectionId");
       if (select) {
-        select.addEventListener("change", toggleOctopusManualFields);
-        toggleOctopusManualFields();
+        select.addEventListener("change", toggleOctopusInlineConnectionFields);
+        toggleOctopusInlineConnectionFields();
       }
     });
 
