@@ -85,6 +85,7 @@ public class OctopusPromoteReleaseBuildProcess extends OctopusBuildProcess {
 
         if (wait && deployTo != null && !deployTo.isEmpty()) {
           commands.add("--progress");
+          commands.add("--waitfordeployment");
 
           if (deploymentTimeout != null && !deploymentTimeout.isEmpty()) {
             commands.add("--deploymenttimeout");
