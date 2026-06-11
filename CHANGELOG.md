@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.4.0](https://github.com/OctopusDeploy/Octopus-TeamCity/compare/v6.3.0...v6.4.0) (2026-06-11)
+
+
+### Features
+
+* Add support for TeamCity Connections ([#198](https://github.com/OctopusDeploy/Octopus-TeamCity/issues/198)) ([878b7b8](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/878b7b82b23f71493141dcba000322c1d5698cce))
+
 ## [6.3.0](https://github.com/OctopusDeploy/Octopus-TeamCity/compare/v6.2.0...v6.3.0) (2026-05-19)
 
 
