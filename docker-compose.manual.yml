@@ -1,0 +1,92 @@
+# Manual-testing stack for the Octopus connection feature. Brings up, and leaves running:
+#   - TeamCity 2024.12 with the built plugin installed, booted from the prepared datadir
+#     (e2e/src/test/resources/teamcity_config.zip) so there is NO first-start wizard
+#     — log in as admin / Password01!
+#   - A free-tier Octopus Deploy (+ MSSQL) — no licence required
+#   - A TeamCity agent (authorise it once in the UI: Agents -> Unauthorized -> Authorize)
+#
+# Prerequisite — build the plugin zip first (JDK 11):
+#   JAVA_HOME=/opt/homebrew/opt/openjdk@11 ./gradlew distZip
+#
+# Run:
+#   docker compose -f docker-compose.manual.yml up        # add -d to detach
+#   # TeamCity:  http://localhost:8111   (admin / Password01!)
+#   # Octopus:   http://localhost:8080   (admin / Password01!, API key below)
+#   docker compose -f docker-compose.manual.yml down       # add -v to also wipe the datadir/db
+#
+# To test a connection: in TeamCity add an "Octopus Deploy" connection
+# (Project Settings -> Connections) with:
+#   URL     = http://octopus:8080   (the in-network alias the agent can reach; NOT localhost)
+#   API key = API-FAKEKEY000000000000000000000
+# then add an Octopus build step and pick the connection.
+
+services:
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    platform: linux/amd64  # amd64-only image; runs under emulation on arm64 hosts
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "P@ssw0rd123!"
+
+  octopus:
+    image: octopusdeploy/octopusdeploy:2025.4
+    platform: linux/amd64  # amd64-only image; runs under emulation on arm64 hosts
+    depends_on:
+      - mssql
+    ports:
+      - "8080:8080"
+    environment:
+      ACCEPT_EULA: "Y"
+      DB_CONNECTION_STRING: "Server=mssql,1433;Database=Octopus;User Id=sa;Password=P@ssw0rd123!;TrustServerCertificate=true"
+      ADMIN_USERNAME: "admin"
+      ADMIN_PASSWORD: "Password01!"
+      ADMIN_API_KEY: "API-FAKEKEY000000000000000000000"
+      DISABLE_DIND: "Y"
+
+  # One-shot: lay down the prepared TeamCity datadir (once) and (re)install the freshly-built plugin.
+  tc-init:
+    image: alpine:3.20
+    volumes:
+      - tc-datadir:/datadir
+      - ./:/repo:ro
+    command:
+      - sh
+      - -c
+      - >
+        set -e;
+        apk add --no-cache unzip >/dev/null;
+        if [ ! -f /datadir/.octopus-manual-initialised ]; then
+          echo "Initialising prepared TeamCity datadir...";
+          unzip -o -q /repo/e2e/src/test/resources/teamcity_config.zip -d /datadir;
+          touch /datadir/.octopus-manual-initialised;
+        fi;
+        mkdir -p /datadir/plugins;
+        if ! ls /repo/build/distributions/Octopus.TeamCity.*.zip >/dev/null 2>&1; then
+          echo "ERROR: plugin zip not found in build/distributions — run './gradlew distZip' first." >&2;
+          exit 1;
+        fi;
+        cp /repo/build/distributions/Octopus.TeamCity.*.zip /datadir/plugins/Octopus.TeamCity.zip;
+        chown -R 1000:1000 /datadir;
+        echo "Datadir ready.";
+
+  teamcity-server:
+    image: jetbrains/teamcity-server:2024.12
+    depends_on:
+      tc-init:
+        condition: service_completed_successfully
+    ports:
+      - "8111:8111"
+    environment:
+      TEAMCITY_SERVER_OPTS: "-Dteamcity.startup.maintenance=false"
+    volumes:
+      - tc-datadir:/data/teamcity_server/datadir
+
+  teamcity-agent:
+    image: jetbrains/teamcity-agent:2024.12
+    depends_on:
+      - teamcity-server
+    environment:
+      SERVER_URL: "http://teamcity-server:8111"
+
+volumes:
+  tc-datadir:
