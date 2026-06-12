@@ -66,9 +66,11 @@ class OctopusConnectionInheritanceE2ETest {
           .isEqualTo("SUCCESS");
 
       final SpaceHome spaceHome = new SpaceHomeApi(client).getDefault();
+      // The shared Octopus accumulates build information across tests, so scope to this package.
       final List<BuildInformation> items = BuildInformationApi.create(client, spaceHome).getAll();
-      assertThat(items).hasSize(1);
-      assertThat(items.get(0).getProperties().getPackageId()).isEqualTo(PACKAGE_ID);
+      assertThat(items)
+          .filteredOn(item -> PACKAGE_ID.equals(item.getProperties().getPackageId()))
+          .hasSize(1);
 
       assertThat(log).doesNotContain(stack.octopusApiKey());
     }
