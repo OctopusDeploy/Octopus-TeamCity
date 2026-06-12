@@ -54,14 +54,18 @@ public final class TeamCityRest {
    * briefly 302-redirects authenticated calls during startup, and callers rely on seeing that).
    */
   private Response request(
-      final String method, final String url, final String contentType, final String body)
+      final String method,
+      final String url,
+      final String contentType,
+      final String accept,
+      final String body)
       throws IOException {
     final HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
     connection.setInstanceFollowRedirects(false);
     connection.setConnectTimeout(CONNECT_TIMEOUT_MILLIS);
     connection.setRequestMethod(method);
     connection.setRequestProperty("Authorization", authHeader);
-    connection.setRequestProperty("Accept", "application/json");
+    connection.setRequestProperty("Accept", accept);
     if (body != null) {
       connection.setRequestProperty("Content-Type", contentType);
       connection.setDoOutput(true);
@@ -91,7 +95,7 @@ public final class TeamCityRest {
   private Response send(
       final String method, final String path, final String contentType, final String body)
       throws Exception {
-    final Response resp = request(method, baseUrl + path, contentType, body);
+    final Response resp = request(method, baseUrl + path, contentType, "application/json", body);
     if (resp.statusCode() < 200 || resp.statusCode() >= 300) {
       throw new IllegalStateException(
           method + " " + path + " -> " + resp.statusCode() + ": " + resp.body());
@@ -116,7 +120,8 @@ public final class TeamCityRest {
     final long deadline = System.currentTimeMillis() + timeout.toMillis();
     int lastStatus = -1;
     while (System.currentTimeMillis() < deadline) {
-      final Response resp = request("GET", baseUrl + "/httpAuth/app/rest/server", null, null);
+      final Response resp =
+          request("GET", baseUrl + "/httpAuth/app/rest/server", null, "application/json", null);
       lastStatus = resp.statusCode();
       if (lastStatus == 200) {
         return;
@@ -499,11 +504,25 @@ public final class TeamCityRest {
       final Matcher m = Pattern.compile("\"id\"\\s*:\\s*(\\d+)").matcher(body);
       if (m.find()) {
         final String agentId = m.group(1);
-        request(
-            "PUT",
-            baseUrl + "/httpAuth/app/rest/agents/id:" + agentId + "/authorized",
-            "text/plain",
-            "true");
+        // The /authorized field endpoint replies in text/plain, so we must accept text/plain —
+        // asking for application/json gets a 406. Verify the status so a failed authorization
+        // doesn't pass silently (otherwise the agent stays unauthorized and never goes idle).
+        final Response authorized =
+            request(
+                "PUT",
+                baseUrl + "/httpAuth/app/rest/agents/id:" + agentId + "/authorized",
+                "text/plain",
+                "text/plain",
+                "true");
+        if (authorized.statusCode() < 200 || authorized.statusCode() >= 300) {
+          throw new IllegalStateException(
+              "Authorizing agent "
+                  + agentId
+                  + " failed: "
+                  + authorized.statusCode()
+                  + ": "
+                  + authorized.body());
+        }
         return;
       }
       TimeUnit.SECONDS.sleep(5);
