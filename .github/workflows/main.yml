@@ -116,8 +116,12 @@ jobs:
           docker save $IMAGES -o ~/.docker-image-cache/images.tar
         fi
 
+    # playwrightInstall fetches Chromium (and, with --with-deps, its system libraries) so the
+    # Playwright UI tests have a browser to launch instead of hanging. timeout-minutes bounds the
+    # whole e2e step so a stuck test fails the job fast rather than running for hours.
     - name: Execute end-2-end tests
-      run: ./gradlew e2etest -Pversion=${{ steps.git-version.outputs.nugetVersion }}
+      timeout-minutes: 45
+      run: ./gradlew :e2e:playwrightInstall :e2e:e2eTest -Pversion=${{ steps.git-version.outputs.nugetVersion }}
       env:
         OCTOPUS_LICENSE: ${{ secrets.OCTOPUS_LICENSE }}
         OCTOPUS_SDK_AT_USE_EXISTING_SERVER: false
