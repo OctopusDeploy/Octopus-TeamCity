@@ -82,6 +82,24 @@ jobs:
         name: Octopus.TeamCity.${{ steps.git-version.outputs.nugetVersion }}
         path: '${{ steps.create-package.outputs.package-created }}'
 
+    # Caches the Playwright browser binaries (~/.cache/ms-playwright), keyed on the Playwright
+    # version in e2e/build.gradle. Bump the key when that version changes.
+    - name: Cache Playwright browsers
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/ms-playwright
+        key: ${{ runner.os }}-playwright-1.60.0
+
+    # playwrightInstall fetches Chromium (and its system libs) so the Playwright UI tests have a
+    # browser to launch. The suite shares one container stack (see SharedStack), so it's far faster
+    # than booting per test; timeout-minutes is a safety bound against a hung test.
+    - name: Execute end-2-end tests
+      timeout-minutes: 45
+      run: ./gradlew :e2e:playwrightInstall :e2e:e2eTest -Pversion=${{ steps.git-version.outputs.nugetVersion }}
+      env:
+        OCTOPUS_LICENSE: ${{ secrets.OCTOPUS_LICENSE }}
+        OCTOPUS_SDK_AT_USE_EXISTING_SERVER: false
+
     - name: Login to Octopus
       uses: OctopusDeploy/login@v1
       with:
