@@ -20,8 +20,8 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Full end-to-end for the Push runner: pack a package on the agent, then push it (via a connection)
- * to the Octopus built-in feed with the real {@code octo} CLI. Uses the default Space (the free-tier
- * license allows only one), so the connection's space is left blank.
+ * to the Octopus built-in feed with the real {@code octo} CLI. Uses the default Space (the
+ * free-tier license allows only one), so the connection's space is left blank.
  */
 class OctopusPushPackageE2ETest {
 
@@ -67,7 +67,8 @@ class OctopusPushPackageE2ETest {
       final SpaceHome spaceHome = new SpaceHomeApi(client).getDefault();
       final List<PackageResource> packages = PackageApi.create(client, spaceHome).getAll();
       assertThat(packages)
-          .withFailMessage("Package %s %s not found in the built-in feed", PACKAGE_ID, PACKAGE_VERSION)
+          .withFailMessage(
+              "Package %s %s not found in the built-in feed", PACKAGE_ID, PACKAGE_VERSION)
           .anyMatch(
               p -> PACKAGE_ID.equals(p.getPackageId()) && PACKAGE_VERSION.equals(p.getVersion()));
 

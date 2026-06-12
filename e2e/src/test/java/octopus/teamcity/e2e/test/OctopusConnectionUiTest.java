@@ -66,7 +66,8 @@ class OctopusConnectionUiTest {
         assertThat(page.locator("#octopusConnectionId option").allInnerTexts())
             .anyMatch(t -> t.contains("My Octopus Connection"));
 
-        // Selecting the connection hides the manual fields (tr.octopusInlineConnectionField -> hidden).
+        // Selecting the connection hides the manual fields (tr.octopusInlineConnectionField ->
+        // hidden).
         page.selectOption(
             "#octopusConnectionId", new SelectOption().setLabel("My Octopus Connection"));
         assertThat(page.locator("tr.octopusInlineConnectionField").first().isHidden()).isTrue();

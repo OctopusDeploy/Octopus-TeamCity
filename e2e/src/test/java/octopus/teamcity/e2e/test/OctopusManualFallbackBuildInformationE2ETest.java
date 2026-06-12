@@ -21,9 +21,9 @@ import org.junit.jupiter.api.Test;
 /**
  * Backward-compatibility end-to-end: a Build Information step configured the <em>old</em> way — an
  * inline Octopus URL + API key, with <em>no</em> connection — still publishes to Octopus. This is
- * the promise that the connection feature is purely additive; the connection e2e
- * ({@link OctopusConnectionBuildInformationE2ETest}) proves the new path, this proves the manual
- * path is untouched.
+ * the promise that the connection feature is purely additive; the connection e2e ({@link
+ * OctopusConnectionBuildInformationE2ETest}) proves the new path, this proves the manual path is
+ * untouched.
  */
 class OctopusManualFallbackBuildInformationE2ETest {
 

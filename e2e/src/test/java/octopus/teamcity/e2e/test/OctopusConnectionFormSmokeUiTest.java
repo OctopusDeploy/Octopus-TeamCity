@@ -2,6 +2,9 @@ package octopus.teamcity.e2e.test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserType;
 import com.microsoft.playwright.Locator;
@@ -9,20 +12,17 @@ import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
 import com.microsoft.playwright.options.LoadState;
 import com.microsoft.playwright.options.WaitUntilState;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 import octopus.teamcity.e2e.dsl.OctopusTeamCityStack;
 import octopus.teamcity.e2e.dsl.TeamCityRest;
 import org.junit.jupiter.api.Test;
 
 /**
  * Smoke test that the shared {@code connectionSelector.jsp} fragment renders on <em>every</em>
- * connection-aware step's edit form — not just Create release (which {@link OctopusConnectionUiTest}
- * covers). Each form includes the same fragment and tags its own {@code octopusInlineConnectionField} rows; a
- * per-form regression here is exactly the class of bug that previously slipped through (the
- * fragment's empty {@code keys} bean). No Octopus or agent required.
+ * connection-aware step's edit form — not just Create release (which {@link
+ * OctopusConnectionUiTest} covers). Each form includes the same fragment and tags its own {@code
+ * octopusInlineConnectionField} rows; a per-form regression here is exactly the class of bug that
+ * previously slipped through (the fragment's empty {@code keys} bean). No Octopus or agent
+ * required.
  */
 class OctopusConnectionFormSmokeUiTest {
 
@@ -69,7 +69,8 @@ class OctopusConnectionFormSmokeUiTest {
                   + form.getValue(),
               new Page.NavigateOptions().setWaitUntil(WaitUntilState.DOMCONTENTLOADED));
           page.waitForLoadState(LoadState.NETWORKIDLE);
-          page.locator("#octopusConnectionId").waitFor(new Locator.WaitForOptions().setTimeout(30000));
+          page.locator("#octopusConnectionId")
+              .waitFor(new Locator.WaitForOptions().setTimeout(30000));
 
           assertThat(page.locator("#octopusConnectionId").count())
               .withFailMessage("Connection dropdown missing on the %s form", form.getKey())

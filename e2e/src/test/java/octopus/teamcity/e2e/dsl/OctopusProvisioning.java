@@ -1,8 +1,5 @@
 package octopus.teamcity.e2e.dsl;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.octopus.sdk.api.EnvironmentApi;
 import com.octopus.sdk.api.LifecycleApi;
 import com.octopus.sdk.api.ProjectApi;
@@ -13,10 +10,17 @@ import com.octopus.sdk.model.environment.EnvironmentResource;
 import com.octopus.sdk.model.project.ProjectResource;
 import com.octopus.sdk.model.space.SpaceHome;
 
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 /**
  * Provisions Octopus state the deployment-lifecycle e2e tests need (project with a deployment
@@ -69,37 +73,69 @@ public final class OctopusProvisioning {
   private static void addInlineScriptStep(
       final String octopusBaseUrl, final String apiKey, final String deploymentProcessLink)
       throws Exception {
-    final HttpClient http = HttpClient.newHttpClient();
     // Links may carry a URI template suffix (e.g. "{?...}"); strip it.
     final String path =
         deploymentProcessLink.contains("{")
             ? deploymentProcessLink.substring(0, deploymentProcessLink.indexOf('{'))
             : deploymentProcessLink;
-    final URI uri = URI.create(octopusBaseUrl + path);
+    final String url = octopusBaseUrl + path;
 
-    final HttpResponse<String> get =
-        http.send(
-            HttpRequest.newBuilder(uri).header("X-Octopus-ApiKey", apiKey).GET().build(),
-            HttpResponse.BodyHandlers.ofString());
-    if (get.statusCode() != 200) {
+    final Response get = octopusRequest("GET", url, apiKey, null);
+    if (get.statusCode != 200) {
       throw new IllegalStateException(
-          "GET deployment process -> " + get.statusCode() + ": " + get.body());
+          "GET deployment process -> " + get.statusCode + ": " + get.body);
     }
 
-    final JsonObject process = JsonParser.parseString(get.body()).getAsJsonObject();
+    final JsonObject process = JsonParser.parseString(get.body).getAsJsonObject();
     process.add("Steps", scriptStep());
 
-    final HttpResponse<String> put =
-        http.send(
-            HttpRequest.newBuilder(uri)
-                .header("X-Octopus-ApiKey", apiKey)
-                .header("Content-Type", "application/json")
-                .PUT(HttpRequest.BodyPublishers.ofString(process.toString()))
-                .build(),
-            HttpResponse.BodyHandlers.ofString());
-    if (put.statusCode() < 200 || put.statusCode() >= 300) {
+    final Response put = octopusRequest("PUT", url, apiKey, process.toString());
+    if (put.statusCode < 200 || put.statusCode >= 300) {
       throw new IllegalStateException(
-          "PUT deployment process -> " + put.statusCode() + ": " + put.body());
+          "PUT deployment process -> " + put.statusCode + ": " + put.body);
+    }
+  }
+
+  /** Holds a completed HTTP response (status + body). */
+  private static final class Response {
+    private final int statusCode;
+    private final String body;
+
+    private Response(final int statusCode, final String body) {
+      this.statusCode = statusCode;
+      this.body = body;
+    }
+  }
+
+  private static Response octopusRequest(
+      final String method, final String url, final String apiKey, final String body)
+      throws IOException {
+    final HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+    connection.setRequestMethod(method);
+    connection.setRequestProperty("X-Octopus-ApiKey", apiKey);
+    if (body != null) {
+      connection.setRequestProperty("Content-Type", "application/json");
+      connection.setDoOutput(true);
+      try (OutputStream output = connection.getOutputStream()) {
+        output.write(body.getBytes(StandardCharsets.UTF_8));
+      }
+    }
+    final int statusCode = connection.getResponseCode();
+    final InputStream stream =
+        statusCode >= 400 ? connection.getErrorStream() : connection.getInputStream();
+    final String responseBody = stream == null ? "" : readAll(stream);
+    connection.disconnect();
+    return new Response(statusCode, responseBody);
+  }
+
+  private static String readAll(final InputStream stream) throws IOException {
+    try (ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
+      final byte[] chunk = new byte[8192];
+      int bytesRead;
+      while ((bytesRead = stream.read(chunk)) != -1) {
+        buffer.write(chunk, 0, bytesRead);
+      }
+      return new String(buffer.toByteArray(), StandardCharsets.UTF_8);
     }
   }
 
