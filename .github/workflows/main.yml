@@ -91,31 +91,6 @@ jobs:
         path: ~/.cache/ms-playwright
         key: ${{ runner.os }}-playwright-1.60.0
 
-    # Caches the Testcontainers base images (TeamCity, Octopus, MSSQL) so the e2e job doesn't
-    # re-pull several GB on every run. Keyed on the image tags, which are defined in
-    # OctopusTeamCityStack.java — bump this key when those tags change. (mssql ...:2022-latest is a
-    # moving tag; it is pinned by this cache until the key is bumped.)
-    - name: Cache e2e Docker images
-      id: docker-image-cache
-      uses: actions/cache@v4
-      with:
-        path: ~/.docker-image-cache
-        key: ${{ runner.os }}-e2e-docker-images-tc2024.12-octopus2025.4-mssql2022
-
-    - name: Load or pull e2e Docker images
-      run: |
-        set -euo pipefail
-        IMAGES="jetbrains/teamcity-server:2024.12 jetbrains/teamcity-agent:2024.12 octopusdeploy/octopusdeploy:2025.4 mcr.microsoft.com/mssql/server:2022-latest"
-        if [ -f ~/.docker-image-cache/images.tar ]; then
-          echo "Cache hit — loading e2e images from tarball"
-          docker load -i ~/.docker-image-cache/images.tar
-        else
-          echo "Cache miss — pulling e2e images"
-          for image in $IMAGES; do docker pull "$image"; done
-          mkdir -p ~/.docker-image-cache
-          docker save $IMAGES -o ~/.docker-image-cache/images.tar
-        fi
-
     # playwrightInstall fetches Chromium (and, with --with-deps, its system libraries) so the
     # Playwright UI tests have a browser to launch instead of hanging. timeout-minutes bounds the
     # whole e2e step so a stuck test fails the job fast rather than running for hours.
