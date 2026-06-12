@@ -15,6 +15,7 @@ import java.time.Duration;
 import java.util.List;
 
 import octopus.teamcity.e2e.dsl.OctopusTeamCityStack;
+import octopus.teamcity.e2e.dsl.SharedStack;
 import octopus.teamcity.e2e.dsl.TeamCityRest;
 import org.junit.jupiter.api.Test;
 
@@ -33,7 +34,7 @@ class OctopusConnectionBuildInformationE2ETest {
 
   @Test
   void buildInfoStepUsingConnectionPublishesToOctopus() throws Exception {
-    try (final OctopusTeamCityStack stack = OctopusTeamCityStack.startWithAgentAndOctopus()) {
+    try (final OctopusTeamCityStack stack = SharedStack.full()) {
       // 1. Octopus SDK client (for verification) against the default space.
       final OctopusClient client =
           OctopusClientFactory.createClient(

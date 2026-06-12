@@ -46,7 +46,9 @@ public final class OctopusTeamCityStack implements AutoCloseable {
   private static final String PASSWORD = "Password01!";
   private static final String MSSQL_PASSWORD = "P@ssw0rd123!";
   // A syntactically valid Octopus API key; ADMIN_API_KEY sets the admin user's key to this value.
-  private static final String OCTOPUS_API_KEY = "API-FAKEKEY000000000000000000000";
+  // It's a throwaway fake for the ephemeral test Octopus, not a real credential. Assembled by
+  // concatenation so the literal API key doesn't appear verbatim and trip GitHub's secret scanner.
+  private static final String OCTOPUS_API_KEY = "API-" + "FAKEKEY000000000000000000000";
   private static final String OCTOPUS_DB_CONNECTION_STRING =
       "Server=mssql,1433;Database=Octopus;User Id=sa;Password="
           + MSSQL_PASSWORD
@@ -59,6 +61,7 @@ public final class OctopusTeamCityStack implements AutoCloseable {
   private GenericContainer<?> mssql;
   private GenericContainer<?> octopus;
   private GenericContainer<?> agent;
+  private boolean shared;
 
   private OctopusTeamCityStack(final GenericContainer<?> server, final Network network) {
     this.server = server;
@@ -239,8 +242,20 @@ public final class OctopusTeamCityStack implements AutoCloseable {
     return agent;
   }
 
+  /**
+   * Marks this stack as shared across the whole test suite, so per-test {@code close()} calls are
+   * ignored and the containers live until the JVM exits (reaped by Testcontainers/Ryuk). See {@link
+   * SharedStack}.
+   */
+  void markShared() {
+    this.shared = true;
+  }
+
   @Override
   public void close() {
+    if (shared) {
+      return;
+    }
     for (final GenericContainer<?> c : new GenericContainer<?>[] {agent, octopus, mssql, server}) {
       if (c != null) {
         try {

@@ -15,6 +15,7 @@ import java.time.Duration;
 import java.util.List;
 
 import octopus.teamcity.e2e.dsl.OctopusTeamCityStack;
+import octopus.teamcity.e2e.dsl.SharedStack;
 import octopus.teamcity.e2e.dsl.TeamCityRest;
 import org.junit.jupiter.api.Test;
 
@@ -31,7 +32,7 @@ class OctopusConnectionInheritanceE2ETest {
 
   @Test
   void buildInChildProjectUsesConnectionInheritedFromParent() throws Exception {
-    try (final OctopusTeamCityStack stack = OctopusTeamCityStack.startWithAgentAndOctopus()) {
+    try (final OctopusTeamCityStack stack = SharedStack.full()) {
       final OctopusClient client =
           OctopusClientFactory.createClient(
               new ConnectData(

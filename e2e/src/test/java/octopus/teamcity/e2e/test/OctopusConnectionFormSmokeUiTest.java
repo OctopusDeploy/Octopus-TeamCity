@@ -13,6 +13,7 @@ import com.microsoft.playwright.Playwright;
 import com.microsoft.playwright.options.LoadState;
 import com.microsoft.playwright.options.WaitUntilState;
 import octopus.teamcity.e2e.dsl.OctopusTeamCityStack;
+import octopus.teamcity.e2e.dsl.SharedStack;
 import octopus.teamcity.e2e.dsl.TeamCityRest;
 import org.junit.jupiter.api.Test;
 
@@ -28,7 +29,7 @@ class OctopusConnectionFormSmokeUiTest {
 
   @Test
   void connectionDropdownRendersOnEveryConnectionAwareForm() throws Exception {
-    try (final OctopusTeamCityStack stack = OctopusTeamCityStack.startTeamCityOnly()) {
+    try (final OctopusTeamCityStack stack = SharedStack.full()) {
       final TeamCityRest tc = stack.rest();
       tc.createProject("FormIT", "Form IT");
       tc.createOctopusConnection(

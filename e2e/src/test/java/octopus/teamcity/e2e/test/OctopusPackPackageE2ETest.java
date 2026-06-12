@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.time.Duration;
 
 import octopus.teamcity.e2e.dsl.OctopusTeamCityStack;
+import octopus.teamcity.e2e.dsl.SharedStack;
 import octopus.teamcity.e2e.dsl.TeamCityRest;
 import org.junit.jupiter.api.Test;
 
@@ -23,7 +24,7 @@ class OctopusPackPackageE2ETest {
 
   @Test
   void packStepProducesAPackageArtifact() throws Exception {
-    try (final OctopusTeamCityStack stack = OctopusTeamCityStack.startWithAgent()) {
+    try (final OctopusTeamCityStack stack = SharedStack.full()) {
       final TeamCityRest tc = stack.rest();
       tc.createProject("PackIT", "Pack IT");
       tc.createBuildType("PackIT_Pack", "Pack a package", "PackIT");

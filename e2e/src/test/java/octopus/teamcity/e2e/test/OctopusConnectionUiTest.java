@@ -11,6 +11,7 @@ import com.microsoft.playwright.options.LoadState;
 import com.microsoft.playwright.options.SelectOption;
 import com.microsoft.playwright.options.WaitUntilState;
 import octopus.teamcity.e2e.dsl.OctopusTeamCityStack;
+import octopus.teamcity.e2e.dsl.SharedStack;
 import octopus.teamcity.e2e.dsl.TeamCityRest;
 import org.junit.jupiter.api.Test;
 
@@ -22,7 +23,7 @@ class OctopusConnectionUiTest {
 
   @Test
   void connectionDropdownRendersAndTogglesManualFields() throws Exception {
-    try (final OctopusTeamCityStack stack = OctopusTeamCityStack.startTeamCityOnly()) {
+    try (final OctopusTeamCityStack stack = SharedStack.full()) {
       final TeamCityRest tc = stack.rest();
       tc.createProject("UiIT", "UI IT");
       tc.createOctopusConnection(

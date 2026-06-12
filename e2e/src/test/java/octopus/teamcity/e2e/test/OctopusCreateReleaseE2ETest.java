@@ -16,6 +16,7 @@ import java.util.List;
 
 import octopus.teamcity.e2e.dsl.OctopusProvisioning;
 import octopus.teamcity.e2e.dsl.OctopusTeamCityStack;
+import octopus.teamcity.e2e.dsl.SharedStack;
 import octopus.teamcity.e2e.dsl.TeamCityRest;
 import org.junit.jupiter.api.Test;
 
@@ -35,7 +36,7 @@ class OctopusCreateReleaseE2ETest {
 
   @Test
   void createReleaseStepUsingConnectionCreatesARealRelease() throws Exception {
-    try (final OctopusTeamCityStack stack = OctopusTeamCityStack.startWithAgentAndOctopus()) {
+    try (final OctopusTeamCityStack stack = SharedStack.full()) {
       final OctopusClient client =
           OctopusClientFactory.createClient(
               new ConnectData(

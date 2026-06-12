@@ -10,6 +10,7 @@ import com.microsoft.playwright.Playwright;
 import com.microsoft.playwright.options.LoadState;
 import com.microsoft.playwright.options.SelectOption;
 import octopus.teamcity.e2e.dsl.OctopusTeamCityStack;
+import octopus.teamcity.e2e.dsl.SharedStack;
 import octopus.teamcity.e2e.dsl.TeamCityRest;
 import org.junit.jupiter.api.Test;
 
@@ -24,7 +25,7 @@ class OctopusConnectionValidationUiTest {
 
   @Test
   void savingAnOctopusConnectionWithNoUrlIsRejected() throws Exception {
-    try (final OctopusTeamCityStack stack = OctopusTeamCityStack.startTeamCityOnly()) {
+    try (final OctopusTeamCityStack stack = SharedStack.full()) {
       final TeamCityRest tc = stack.rest();
       tc.createProject("ValIT", "Validation IT");
 

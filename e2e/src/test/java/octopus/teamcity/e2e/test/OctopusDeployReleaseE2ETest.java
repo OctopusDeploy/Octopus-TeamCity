@@ -16,6 +16,7 @@ import java.util.List;
 
 import octopus.teamcity.e2e.dsl.OctopusProvisioning;
 import octopus.teamcity.e2e.dsl.OctopusTeamCityStack;
+import octopus.teamcity.e2e.dsl.SharedStack;
 import octopus.teamcity.e2e.dsl.TeamCityRest;
 import org.junit.jupiter.api.Test;
 
@@ -30,11 +31,12 @@ class OctopusDeployReleaseE2ETest {
 
   private static final String OCTOPUS_PROJECT = "DeployReleaseIT";
   private static final String RELEASE_VERSION = "1.0.0";
-  private static final String ENVIRONMENT = "Development";
+  // Unique to this test — environment names are space-global on the shared Octopus.
+  private static final String ENVIRONMENT = "DeployReleaseIT-Development";
 
   @Test
   void deployReleaseStepUsingConnectionDeploysToTheEnvironment() throws Exception {
-    try (final OctopusTeamCityStack stack = OctopusTeamCityStack.startWithAgentAndOctopus()) {
+    try (final OctopusTeamCityStack stack = SharedStack.full()) {
       final OctopusClient client =
           OctopusClientFactory.createClient(
               new ConnectData(
