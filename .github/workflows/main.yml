@@ -85,11 +85,12 @@ jobs:
 
   e2e:
     name: "End-to-end tests"
+    needs: build
     runs-on: ubuntu-latest
     if: ${{ github.ref_name != 'main' || github.event.head_commit.author.username != 'team-integrations-fnm-bot' }}
     # Bounds the suite so a hung test fails the job instead of running for hours. e2eTest builds the
-    # plugin zip itself (it dependsOn the root distZip), so this job is self-contained — it runs in
-    # parallel with build rather than depending on it.
+    # plugin zip itself (it dependsOn the root distZip), so it doesn't consume build's artifact;
+    # gating on build just avoids running the long suite when compilation/unit tests have failed.
     timeout-minutes: 45
 
     steps:
@@ -126,7 +127,7 @@ jobs:
 
   publish:
     name: "Publish to Octopus"
-    needs: build
+    needs: [build, e2e]
     runs-on: ubuntu-latest
     if: ${{ github.ref_name != 'main' || github.event.head_commit.author.username != 'team-integrations-fnm-bot' }}
     env:
