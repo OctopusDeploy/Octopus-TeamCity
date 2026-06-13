@@ -12,6 +12,7 @@ import com.octopus.sdk.model.space.SpaceHome;
 
 import java.net.URL;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.List;
 
 import octopus.teamcity.e2e.dsl.OctopusProvisioning;
@@ -45,11 +46,16 @@ class OctopusPromoteReleaseE2ETest {
                   Duration.ofSeconds(20)));
       final SpaceHome spaceHome = new SpaceHomeApi(client).getDefault();
 
-      OctopusProvisioning.createEnvironment(client, spaceHome, DEV);
+      final String devEnvironmentId = OctopusProvisioning.createEnvironment(client, spaceHome, DEV);
       final String prodEnvironmentId =
           OctopusProvisioning.createEnvironment(client, spaceHome, PROD);
       OctopusProvisioning.createProjectWithServerScriptStep(
-          client, spaceHome, stack.octopusUrlForHost(), stack.octopusApiKey(), OCTOPUS_PROJECT);
+          client,
+          spaceHome,
+          stack.octopusUrlForHost(),
+          stack.octopusApiKey(),
+          OCTOPUS_PROJECT,
+          Arrays.asList(devEnvironmentId, prodEnvironmentId));
 
       // Provision TeamCity: project, connection, build type with create -> deploy(Dev) ->
       // promote(Dev -> Prod) steps.

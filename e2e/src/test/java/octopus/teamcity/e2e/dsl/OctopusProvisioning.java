@@ -1,7 +1,6 @@
 package octopus.teamcity.e2e.dsl;
 
 import com.octopus.sdk.api.EnvironmentApi;
-import com.octopus.sdk.api.LifecycleApi;
 import com.octopus.sdk.api.ProjectApi;
 import com.octopus.sdk.api.ProjectGroupApi;
 import com.octopus.sdk.domain.Project;
@@ -17,6 +16,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -33,19 +33,33 @@ public final class OctopusProvisioning {
   private OctopusProvisioning() {}
 
   /**
-   * Creates an Octopus project (reusing the default space's first lifecycle and project group) and
-   * gives it a single inline-script step that runs on the Octopus Server — so releases are viable
-   * and deployable without any deployment targets.
+   * Creates an Octopus project with a dedicated lifecycle and a single inline-script step that runs
+   * on the Octopus Server — so releases are viable and deployable without any deployment targets.
+   *
+   * <p>The lifecycle gets one phase per entry in {@code deployableEnvironmentIds}, in order, each
+   * permitting that environment as an optional deployment target, so a release can deploy straight
+   * to the test's environment(s) (and promote through them). It deliberately does NOT reuse the
+   * shared Default Lifecycle: that lifecycle sequences a release through every environment on the
+   * (suite-wide shared) Octopus in creation order, so environments from other tests block this
+   * test's deploy. SDK 0.0.6 can't author a lifecycle's phases, so it is created via the REST API
+   * (as the deployment process below also is). Pass an empty list for a project whose releases are
+   * only created, never deployed.
    */
   public static void createProjectWithServerScriptStep(
       final OctopusClient client,
       final SpaceHome spaceHome,
       final String octopusBaseUrl,
       final String apiKey,
-      final String projectName)
+      final String projectName,
+      final List<String> deployableEnvironmentIds)
       throws Exception {
     final String lifecycleId =
-        LifecycleApi.create(client, spaceHome).getAll().get(0).getProperties().getId();
+        createLifecycleWithPhases(
+            octopusBaseUrl,
+            apiKey,
+            spaceHome.getLifecyclesLink(),
+            projectName + "-lifecycle",
+            deployableEnvironmentIds);
     final String projectGroupId =
         ProjectGroupApi.create(client, spaceHome).getAll().get(0).getProperties().getId();
     // ProjectResource(name, lifecycleId, projectGroupId).
@@ -68,6 +82,40 @@ public final class OctopusProvisioning {
         .create(new EnvironmentResource(name))
         .getProperties()
         .getId();
+  }
+
+  /**
+   * Creates a lifecycle (via REST — the SDK can't author phases) with one phase per environment, in
+   * order, each permitting that environment as an optional deployment target. Returns its id.
+   */
+  private static String createLifecycleWithPhases(
+      final String octopusBaseUrl,
+      final String apiKey,
+      final String lifecyclesLink,
+      final String name,
+      final List<String> environmentIds)
+      throws Exception {
+    final JsonArray phases = new JsonArray();
+    int phaseNumber = 1;
+    for (final String environmentId : environmentIds) {
+      final JsonArray optionalTargets = new JsonArray();
+      optionalTargets.add(environmentId);
+      final JsonObject phase = new JsonObject();
+      phase.addProperty("Name", "Phase " + phaseNumber++);
+      phase.add("OptionalDeploymentTargets", optionalTargets);
+      phase.add("AutomaticDeploymentTargets", new JsonArray());
+      phases.add(phase);
+    }
+    final JsonObject lifecycle = new JsonObject();
+    lifecycle.addProperty("Name", name);
+    lifecycle.add("Phases", phases);
+
+    final Response resp =
+        octopusRequest("POST", octopusBaseUrl + lifecyclesLink, apiKey, lifecycle.toString());
+    if (resp.statusCode < 200 || resp.statusCode >= 300) {
+      throw new IllegalStateException("create lifecycle -> " + resp.statusCode + ": " + resp.body);
+    }
+    return JsonParser.parseString(resp.body).getAsJsonObject().get("Id").getAsString();
   }
 
   private static void addInlineScriptStep(

@@ -12,6 +12,7 @@ import com.octopus.sdk.model.space.SpaceHome;
 
 import java.net.URL;
 import java.time.Duration;
+import java.util.Collections;
 import java.util.List;
 
 import octopus.teamcity.e2e.dsl.OctopusProvisioning;
@@ -48,7 +49,12 @@ class OctopusDeployReleaseE2ETest {
       final String environmentId =
           OctopusProvisioning.createEnvironment(client, spaceHome, ENVIRONMENT);
       OctopusProvisioning.createProjectWithServerScriptStep(
-          client, spaceHome, stack.octopusUrlForHost(), stack.octopusApiKey(), OCTOPUS_PROJECT);
+          client,
+          spaceHome,
+          stack.octopusUrlForHost(),
+          stack.octopusApiKey(),
+          OCTOPUS_PROJECT,
+          Collections.singletonList(environmentId));
 
       // Provision TeamCity: project, connection, build type with create-then-deploy steps.
       final TeamCityRest tc = stack.rest();
