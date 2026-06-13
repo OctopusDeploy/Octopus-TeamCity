@@ -45,9 +45,17 @@ test.enabled = false
 
 task e2eTest(type: Test) {
 
-  dependsOn rootProject.distZip
+  // Use a prebuilt plugin zip when one is supplied via the TEAMCITY_PLUGIN_DIST env var (CI builds
+  // it once in the `build` job and hands it to this job), so the plugin isn't built twice and the
+  // tests exercise the exact artifact we ship. With no env var (local dev) build it via distZip.
+  def providedPluginDist = System.getenv("TEAMCITY_PLUGIN_DIST")
+  if (providedPluginDist) {
+    environment "TEAMCITY_PLUGIN_DIST", providedPluginDist
+  } else {
+    dependsOn rootProject.distZip
+    environment "TEAMCITY_PLUGIN_DIST", rootProject.distZip.outputs.files.singleFile
+  }
   mustRunAfter rootProject.subprojects*.test
-  environment "TEAMCITY_PLUGIN_DIST", rootProject.distZip.outputs.files.singleFile
   // The `playwrightInstall` task already fetched Chromium (and its system libs). Stop the test
   // JVM's Playwright.create() from auto-installing ALL browsers (Firefox/Webkit), which would then
   // fail host-dependency validation for libs we deliberately didn't install. It reuses the cached

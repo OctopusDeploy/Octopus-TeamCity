@@ -116,12 +116,21 @@ jobs:
         path: ~/.cache/ms-playwright
         key: ${{ runner.os }}-playwright-1.60.0
 
+    # Use the exact plugin zip built by the `build` job rather than rebuilding it here. e2eTest
+    # picks it up from TEAMCITY_PLUGIN_DIST and skips its own distZip, so the plugin is built once.
+    - name: Download plugin artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: Octopus.TeamCity.${{ needs.build.outputs.version }}
+        path: plugin
+
     # playwrightInstall fetches Chromium (and its system libs) so the Playwright UI tests have a
     # browser to launch. The suite shares one container stack (see SharedStack), so it's far faster
     # than booting per test.
     - name: Execute end-2-end tests
       run: ./gradlew :e2e:playwrightInstall :e2e:e2eTest
       env:
+        TEAMCITY_PLUGIN_DIST: ${{ github.workspace }}/plugin/${{ needs.build.outputs.package-basename }}
         OCTOPUS_LICENSE: ${{ secrets.OCTOPUS_LICENSE }}
         OCTOPUS_SDK_AT_USE_EXISTING_SERVER: false
 
