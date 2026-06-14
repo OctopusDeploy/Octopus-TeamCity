@@ -1,23 +1,25 @@
 # Manual-testing stack for the Octopus connection feature. Brings up, and leaves running:
 #   - TeamCity 2024.12 with the built plugin installed, booted from the prepared datadir
 #     (e2e/src/test/resources/teamcity_config.zip) so there is NO first-start wizard
-#     — log in as admin / Password01!
 #   - A free-tier Octopus Deploy (+ MSSQL) — no licence required
 #   - A TeamCity agent (authorise it once in the UI: Agents -> Unauthorized -> Authorize)
+#
+# Credentials are read from a .env file (auto-loaded by docker compose). Create it first:
+#   cp .env.example .env        # throwaway local-only values; adjust if you like
 #
 # Prerequisite — build the plugin zip first (JDK 11):
 #   JAVA_HOME=/opt/homebrew/opt/openjdk@11 ./gradlew distZip
 #
 # Run:
 #   docker compose -f docker-compose.manual.yml up        # add -d to detach
-#   # TeamCity:  http://localhost:8111   (admin / Password01!)
-#   # Octopus:   http://localhost:8080   (admin / Password01!, API key below)
+#   # TeamCity:  http://localhost:8111   (log in with OCTOPUS_ADMIN_USERNAME / OCTOPUS_ADMIN_PASSWORD)
+#   # Octopus:   http://localhost:8080   (same admin login; API key = OCTOPUS_ADMIN_API_KEY)
 #   docker compose -f docker-compose.manual.yml down       # add -v to also wipe the datadir/db
 #
 # To test a connection: in TeamCity add an "Octopus Deploy" connection
 # (Project Settings -> Connections) with:
 #   URL     = http://octopus:8080   (the in-network alias the agent can reach; NOT localhost)
-#   API key = API-FAKEKEY000000000000000000000
+#   API key = your OCTOPUS_ADMIN_API_KEY (from .env)
 # then add an Octopus build step and pick the connection.
 
 services:
@@ -26,7 +28,7 @@ services:
     platform: linux/amd64  # amd64-only image; runs under emulation on arm64 hosts
     environment:
       ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: "P@ssw0rd123!"
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD}"
 
   octopus:
     image: octopusdeploy/octopusdeploy:2025.4
@@ -37,10 +39,10 @@ services:
       - "8080:8080"
     environment:
       ACCEPT_EULA: "Y"
-      DB_CONNECTION_STRING: "Server=mssql,1433;Database=Octopus;User Id=sa;Password=P@ssw0rd123!;TrustServerCertificate=true"
-      ADMIN_USERNAME: "admin"
-      ADMIN_PASSWORD: "Password01!"
-      ADMIN_API_KEY: "API-FAKEKEY000000000000000000000"
+      DB_CONNECTION_STRING: "Server=mssql,1433;Database=Octopus;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=true"
+      ADMIN_USERNAME: "${OCTOPUS_ADMIN_USERNAME}"
+      ADMIN_PASSWORD: "${OCTOPUS_ADMIN_PASSWORD}"
+      ADMIN_API_KEY: "${OCTOPUS_ADMIN_API_KEY}"
       DISABLE_DIND: "Y"
 
   # One-shot: lay down the prepared TeamCity datadir (once) and (re)install the freshly-built plugin.
