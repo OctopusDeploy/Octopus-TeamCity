@@ -1,0 +1,44 @@
+# Runs the e2e integration tests inside a Linux container that talks to the HOST Docker daemon via
+# the mounted socket ("docker-out-of-docker"). Running on Linux is what lets the Playwright UI test
+# work: the `playwrightInstall` Gradle task fetches Chromium and apt-get-installs the system
+# libraries it links against (only possible on Linux). Using the host daemon (rather than DinD)
+# reuses already-pulled images (TeamCity, Octopus) so there is no multi-GB re-pull per run.
+#
+# Run from the repo root:
+#   docker compose -f e2e/docker-compose.yml up --abort-on-container-exit --exit-code-from e2e
+#
+# By default this runs only the Playwright UI test. To also run the full end-to-end test (which
+# spins up MSSQL + Octopus in the free tier — no license required), override GRADLE_TESTS, e.g.
+#   GRADLE_TESTS="--tests octopus.teamcity.e2e.test.*" docker compose -f e2e/docker-compose.yml up ...
+#
+# Testcontainers launches the TeamCity (and, for the full test, agent/Octopus/MSSQL) containers as
+# siblings on the host daemon. TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal makes the runner
+# reach their host-published ports via the host gateway.
+
+services:
+  e2e:
+    # Ubuntu 22.04 (Jammy) base — Playwright supports it for `install --with-deps`. The default
+    # eclipse-temurin:11-jdk is Ubuntu 26.04, which Playwright does not support (install fails).
+    image: eclipse-temurin:11-jdk-jammy
+    environment:
+      DOCKER_HOST: unix:///var/run/docker.sock
+      TESTCONTAINERS_HOST_OVERRIDE: host.docker.internal
+      GRADLE_TESTS: ${GRADLE_TESTS:---tests octopus.teamcity.e2e.test.OctopusConnectionUiTest}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../:/workspace
+      - gradle-cache:/root/.gradle
+      - playwright-cache:/root/.cache/ms-playwright
+    working_dir: /workspace
+    command:
+      - sh
+      - -c
+      - >
+        apt-get update -qq && apt-get install -y -qq git &&
+        ./gradlew --no-daemon :e2e:playwrightInstall :e2e:e2eTest $$GRADLE_TESTS
+
+volumes:
+  gradle-cache:
+  playwright-cache:
