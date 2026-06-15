@@ -5,14 +5,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import com.microsoft.playwright.Browser;
-import com.microsoft.playwright.BrowserType;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
-import com.microsoft.playwright.Playwright;
 import com.microsoft.playwright.options.LoadState;
 import com.microsoft.playwright.options.WaitUntilState;
 import octopus.teamcity.e2e.dsl.OctopusTeamCityStack;
+import octopus.teamcity.e2e.dsl.PlaywrightUi;
 import octopus.teamcity.e2e.dsl.SharedStack;
 import octopus.teamcity.e2e.dsl.TeamCityRest;
 import org.junit.jupiter.api.Test;
@@ -52,37 +50,27 @@ class OctopusConnectionFormSmokeUiTest {
       runnerIdsByForm.put(
           "Build information", tc.addEmptyStep("FormIT_Steps", "octopus.metadata", "Build info"));
 
-      try (final Playwright pw = Playwright.create()) {
-        final Browser browser =
-            pw.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true));
-        final Page page = browser.newPage();
+      PlaywrightUi.withLoggedInPage(
+          stack,
+          page -> {
+            for (final Map.Entry<String, String> form : runnerIdsByForm.entrySet()) {
+              page.navigate(
+                  stack.tcBaseUrl()
+                      + "/admin/editRunType.html?id=buildType:FormIT_Steps&runnerId="
+                      + form.getValue(),
+                  new Page.NavigateOptions().setWaitUntil(WaitUntilState.DOMCONTENTLOADED));
+              page.waitForLoadState(LoadState.NETWORKIDLE);
+              page.locator("#octopusConnectionId")
+                  .waitFor(new Locator.WaitForOptions().setTimeout(30000));
 
-        page.navigate(stack.tcBaseUrl() + "/login.html");
-        page.fill("#username", stack.adminUsername());
-        page.fill("#password", stack.adminPassword());
-        page.click("input.loginButton, input[type=submit]");
-        page.waitForLoadState(LoadState.NETWORKIDLE);
-
-        for (final Map.Entry<String, String> form : runnerIdsByForm.entrySet()) {
-          page.navigate(
-              stack.tcBaseUrl()
-                  + "/admin/editRunType.html?id=buildType:FormIT_Steps&runnerId="
-                  + form.getValue(),
-              new Page.NavigateOptions().setWaitUntil(WaitUntilState.DOMCONTENTLOADED));
-          page.waitForLoadState(LoadState.NETWORKIDLE);
-          page.locator("#octopusConnectionId")
-              .waitFor(new Locator.WaitForOptions().setTimeout(30000));
-
-          assertThat(page.locator("#octopusConnectionId").count())
-              .withFailMessage("Connection dropdown missing on the %s form", form.getKey())
-              .isGreaterThan(0);
-          assertThat(page.locator("#octopusConnectionId option").allInnerTexts())
-              .withFailMessage("Connection not listed on the %s form", form.getKey())
-              .anyMatch(t -> t.contains("Smoke Connection"));
-        }
-
-        browser.close();
-      }
+              assertThat(page.locator("#octopusConnectionId").count())
+                  .withFailMessage("Connection dropdown missing on the %s form", form.getKey())
+                  .isGreaterThan(0);
+              assertThat(page.locator("#octopusConnectionId option").allInnerTexts())
+                  .withFailMessage("Connection not listed on the %s form", form.getKey())
+                  .anyMatch(t -> t.contains("Smoke Connection"));
+            }
+          });
     }
   }
 }

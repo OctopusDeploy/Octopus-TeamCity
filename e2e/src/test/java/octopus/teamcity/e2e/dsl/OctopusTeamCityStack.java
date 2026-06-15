@@ -1,5 +1,11 @@
 package octopus.teamcity.e2e.dsl;
 
+import com.octopus.sdk.api.SpaceHomeApi;
+import com.octopus.sdk.http.ConnectData;
+import com.octopus.sdk.http.OctopusClient;
+import com.octopus.sdk.http.OctopusClientFactory;
+import com.octopus.sdk.model.space.SpaceHome;
+
 import java.io.File;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -225,6 +231,17 @@ public final class OctopusTeamCityStack implements AutoCloseable {
   /** Octopus URL reachable from the test JVM (the runner) via the host-published port. */
   public String octopusUrlForHost() {
     return "http://" + octopus().getHost() + ":" + octopus().getMappedPort(OCTOPUS_PORT);
+  }
+
+  /** An SDK client pointed at this stack's Octopus, reachable from the test JVM. */
+  public OctopusClient octopusClient() throws Exception {
+    return OctopusClientFactory.createClient(
+        new ConnectData(new URL(octopusUrlForHost()), OCTOPUS_API_KEY, Duration.ofSeconds(20)));
+  }
+
+  /** The default Octopus space for the given client. */
+  public SpaceHome spaceHome(final OctopusClient client) throws Exception {
+    return new SpaceHomeApi(client).getDefault();
   }
 
   private GenericContainer<?> octopus() {

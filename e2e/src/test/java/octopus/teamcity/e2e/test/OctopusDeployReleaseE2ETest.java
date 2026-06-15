@@ -3,14 +3,10 @@ package octopus.teamcity.e2e.test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.octopus.sdk.api.DeploymentApi;
-import com.octopus.sdk.api.SpaceHomeApi;
 import com.octopus.sdk.domain.Deployment;
-import com.octopus.sdk.http.ConnectData;
 import com.octopus.sdk.http.OctopusClient;
-import com.octopus.sdk.http.OctopusClientFactory;
 import com.octopus.sdk.model.space.SpaceHome;
 
-import java.net.URL;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
@@ -38,13 +34,8 @@ class OctopusDeployReleaseE2ETest {
   @Test
   void deployReleaseStepUsingConnectionDeploysToTheEnvironment() throws Exception {
     try (final OctopusTeamCityStack stack = SharedStack.full()) {
-      final OctopusClient client =
-          OctopusClientFactory.createClient(
-              new ConnectData(
-                  new URL(stack.octopusUrlForHost()),
-                  stack.octopusApiKey(),
-                  Duration.ofSeconds(20)));
-      final SpaceHome spaceHome = new SpaceHomeApi(client).getDefault();
+      final OctopusClient client = stack.octopusClient();
+      final SpaceHome spaceHome = stack.spaceHome(client);
 
       final String environmentId =
           OctopusProvisioning.createEnvironment(client, spaceHome, ENVIRONMENT);

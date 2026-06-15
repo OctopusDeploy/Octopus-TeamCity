@@ -1,13 +1,9 @@
 package octopus.teamcity.e2e.dsl;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -17,8 +13,6 @@ import java.util.regex.Pattern;
  * the super-user token, which is sufficient for the REST API and needs no CSRF token.
  */
 public final class TeamCityRest {
-
-  private static final int CONNECT_TIMEOUT_MILLIS = (int) Duration.ofSeconds(10).toMillis();
 
   private final String baseUrl;
   private final String authHeader;
@@ -30,72 +24,25 @@ public final class TeamCityRest {
 
   // --- low-level ----------------------------------------------------------
 
-  /** Holds a completed HTTP response (status + body) so callers can inspect both. */
-  private static final class Response {
-    private final int statusCode;
-    private final String body;
-
-    private Response(final int statusCode, final String body) {
-      this.statusCode = statusCode;
-      this.body = body;
-    }
-
-    private int statusCode() {
-      return statusCode;
-    }
-
-    private String body() {
-      return body;
-    }
-  }
-
-  /**
-   * Performs a single request and returns the raw response. Redirects are not followed (TeamCity
-   * briefly 302-redirects authenticated calls during startup, and callers rely on seeing that).
-   */
-  private Response request(
+  /** Authenticated request to an absolute URL; {@code accept} sets the Accept header. */
+  private Http.Response request(
       final String method,
       final String url,
       final String contentType,
       final String accept,
       final String body)
       throws IOException {
-    final HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-    connection.setInstanceFollowRedirects(false);
-    connection.setConnectTimeout(CONNECT_TIMEOUT_MILLIS);
-    connection.setRequestMethod(method);
-    connection.setRequestProperty("Authorization", authHeader);
-    connection.setRequestProperty("Accept", accept);
-    if (body != null) {
-      connection.setRequestProperty("Content-Type", contentType);
-      connection.setDoOutput(true);
-      try (OutputStream output = connection.getOutputStream()) {
-        output.write(body.getBytes(StandardCharsets.UTF_8));
-      }
-    }
-    final int statusCode = connection.getResponseCode();
-    final InputStream stream =
-        statusCode >= 400 ? connection.getErrorStream() : connection.getInputStream();
-    final String responseBody = stream == null ? "" : readAll(stream);
-    connection.disconnect();
-    return new Response(statusCode, responseBody);
+    final Map<String, String> headers = new LinkedHashMap<>();
+    headers.put("Authorization", authHeader);
+    headers.put("Accept", accept);
+    return Http.send(method, url, headers, contentType, body);
   }
 
-  private static String readAll(final InputStream stream) throws IOException {
-    try (ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
-      final byte[] chunk = new byte[8192];
-      int bytesRead;
-      while ((bytesRead = stream.read(chunk)) != -1) {
-        buffer.write(chunk, 0, bytesRead);
-      }
-      return new String(buffer.toByteArray(), StandardCharsets.UTF_8);
-    }
-  }
-
-  private Response send(
+  private Http.Response send(
       final String method, final String path, final String contentType, final String body)
       throws Exception {
-    final Response resp = request(method, baseUrl + path, contentType, "application/json", body);
+    final Http.Response resp =
+        request(method, baseUrl + path, contentType, "application/json", body);
     if (resp.statusCode() < 200 || resp.statusCode() >= 300) {
       throw new IllegalStateException(
           method + " " + path + " -> " + resp.statusCode() + ": " + resp.body());
@@ -120,7 +67,7 @@ public final class TeamCityRest {
     final long deadline = System.currentTimeMillis() + timeout.toMillis();
     int lastStatus = -1;
     while (System.currentTimeMillis() < deadline) {
-      final Response resp =
+      final Http.Response resp =
           request("GET", baseUrl + "/httpAuth/app/rest/server", null, "application/json", null);
       lastStatus = resp.statusCode();
       if (lastStatus == 200) {
@@ -185,7 +132,7 @@ public final class TeamCityRest {
             + ","
             + prop("octopus_space_name", space)
             + "]}}";
-    final Response resp =
+    final Http.Response resp =
         send(
             "POST",
             "/httpAuth/app/rest/projects/" + projectId + "/projectFeatures",
@@ -245,7 +192,7 @@ public final class TeamCityRest {
     final String json =
         "{\"name\":\"Create release\",\"type\":\"octopus.create.release\","
             + "\"properties\":{\"property\":[]}}";
-    final Response resp =
+    final Http.Response resp =
         send(
             "POST",
             "/httpAuth/app/rest/buildTypes/" + buildTypeId + "/steps",
@@ -257,7 +204,7 @@ public final class TeamCityRest {
   /** Adds an empty step of the given runner type; returns the generated runner id (RUNNER_n). */
   public String addEmptyStep(final String buildTypeId, final String type, final String name)
       throws Exception {
-    final Response resp =
+    final Http.Response resp =
         send(
             "POST",
             "/httpAuth/app/rest/buildTypes/" + buildTypeId + "/steps",
@@ -462,7 +409,7 @@ public final class TeamCityRest {
 
   /** Queues a build; returns its id. */
   public String triggerBuild(final String buildTypeId) throws Exception {
-    final Response resp =
+    final Http.Response resp =
         send(
             "POST",
             "/httpAuth/app/rest/buildQueue",
@@ -507,7 +454,7 @@ public final class TeamCityRest {
         // The /authorized field endpoint replies in text/plain, so we must accept text/plain —
         // asking for application/json gets a 406. Verify the status so a failed authorization
         // doesn't pass silently (otherwise the agent stays unauthorized and never goes idle).
-        final Response authorized =
+        final Http.Response authorized =
             request(
                 "PUT",
                 baseUrl + "/httpAuth/app/rest/agents/id:" + agentId + "/authorized",

@@ -3,14 +3,10 @@ package octopus.teamcity.e2e.test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.octopus.sdk.api.PackageApi;
-import com.octopus.sdk.api.SpaceHomeApi;
-import com.octopus.sdk.http.ConnectData;
 import com.octopus.sdk.http.OctopusClient;
-import com.octopus.sdk.http.OctopusClientFactory;
 import com.octopus.sdk.model.packages.PackageResource;
 import com.octopus.sdk.model.space.SpaceHome;
 
-import java.net.URL;
 import java.time.Duration;
 import java.util.List;
 
@@ -32,12 +28,7 @@ class OctopusPushPackageE2ETest {
   @Test
   void pushStepPushesPackedPackageToBuiltInFeed() throws Exception {
     try (final OctopusTeamCityStack stack = SharedStack.full()) {
-      final OctopusClient client =
-          OctopusClientFactory.createClient(
-              new ConnectData(
-                  new URL(stack.octopusUrlForHost()),
-                  stack.octopusApiKey(),
-                  Duration.ofSeconds(20)));
+      final OctopusClient client = stack.octopusClient();
 
       final TeamCityRest tc = stack.rest();
       tc.createProject("PushIT", "Push IT");
@@ -65,7 +56,7 @@ class OctopusPushPackageE2ETest {
           .isEqualTo("SUCCESS");
 
       // The real side effect: the package now exists in Octopus's built-in feed.
-      final SpaceHome spaceHome = new SpaceHomeApi(client).getDefault();
+      final SpaceHome spaceHome = stack.spaceHome(client);
       final List<PackageResource> packages = PackageApi.create(client, spaceHome).getAll();
       assertThat(packages)
           .withFailMessage(

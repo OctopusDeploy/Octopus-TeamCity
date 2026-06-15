@@ -9,14 +9,10 @@ import com.octopus.sdk.model.environment.EnvironmentResource;
 import com.octopus.sdk.model.project.ProjectResource;
 import com.octopus.sdk.model.space.SpaceHome;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -110,12 +106,13 @@ public final class OctopusProvisioning {
     lifecycle.addProperty("Name", name);
     lifecycle.add("Phases", phases);
 
-    final Response resp =
+    final Http.Response resp =
         octopusRequest("POST", octopusBaseUrl + lifecyclesLink, apiKey, lifecycle.toString());
-    if (resp.statusCode < 200 || resp.statusCode >= 300) {
-      throw new IllegalStateException("create lifecycle -> " + resp.statusCode + ": " + resp.body);
+    if (resp.statusCode() < 200 || resp.statusCode() >= 300) {
+      throw new IllegalStateException(
+          "create lifecycle -> " + resp.statusCode() + ": " + resp.body());
     }
-    return JsonParser.parseString(resp.body).getAsJsonObject().get("Id").getAsString();
+    return JsonParser.parseString(resp.body()).getAsJsonObject().get("Id").getAsString();
   }
 
   private static void addInlineScriptStep(
@@ -128,63 +125,28 @@ public final class OctopusProvisioning {
             : deploymentProcessLink;
     final String url = octopusBaseUrl + path;
 
-    final Response get = octopusRequest("GET", url, apiKey, null);
-    if (get.statusCode != 200) {
+    final Http.Response get = octopusRequest("GET", url, apiKey, null);
+    if (get.statusCode() != 200) {
       throw new IllegalStateException(
-          "GET deployment process -> " + get.statusCode + ": " + get.body);
+          "GET deployment process -> " + get.statusCode() + ": " + get.body());
     }
 
-    final JsonObject process = JsonParser.parseString(get.body).getAsJsonObject();
+    final JsonObject process = JsonParser.parseString(get.body()).getAsJsonObject();
     process.add("Steps", scriptStep());
 
-    final Response put = octopusRequest("PUT", url, apiKey, process.toString());
-    if (put.statusCode < 200 || put.statusCode >= 300) {
+    final Http.Response put = octopusRequest("PUT", url, apiKey, process.toString());
+    if (put.statusCode() < 200 || put.statusCode() >= 300) {
       throw new IllegalStateException(
-          "PUT deployment process -> " + put.statusCode + ": " + put.body);
+          "PUT deployment process -> " + put.statusCode() + ": " + put.body());
     }
   }
 
-  /** Holds a completed HTTP response (status + body). */
-  private static final class Response {
-    private final int statusCode;
-    private final String body;
-
-    private Response(final int statusCode, final String body) {
-      this.statusCode = statusCode;
-      this.body = body;
-    }
-  }
-
-  private static Response octopusRequest(
+  private static Http.Response octopusRequest(
       final String method, final String url, final String apiKey, final String body)
       throws IOException {
-    final HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-    connection.setRequestMethod(method);
-    connection.setRequestProperty("X-Octopus-ApiKey", apiKey);
-    if (body != null) {
-      connection.setRequestProperty("Content-Type", "application/json");
-      connection.setDoOutput(true);
-      try (OutputStream output = connection.getOutputStream()) {
-        output.write(body.getBytes(StandardCharsets.UTF_8));
-      }
-    }
-    final int statusCode = connection.getResponseCode();
-    final InputStream stream =
-        statusCode >= 400 ? connection.getErrorStream() : connection.getInputStream();
-    final String responseBody = stream == null ? "" : readAll(stream);
-    connection.disconnect();
-    return new Response(statusCode, responseBody);
-  }
-
-  private static String readAll(final InputStream stream) throws IOException {
-    try (ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
-      final byte[] chunk = new byte[8192];
-      int bytesRead;
-      while ((bytesRead = stream.read(chunk)) != -1) {
-        buffer.write(chunk, 0, bytesRead);
-      }
-      return new String(buffer.toByteArray(), StandardCharsets.UTF_8);
-    }
+    final Map<String, String> headers = new LinkedHashMap<>();
+    headers.put("X-Octopus-ApiKey", apiKey);
+    return Http.send(method, url, headers, "application/json", body);
   }
 
   private static JsonArray scriptStep() {
