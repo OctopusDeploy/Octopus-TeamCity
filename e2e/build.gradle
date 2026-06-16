@@ -1,9 +1,26 @@
+// The repo pins Testcontainers to 1.15.3 (gradle/versions.gradle) via the spring
+// dependency-management plugin, whose bundled docker-java client (3.2.8) negotiates Docker API
+// 1.30 — rejected by modern daemons (minimum 1.40). Override the managed version for this module
+// so a recent Testcontainers (and its docker-java) is used. A managed-version override is required
+// here; resolutionStrategy.force does not win against the dependency-management plugin.
+dependencyManagement {
+  dependencies {
+    dependencySet(group: 'org.testcontainers', version: '1.20.4') {
+      entry 'testcontainers'
+      entry 'junit-jupiter'
+    }
+    // The repo pins gson 2.2.2 (2012) in gradle/versions.gradle. Playwright's Node driver protocol
+    // needs gson >= 2.8 to (de)serialise its pipe messages; with 2.2.2 the handshake silently fails
+    // and Playwright.create() hangs forever. Override it to a modern gson for this module.
+    dependency 'com.google.code.gson:gson:2.10.1'
+  }
+}
+
 dependencies {
 
   testImplementation(project(':octopus-common'))
 
-  testImplementation 'com.octopus:octopus-sdk'
-  testImplementation 'com.octopus:test-support'
+  testImplementation 'com.octopus:octopus-sdk:0.0.6'
 
   testImplementation 'com.google.code.gson:gson'
 
@@ -21,16 +38,34 @@ dependencies {
   testImplementation 'org.apache.logging.log4j:log4j-slf4j-impl'
   testImplementation 'org.jetbrains.teamcity:teamcity-rest-client'
   testImplementation 'org.mock-server:mockserver-netty'
+  testImplementation 'com.microsoft.playwright:playwright:1.60.0'
 }
 
 test.enabled = false
 
 task e2eTest(type: Test) {
 
-  dependsOn rootProject.distZip
+  // Use a prebuilt plugin zip when one is supplied via the TEAMCITY_PLUGIN_DIST env var (CI builds
+  // it once in the `build` job and hands it to this job), so the plugin isn't built twice and the
+  // tests exercise the exact artifact we ship. With no env var (local dev) build it via distZip.
+  def providedPluginDist = System.getenv("TEAMCITY_PLUGIN_DIST")
+  if (providedPluginDist) {
+    environment "TEAMCITY_PLUGIN_DIST", providedPluginDist
+  } else {
+    dependsOn rootProject.distZip
+    environment "TEAMCITY_PLUGIN_DIST", rootProject.distZip.outputs.files.singleFile
+  }
   mustRunAfter rootProject.subprojects*.test
-  environment "TEAMCITY_PLUGIN_DIST", rootProject.distZip.outputs.files.singleFile
-  environment "OCTOPUS_SDK_AT_USE_EXISTING_SERVER", "false"
+  // The `playwrightInstall` task already fetched Chromium (and its system libs). Stop the test
+  // JVM's Playwright.create() from auto-installing ALL browsers (Firefox/Webkit), which would then
+  // fail host-dependency validation for libs we deliberately didn't install. It reuses the cached
+  // Chromium instead.
+  environment "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD", "1"
+  // docker-java declares a fixed Docker API version (1.32) that modern daemons reject (minimum
+  // 1.40); it picks up the override from the `api.version` system property. DOCKER_HOST is taken
+  // from the ambient environment — the docker-compose runner sets it to the DinD daemon; for a
+  // host run, export DOCKER_HOST yourself (e.g. unix:///var/run/docker.sock).
+  systemProperty "api.version", "1.41"
 
   description = 'Runs the Octopus Teamcity end-2-end tests.'
   group = 'verification'
@@ -45,4 +80,16 @@ task e2eTest(type: Test) {
 
   // Until test execution exceed startup costs.
   maxParallelForks = 1
+}
+
+// Fetches the Chromium browser Playwright needs and, on Linux, apt-get-installs the system shared
+// libraries it links against (libnss3, libatk, …). Run before e2eTest when the Playwright UI test
+// will execute (the docker-compose runner does this). `--with-deps` is a no-op off Linux.
+task playwrightInstall(type: JavaExec) {
+  group = 'verification'
+  description = 'Installs the Playwright Chromium browser (with system deps on Linux).'
+  dependsOn 'compileTestJava'
+  classpath = sourceSets.test.runtimeClasspath
+  mainClass = 'com.microsoft.playwright.CLI'
+  args 'install', '--with-deps', 'chromium'
 }

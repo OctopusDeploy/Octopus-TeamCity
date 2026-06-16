@@ -84,23 +84,23 @@ be slower and does not provide the benefits of debugging at this point in time.
 
 ## End-2-End Tests
 
-An E-2-E testing suite has been created and can be executed by running `./gradlew e2eTest`.
+The e2e suite spins up real TeamCity + agent + free-tier Octopus + MSSQL containers via
+Testcontainers (Docker). To run it:
 
-The test suite starts a (clean) OctopusDeploy server, then starts a TeamCity Server using a
-pre-canned data directory, populated with a project containing build configurations.
+```sh
+./gradlew :e2e:playwrightInstall   # once — only for the Playwright UI tests
+./gradlew :e2e:e2eTest             # run the suite (add --tests "*SomeTest" for one)
+```
 
-The teamcity-rest-client is then used to trigger a specific build in the project, and the test
-runner monitors the OctopusDeploy instance (via the java-sdk) to ensure expected resources are
-created - thus, the test-code understands the content of the pre-canned project/build being
-executed.
+On macOS/Windows, run it inside the provided Linux container instead so the Playwright UI tests
+work:
 
-To create a new test the following must be performed:
+```sh
+docker compose -f e2e/docker-compose.yml up --abort-on-container-exit --exit-code-from e2e
+```
 
-* In Teamcity, create a project/build containing necessary build step(s)
-* In Teamcity, export the project to zip file (from Project->Actions->Export) and add the file to
-  the e2etest resources
-* Write a junit test which loads the newly created project file into the team-city data directory,
-  executes the build, then queries OctopusDeploy for outcomes.
+See [docs/e2e-tests.md](docs/e2e-tests.md) for prerequisites, the `TEAMCITY_PLUGIN_DIST` and
+`GRADLE_TESTS` options, how to add a test, and interactive manual testing.
 
 ## Versioning, Releasing and Publishing
 
