@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.4.2](https://github.com/OctopusDeploy/Octopus-TeamCity/compare/v6.4.1...v6.4.2) (2026-06-17)
+
+
+### Bug Fixes
+
+* include --waitfordeployment when a deployment timeout is set ([#195](https://github.com/OctopusDeploy/Octopus-TeamCity/issues/195)) ([7eadb2c](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/7eadb2cac3d6071f752c2e646d9a9d5865847407))
+
 ## [6.4.1](https://github.com/OctopusDeploy/Octopus-TeamCity/compare/v6.4.0...v6.4.1) (2026-06-16)
 
 
