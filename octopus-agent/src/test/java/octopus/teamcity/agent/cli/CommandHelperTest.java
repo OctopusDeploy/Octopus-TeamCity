@@ -17,6 +17,7 @@ import jetbrains.buildServer.agent.BuildRunnerContext;
 import jetbrains.buildServer.agent.impl.artifacts.ArtifactsCollection;
 import octopus.teamcity.agent.OctopusCommandBuilder;
 import octopus.teamcity.common.OctopusConstants;
+import octopus.teamcity.common.connection.ConnectionPropertyNames;
 import org.junit.jupiter.api.Test;
 
 class CommandHelperTest {
@@ -258,6 +259,43 @@ class CommandHelperTest {
             "--overwrite-mode",
             "fail",
             "--no-prompt");
+  }
+
+  @Test
+  void loginCommandUsesOidcWhenSourceIsOidc() {
+    Map<String, String> params = new HashMap<>();
+    final OctopusConstants constants = OctopusConstants.Instance;
+    params.put(constants.getServerKey(), "https://octo.example");
+    params.put(constants.getApiKeySourceKey(), ConnectionPropertyNames.API_KEY_SOURCE_OIDC);
+    params.put(constants.getOidcServiceAccountIdKey(), "Spaces-SA-123");
+    params.put(constants.getOidcIdTokenKey(), "the-jwt-value");
+
+    String[] command = CommandHelper.login(params).buildCommand();
+
+    assertThat(command)
+        .contains(
+            "login",
+            "--server",
+            "https://octo.example",
+            "--service-account-id",
+            "Spaces-SA-123",
+            "--id-token",
+            "the-jwt-value",
+            "--no-prompt");
+    assertThat(command).doesNotContain("--api-key");
+  }
+
+  @Test
+  void loginCommandUsesApiKeyForNonOidcSource() {
+    Map<String, String> params = new HashMap<>();
+    final OctopusConstants constants = OctopusConstants.Instance;
+    params.put(constants.getServerKey(), "https://octo.example");
+    params.put(constants.getApiKey(), "API-KEY-123");
+
+    String[] command = CommandHelper.login(params).buildCommand();
+
+    assertThat(command).contains("--api-key", "API-KEY-123");
+    assertThat(command).doesNotContain("--service-account-id", "--id-token");
   }
 
   @Test

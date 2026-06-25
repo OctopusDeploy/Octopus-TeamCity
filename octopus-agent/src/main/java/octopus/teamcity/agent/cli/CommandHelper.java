@@ -15,6 +15,7 @@ import jetbrains.buildServer.util.StringUtil;
 import octopus.teamcity.agent.OctopusCommandBuilder;
 import octopus.teamcity.common.OctopusConstants;
 import octopus.teamcity.common.OverwriteMode;
+import octopus.teamcity.common.connection.ConnectionPropertyNames;
 import org.apache.commons.lang3.StringUtils;
 
 public class CommandHelper {
@@ -91,15 +92,22 @@ public class CommandHelper {
         final OctopusConstants constants = OctopusConstants.Instance;
         final ArrayList<String> commands = new ArrayList<>();
         final String serverUrl = params.get(constants.getServerKey());
-        final String apiKey = params.get(constants.getApiKey());
+        final String apiKeySource = params.get(constants.getApiKeySourceKey());
 
         commands.add("login");
 
         commands.add("--server");
         commands.add(serverUrl);
 
-        commands.add("--api-key");
-        commands.add(apiKey);
+        if (ConnectionPropertyNames.API_KEY_SOURCE_OIDC.equals(apiKeySource)) {
+          commands.add("--service-account-id");
+          commands.add(params.get(constants.getOidcServiceAccountIdKey()));
+          commands.add("--id-token");
+          commands.add(params.get(constants.getOidcIdTokenKey()));
+        } else {
+          commands.add("--api-key");
+          commands.add(params.get(constants.getApiKey()));
+        }
 
         commands.add("--no-prompt");
         return commands.toArray(new String[0]);
