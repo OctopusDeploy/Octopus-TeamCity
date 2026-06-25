@@ -85,6 +85,57 @@ public class CommandHelper {
     return commands.toArray(new String[0]);
   }
 
+  public static String[] promoteRelease(Map<String, String> params) {
+    final OctopusConstants constants = OctopusConstants.Instance;
+    final ArrayList<String> commands = new ArrayList<>();
+    String spaceName = params.get(constants.getSpaceName());
+    final String projectName = params.get(constants.getProjectNameKey());
+    final String deployTo = params.get(constants.getDeployToKey());
+    final String tenants = params.get(constants.getTenantsKey());
+    final String tenantTags = params.get(constants.getTenantTagsKey());
+    final String commandLineArguments = params.get(constants.getCommandLineArgumentsKey());
+
+    commands.add("release");
+    commands.add("deploy");
+
+    if (StringUtils.isBlank(spaceName)) {
+      spaceName = defaultSpace;
+    }
+    commands.add("--space");
+    commands.add(spaceName);
+
+    commands.add("--project");
+    commands.add(projectName);
+
+    for (String env : splitCommaSeparatedValues(deployTo)) {
+      commands.add("--environment");
+      commands.add(env);
+    }
+
+    for (String tenant : splitCommaSeparatedValues(tenants)) {
+      commands.add("--tenant");
+      commands.add(tenant);
+    }
+
+    for (String tenantTag : splitCommaSeparatedValues(tenantTags)) {
+      commands.add("--tenant-tag");
+      commands.add(tenantTag);
+    }
+
+    commands.add("--output-format");
+    commands.add("json");
+
+    if (StringUtils.isNotBlank(commandLineArguments)) {
+      List<String> commandArgs = splitSpaceSeparatedValues(commandLineArguments);
+      List<String> updatedCommandArgs =
+          sanitizeCommandArgs(commandArgs, createReleaseAdditionalArgumentsToBeIgnored);
+      commands.addAll(updatedCommandArgs);
+    }
+
+    commands.add("--no-prompt");
+    return commands.toArray(new String[0]);
+  }
+
   public static OctopusCommandBuilder login(Map<String, String> params) {
     return new OctopusCommandBuilder() {
       @Override

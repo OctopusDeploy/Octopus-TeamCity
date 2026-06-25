@@ -299,6 +299,54 @@ class CommandHelperTest {
   }
 
   @Test
+  void promoteReleaseCommand() {
+    Map<String, String> params = new HashMap<>();
+    final OctopusConstants constants = OctopusConstants.Instance;
+    params.put(constants.getProjectNameKey(), "MyProject");
+    params.put(constants.getSpaceName(), "MySpace");
+    params.put(constants.getDeployToKey(), "Staging,Production");
+    params.put(constants.getTenantsKey(), "TenantA");
+    params.put(constants.getTenantTagsKey(), "TagX");
+
+    String[] command = CommandHelper.promoteRelease(params);
+
+    assertThat(command)
+        .contains(
+            "release",
+            "deploy",
+            "--space",
+            "MySpace",
+            "--project",
+            "MyProject",
+            "--environment",
+            "Staging",
+            "--environment",
+            "Production",
+            "--tenant",
+            "TenantA",
+            "--tenant-tag",
+            "TagX",
+            "--output-format",
+            "json",
+            "--no-prompt");
+  }
+
+  @Test
+  void promoteReleaseSanitizesIgnoredArguments() {
+    Map<String, String> params = new HashMap<>();
+    final OctopusConstants constants = OctopusConstants.Instance;
+    params.put(constants.getProjectNameKey(), "MyProject");
+    params.put(constants.getCommandLineArgumentsKey(), "--channel Beta --keep-this value");
+
+    String[] command = CommandHelper.promoteRelease(params);
+
+    // --channel is in createReleaseAdditionalArgumentsToBeIgnored, so it and its value are dropped;
+    // unrecognised args pass through, matching deployRelease's behaviour.
+    assertThat(command).doesNotContain("--channel", "Beta");
+    assertThat(command).contains("--keep-this", "value");
+  }
+
+  @Test
   void sanitizeCommandExtraArgsRemovesForbiddenArgAndValue() {
     List<String> args =
         Arrays.asList("project", "MyProject", "channel", "Release", "version", "1.0.0");
