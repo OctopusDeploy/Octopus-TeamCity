@@ -93,11 +93,25 @@ public class OctopusConnectionBuildStartProcessor implements BuildStartContextPr
           CONSTANTS.getServerKey(),
           connParams.get(CONNECTION_KEYS.getServerUrlPropertyName()));
       setIfPresent(
-          runner, CONSTANTS.getApiKey(), connParams.get(CONNECTION_KEYS.getApiKeyPropertyName()));
-      setIfPresent(
           runner,
           CONSTANTS.getOctopusVersion(),
           connParams.get(CONNECTION_KEYS.getVersionPropertyName()));
+
+      final String source =
+          connParams.getOrDefault(
+              CONNECTION_KEYS.getApiKeySourcePropertyName(),
+              ConnectionPropertyNames.API_KEY_SOURCE_KEY);
+      if (ConnectionPropertyNames.API_KEY_SOURCE_OIDC.equals(source)) {
+        injectOidcCredentials(runner, project, connParams);
+      } else if (ConnectionPropertyNames.API_KEY_SOURCE_PARAMETER.equals(source)) {
+        setIfPresent(
+            runner,
+            CONSTANTS.getApiKey(),
+            connParams.get(CONNECTION_KEYS.getApiKeyParameterPropertyName()));
+      } else {
+        setIfPresent(
+            runner, CONSTANTS.getApiKey(), connParams.get(CONNECTION_KEYS.getApiKeyPropertyName()));
+      }
 
       // Space precedence: keep the step's value if it set one; otherwise use the connection's.
       if (StringUtil.isEmptyOrSpaces(stepParams.get(CONSTANTS.getSpaceName()))) {
@@ -107,6 +121,39 @@ public class OctopusConnectionBuildStartProcessor implements BuildStartContextPr
             connParams.get(CONNECTION_KEYS.getSpaceNamePropertyName()));
       }
     }
+  }
+
+  private void injectOidcCredentials(
+      final SRunnerContext runner, final SProject project, final Map<String, String> connParams) {
+    final String oidcConnectionId =
+        connParams.get(CONNECTION_KEYS.getOidcConnectionIdPropertyName());
+    final Optional<OAuthConnectionDescriptor> oidcConnector =
+        connectionsManager.resolve(project, oidcConnectionId);
+    if (!oidcConnector.isPresent()) {
+      logger.warn(
+          "Octopus connection uses OIDC but its OIDC connector '"
+              + oidcConnectionId
+              + "' could not be resolved; skipping credential injection");
+      return;
+    }
+    final Map<String, String> oidcParams = oidcConnector.get().getParameters();
+    final String audience = oidcParams.get(ConnectionPropertyNames.OIDC_CONNECTOR_AUDIENCE);
+    if (StringUtil.isEmptyOrSpaces(audience)) {
+      logger.warn(
+          "OIDC connector '"
+              + oidcConnectionId
+              + "' has no audience (Octopus service account id); skipping credential injection");
+      return;
+    }
+    String tokenVariable =
+        oidcParams.get(ConnectionPropertyNames.OIDC_CONNECTOR_TOKEN_VARIABLE_NAME);
+    if (StringUtil.isEmptyOrSpaces(tokenVariable)) {
+      tokenVariable = ConnectionPropertyNames.OIDC_DEFAULT_TOKEN_VARIABLE;
+    }
+    runner.addRunnerParameter(
+        CONSTANTS.getApiKeySourceKey(), ConnectionPropertyNames.API_KEY_SOURCE_OIDC);
+    runner.addRunnerParameter(CONSTANTS.getOidcServiceAccountIdKey(), audience);
+    runner.addRunnerParameter(CONSTANTS.getOidcIdTokenKey(), "%" + tokenVariable + "%");
   }
 
   private void setIfPresent(final SRunnerContext runner, final String key, final String value) {
