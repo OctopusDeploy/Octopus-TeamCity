@@ -25,6 +25,23 @@ public class ConnectionPropertyNames {
   public static final String VERSION = "octopus_version";
   public static final String SPACE_NAME = "octopus_space_name";
 
+  // API key source — selects how the connection supplies credentials.
+  public static final String API_KEY_SOURCE = "octopus_apikey_source";
+  public static final String API_KEY_PARAMETER = "octopus_apikey_parameter";
+  public static final String OIDC_CONNECTION_ID = "octopus_oidc_connection_id";
+
+  // Source values (shared between the server build-start processor and the agent).
+  public static final String API_KEY_SOURCE_KEY = "key";
+  public static final String API_KEY_SOURCE_PARAMETER = "parameter";
+  public static final String API_KEY_SOURCE_OIDC = "oidc";
+
+  // The teamcity-oidc-plugin's OIDC connector, referenced by stable strings so this plugin
+  // needs no compile-time dependency on it.
+  public static final String OIDC_CONNECTOR_TYPE = "oidc-identity-token";
+  public static final String OIDC_CONNECTOR_AUDIENCE = "audience";
+  public static final String OIDC_CONNECTOR_TOKEN_VARIABLE_NAME = "token_variable_name";
+  public static final String OIDC_DEFAULT_TOKEN_VARIABLE = "jwt.token";
+
   public ConnectionPropertyNames() {}
 
   public String getDisplayName() {
@@ -45,5 +62,17 @@ public class ConnectionPropertyNames {
 
   public String getSpaceNamePropertyName() {
     return SPACE_NAME;
+  }
+
+  public String getApiKeySourcePropertyName() {
+    return API_KEY_SOURCE;
+  }
+
+  public String getApiKeyParameterPropertyName() {
+    return API_KEY_PARAMETER;
+  }
+
+  public String getOidcConnectionIdPropertyName() {
+    return OIDC_CONNECTION_ID;
   }
 }
