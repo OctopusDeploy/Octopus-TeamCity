@@ -117,7 +117,9 @@ An Octopus connection can supply credentials three ways, chosen by the **API key
 Choosing OIDC switches the step to the new (standard) Octopus CLI — the legacy `octo` CLI cannot use
 OIDC. The OIDC token is short-lived (the JWT lifetime defaults to ~10 minutes): the CLI logs in once
 and reuses the session, so a single long-running deploy-with-wait that outlives the token may fail
-when it expires.
+when it expires. OIDC is not available for the **Promote release** step (the standard CLI cannot
+reproduce promote-from semantics); use an API key or parameter source there, or promote via a Deploy
+release step.
 
 ## Versioning, Releasing and Publishing
 
