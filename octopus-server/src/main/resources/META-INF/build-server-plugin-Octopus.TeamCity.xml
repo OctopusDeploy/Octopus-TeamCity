@@ -16,5 +16,6 @@
     <bean class="octopus.teamcity.server.connection.OctopusConnection"/>
     <bean class="octopus.teamcity.server.connection.OctopusConnectionsManager"/>
     <bean class="octopus.teamcity.server.connection.OctopusConnectionUiData"/>
+    <bean class="octopus.teamcity.server.connection.OctopusOidcConnectorsUiData"/>
     <bean class="octopus.teamcity.server.connection.OctopusConnectionBuildStartProcessor"/>
 </beans>
