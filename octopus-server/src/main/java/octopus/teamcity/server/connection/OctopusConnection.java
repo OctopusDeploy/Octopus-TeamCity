@@ -57,7 +57,8 @@ public class OctopusConnection extends OAuthProvider {
   public Map<String, String> getDefaultProperties() {
     final Map<String, String> defaults = new LinkedHashMap<>();
     defaults.put(ConnectionPropertyNames.VERSION, "3.0+");
-    defaults.put(ConnectionPropertyNames.API_KEY_SOURCE, ConnectionPropertyNames.API_KEY_SOURCE_KEY);
+    defaults.put(
+        ConnectionPropertyNames.API_KEY_SOURCE, ConnectionPropertyNames.API_KEY_SOURCE_KEY);
     return defaults;
   }
 

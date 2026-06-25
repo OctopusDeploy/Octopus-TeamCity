@@ -66,8 +66,7 @@ public class OctopusConnectionPropertiesProcessor implements PropertiesProcessor
     return result;
   }
 
-  private void validateParameterReference(
-      final String value, final List<InvalidProperty> result) {
+  private void validateParameterReference(final String value, final List<InvalidProperty> result) {
     final String id = KEYS.getApiKeyParameterPropertyName();
     if (StringUtil.isEmptyOrSpaces(value)) {
       result.add(new InvalidProperty(id, "A parameter reference must be specified"));
@@ -81,8 +80,7 @@ public class OctopusConnectionPropertiesProcessor implements PropertiesProcessor
             && trimmed.indexOf('%', 1) == trimmed.length() - 1;
     if (!singleReference) {
       result.add(
-          new InvalidProperty(
-              id, "Must be a single parameter reference, e.g. %octopus.apikey%"));
+          new InvalidProperty(id, "Must be a single parameter reference, e.g. %octopus.apikey%"));
     }
   }
 
