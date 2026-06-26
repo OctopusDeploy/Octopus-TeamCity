@@ -173,10 +173,6 @@ public class OctopusConstants {
     return "octopus_apikey_source";
   }
 
-  // Agent-facing runner parameters injected by OctopusConnectionBuildStartProcessor when a
-  // connection uses the OIDC api-key source. They are derived at build start (service account id
-  // from the OIDC connector's audience, id-token from its token variable) and are not stored as
-  // connection properties, so they have no ConnectionPropertyNames counterpart.
   public String getOidcServiceAccountIdKey() {
     return "octopus_oidc_service_account_id";
   }
