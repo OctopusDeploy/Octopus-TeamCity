@@ -22,6 +22,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import com.intellij.openapi.diagnostic.Logger;
+import jetbrains.buildServer.BuildProblemData;
 import jetbrains.buildServer.ExtensionHolder;
 import jetbrains.buildServer.log.Loggers;
 import jetbrains.buildServer.serverSide.BuildStartContext;
@@ -29,6 +30,7 @@ import jetbrains.buildServer.serverSide.BuildStartContextProcessor;
 import jetbrains.buildServer.serverSide.SBuildType;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.SRunnerContext;
+import jetbrains.buildServer.serverSide.SRunningBuild;
 import jetbrains.buildServer.serverSide.oauth.OAuthConnectionDescriptor;
 import jetbrains.buildServer.util.StringUtil;
 import octopus.teamcity.common.OctopusConstants;
@@ -102,7 +104,7 @@ public class OctopusConnectionBuildStartProcessor implements BuildStartContextPr
               CONNECTION_KEYS.getApiKeySourcePropertyName(),
               ConnectionPropertyNames.API_KEY_SOURCE_KEY);
       if (ConnectionPropertyNames.API_KEY_SOURCE_OIDC.equals(source)) {
-        injectOidcCredentials(runner, project, connParams);
+        injectOidcCredentials(buildStartContext.getBuild(), runner, project, connParams);
       } else if (ConnectionPropertyNames.API_KEY_SOURCE_PARAMETER.equals(source)) {
         setIfPresent(
             runner,
@@ -125,25 +127,32 @@ public class OctopusConnectionBuildStartProcessor implements BuildStartContextPr
   }
 
   private void injectOidcCredentials(
-      final SRunnerContext runner, final SProject project, final Map<String, String> connParams) {
+      final SRunningBuild build,
+      final SRunnerContext runner,
+      final SProject project,
+      final Map<String, String> connParams) {
     final String oidcConnectionId =
         connParams.get(CONNECTION_KEYS.getOidcConnectionIdPropertyName());
     final Optional<OAuthConnectionDescriptor> oidcConnector =
         connectionsManager.resolve(project, oidcConnectionId);
     if (!oidcConnector.isPresent()) {
-      logger.warn(
+      failBuild(
+          build,
+          "octopusOidcConnectorUnresolved",
           "Octopus connection uses OIDC but its OIDC connector '"
               + oidcConnectionId
-              + "' could not be resolved; skipping credential injection");
+              + "' could not be resolved.");
       return;
     }
     final Map<String, String> oidcParams = oidcConnector.get().getParameters();
     final String audience = oidcParams.get(ConnectionPropertyNames.OIDC_CONNECTOR_AUDIENCE);
     if (StringUtil.isEmptyOrSpaces(audience)) {
-      logger.warn(
+      failBuild(
+          build,
+          "octopusOidcConnectorNoAudience",
           "OIDC connector '"
               + oidcConnectionId
-              + "' has no audience (Octopus service account id); skipping credential injection");
+              + "' has no audience (Octopus service account id).");
       return;
     }
     String tokenVariable =
@@ -161,5 +170,13 @@ public class OctopusConnectionBuildStartProcessor implements BuildStartContextPr
     if (value != null) {
       runner.addRunnerParameter(key, value);
     }
+  }
+
+  /** Fails the build with a visible build problem rather than running it without credentials. */
+  private void failBuild(
+      final SRunningBuild build, final String identity, final String description) {
+    logger.warn(description);
+    build.addBuildProblem(
+        BuildProblemData.createBuildProblem(identity, "OctopusConnection", description));
   }
 }

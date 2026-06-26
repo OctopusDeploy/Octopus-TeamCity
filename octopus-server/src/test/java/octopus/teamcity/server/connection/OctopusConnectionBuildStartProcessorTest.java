@@ -1,5 +1,6 @@
 package octopus.teamcity.server.connection;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
@@ -14,6 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import jetbrains.buildServer.BuildProblemData;
 import jetbrains.buildServer.ExtensionHolder;
 import jetbrains.buildServer.serverSide.BuildStartContext;
 import jetbrains.buildServer.serverSide.SBuildType;
@@ -224,7 +226,7 @@ class OctopusConnectionBuildStartProcessorTest {
   }
 
   @Test
-  void oidcSourceWithBlankAudienceInjectsNothing() {
+  void oidcSourceWithBlankAudienceFailsTheBuild() {
     final Map<String, String> properties = new HashMap<>();
     properties.put(CONSTANTS.getConnectionIdKey(), "CONN_OIDC");
     when(runnerContext.getParameters()).thenReturn(properties);
@@ -241,10 +243,11 @@ class OctopusConnectionBuildStartProcessorTest {
         .addRunnerParameter(eq(CONSTANTS.getOidcIdTokenKey()), anyString());
     verify(runnerContext, never())
         .addRunnerParameter(eq(CONSTANTS.getApiKeySourceKey()), anyString());
+    verify(build).addBuildProblem(any(BuildProblemData.class));
   }
 
   @Test
-  void oidcSourceWithUnresolvableConnectorInjectsNothing() {
+  void oidcSourceWithUnresolvableConnectorFailsTheBuild() {
     final Map<String, String> properties = new HashMap<>();
     properties.put(CONSTANTS.getConnectionIdKey(), "CONN_OIDC");
     when(runnerContext.getParameters()).thenReturn(properties);
@@ -258,5 +261,6 @@ class OctopusConnectionBuildStartProcessorTest {
         .addRunnerParameter(eq(CONSTANTS.getOidcServiceAccountIdKey()), anyString());
     verify(runnerContext, never())
         .addRunnerParameter(eq(CONSTANTS.getApiKeySourceKey()), anyString());
+    verify(build).addBuildProblem(any(BuildProblemData.class));
   }
 }
