@@ -72,7 +72,7 @@ services:
         echo "Datadir ready.";
 
   teamcity-server:
-    image: jetbrains/teamcity-server:2024.12
+    image: jetbrains/teamcity-server:2025.03.3  # 2025.03+ bundles Java 21 (needed by the OIDC plugin)
     depends_on:
       tc-init:
         condition: service_completed_successfully
@@ -84,7 +84,7 @@ services:
       - tc-datadir:/data/teamcity_server/datadir
 
   teamcity-agent:
-    image: jetbrains/teamcity-agent:2024.12
+    image: jetbrains/teamcity-agent:2025.03.3
     depends_on:
       - teamcity-server
     environment:

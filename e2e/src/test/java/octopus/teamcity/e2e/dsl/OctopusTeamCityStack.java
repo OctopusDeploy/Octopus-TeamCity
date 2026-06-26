@@ -42,8 +42,10 @@ import org.testcontainers.utility.MountableFile;
 public final class OctopusTeamCityStack implements AutoCloseable {
 
   private static final Logger LOG = LogManager.getLogger();
-  private static final String TC_IMAGE = "jetbrains/teamcity-server:2024.12";
-  private static final String AGENT_IMAGE = "jetbrains/teamcity-agent:2024.12";
+  // 2025.03+ bundles Java 21; required because the teamcity-oidc-plugin is compiled for Java 21
+  // (it won't load on the Java 17 that 2024.12 shipped).
+  private static final String TC_IMAGE = "jetbrains/teamcity-server:2025.03.3";
+  private static final String AGENT_IMAGE = "jetbrains/teamcity-agent:2025.03.3";
   private static final String OCTOPUS_IMAGE = "octopusdeploy/octopusdeploy:2025.4";
   private static final String MSSQL_IMAGE = "mcr.microsoft.com/mssql/server:2022-latest";
   private static final int TC_PORT = 8111;
