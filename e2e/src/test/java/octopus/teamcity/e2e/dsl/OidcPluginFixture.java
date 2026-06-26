@@ -48,12 +48,29 @@ public final class OidcPluginFixture {
     final Asset asset = latestZipAsset();
     final Path cacheDir = Paths.get(System.getProperty("java.io.tmpdir"), "octopus-tc-oidc-plugin");
     Files.createDirectories(cacheDir);
-    final Path cached = cacheDir.resolve(asset.name);
+    final Path cached = cacheFileFor(cacheDir, asset.name);
     if (Files.isRegularFile(cached) && Files.size(cached) > 0) {
       return cached;
     }
     download(asset.downloadUrl, cached);
     return cached;
+  }
+
+  /**
+   * Resolves the cache file for a release asset, guarding against path traversal: the asset name
+   * comes from a remote HTTP response, so only its final path segment is used, it must match a
+   * strict zip-name whitelist, and the result must stay inside the cache directory.
+   */
+  private static Path cacheFileFor(final Path cacheDir, final String assetName) {
+    final String fileName = Paths.get(assetName).getFileName().toString();
+    if (!fileName.matches("[A-Za-z0-9._-]+\\.zip")) {
+      throw new IllegalStateException("Unexpected OIDC plugin asset name: " + assetName);
+    }
+    final Path resolved = cacheDir.resolve(fileName).normalize();
+    if (!resolved.startsWith(cacheDir)) {
+      throw new IllegalStateException("Refusing to cache outside " + cacheDir + ": " + resolved);
+    }
+    return resolved;
   }
 
   private static Asset latestZipAsset() throws IOException {
