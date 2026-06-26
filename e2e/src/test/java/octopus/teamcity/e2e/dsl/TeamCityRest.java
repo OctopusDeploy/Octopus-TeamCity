@@ -141,6 +141,98 @@ public final class TeamCityRest {
     return jsonField(resp.body(), "id");
   }
 
+  /**
+   * Creates an OctopusConnection whose API key source is a build-parameter reference (e.g. {@code
+   * %octopus.apikey%}) instead of a stored secret. Returns the generated connection id.
+   */
+  public String createOctopusConnectionWithApiKeyParameter(
+      final String projectId,
+      final String displayName,
+      final String octopusUrl,
+      final String apiKeyParameterRef,
+      final String version,
+      final String space)
+      throws Exception {
+    final String json =
+        "{"
+            + "\"type\":\"OAuthProvider\",\"properties\":{\"property\":["
+            + prop("providerType", "OctopusConnection")
+            + ","
+            + prop("displayName", displayName)
+            + ","
+            + prop("octopus_host", octopusUrl)
+            + ","
+            + prop("octopus_apikey_source", "parameter")
+            + ","
+            + prop("octopus_apikey_parameter", apiKeyParameterRef)
+            + ","
+            + prop("octopus_version", version)
+            + ","
+            + prop("octopus_space_name", space)
+            + "]}}";
+    final Http.Response resp =
+        send(
+            "POST",
+            "/httpAuth/app/rest/projects/" + projectId + "/projectFeatures",
+            "application/json",
+            json);
+    return jsonField(resp.body(), "id");
+  }
+
+  /**
+   * Creates an OIDC Identity Token connection (the teamcity-oidc-plugin's {@code
+   * oidc-identity-token} provider). Our Octopus connection form lists these as OIDC connectors.
+   * Returns the generated connection id.
+   */
+  public String createOidcConnector(
+      final String projectId,
+      final String displayName,
+      final String audience,
+      final String tokenVariableName)
+      throws Exception {
+    final String json =
+        "{"
+            + "\"type\":\"OAuthProvider\",\"properties\":{\"property\":["
+            + prop("providerType", "oidc-identity-token")
+            + ","
+            + prop("displayName", displayName)
+            + ","
+            + prop("audience", audience)
+            + ","
+            + prop("token_variable_name", tokenVariableName)
+            + ","
+            + prop("ttl_minutes", "10")
+            + ","
+            + prop("algorithm", "RS256")
+            + "]}}";
+    final Http.Response resp =
+        send(
+            "POST",
+            "/httpAuth/app/rest/projects/" + projectId + "/projectFeatures",
+            "application/json",
+            json);
+    return jsonField(resp.body(), "id");
+  }
+
+  /**
+   * Sets a password (secret) configuration parameter on a build type, so a {@code %name%} reference
+   * resolves at build time and the value is masked in the build log.
+   */
+  public void setPasswordParameter(final String buildTypeId, final String name, final String value)
+      throws Exception {
+    final String json =
+        "{\"name\":\""
+            + name
+            + "\",\"value\":\""
+            + value.replace("\"", "\\\"")
+            + "\",\"type\":{\"rawValue\":\"password display='hidden' checkScope='true'\"}}";
+    send(
+        "POST",
+        "/httpAuth/app/rest/buildTypes/" + buildTypeId + "/parameters",
+        "application/json",
+        json);
+  }
+
   private static String prop(final String name, final String value) {
     return "{\"name\":\"" + name + "\",\"value\":\"" + value.replace("\"", "\\\"") + "\"}";
   }

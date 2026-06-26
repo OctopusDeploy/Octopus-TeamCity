@@ -173,6 +173,15 @@ public final class OctopusTeamCityStack implements AutoCloseable {
         Paths.get(pluginDist),
         pluginsDir.resolve("Octopus.Teamcity.zip"),
         StandardCopyOption.REPLACE_EXISTING);
+
+    // Also install the teamcity-oidc-plugin (a checked-in release fixture) so the OIDC api-key
+    // source can be exercised end to end: it registers the "oidc-identity-token" connection type
+    // that our connection form lists. See docs/e2e-tests.md for how to refresh the fixture.
+    final URL oidcPlugin = Resources.getResource("Octopus.TeamCity.OIDC.zip");
+    Files.copy(
+        Paths.get(oidcPlugin.toURI()),
+        pluginsDir.resolve("Octopus.TeamCity.OIDC.zip"),
+        StandardCopyOption.REPLACE_EXISTING);
     return dataDir;
   }
 

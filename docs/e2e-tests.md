@@ -71,6 +71,25 @@ Tests build everything programmatically — there's no project export to maintai
 Use **unique** TeamCity ids and Octopus project/environment names per test — the stack is shared, so
 clashing names will collide.
 
+## OIDC plugin fixture
+
+The OIDC api-key source depends on the separate **teamcity-oidc-plugin** (it provides the
+`oidc-identity-token` connection type our connection form lists). So the stack installs that plugin
+alongside ours from a checked-in release fixture:
+`e2e/src/test/resources/Octopus.TeamCity.OIDC.zip`.
+
+To refresh it, download the latest plugin zip from the
+[teamcity-oidc-plugin releases](https://github.com/OctopusDeploy/teamcity-oidc-plugin/releases) and
+replace that file (keep the filename):
+
+```bash
+gh release download <tag> --repo OctopusDeploy/teamcity-oidc-plugin --pattern '*.zip' \
+  --output e2e/src/test/resources/Octopus.TeamCity.OIDC.zip --clobber
+```
+
+`OctopusConnectionOidcSourceUiTest` checks the cross-plugin discovery (the connector appears in our
+form); `OctopusParameterSourcePushE2ETest` covers the `%param%` api-key source end to end.
+
 ## Interactive manual testing
 
 To bring the same stack up and click around by hand (rather than asserting in code), use
