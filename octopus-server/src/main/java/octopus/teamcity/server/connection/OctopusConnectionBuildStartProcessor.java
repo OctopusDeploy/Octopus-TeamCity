@@ -109,6 +109,7 @@ public class OctopusConnectionBuildStartProcessor implements BuildStartContextPr
             CONSTANTS.getApiKey(),
             connParams.get(CONNECTION_KEYS.getApiKeyParameterPropertyName()));
       } else {
+        // either it's blank (legacy) or API_KEY_SOURCE_KEY
         setIfPresent(
             runner, CONSTANTS.getApiKey(), connParams.get(CONNECTION_KEYS.getApiKeyPropertyName()));
       }
