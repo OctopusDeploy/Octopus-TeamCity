@@ -126,6 +126,19 @@ class OctopusConnectionBuildStartProcessorTest {
   }
 
   @Test
+  void unresolvableConnectionFailsTheBuild() {
+    final Map<String, String> properties = new HashMap<>();
+    properties.put(CONSTANTS.getConnectionIdKey(), "PROJECT_EXT_MISSING");
+    when(runnerContext.getParameters()).thenReturn(properties);
+    when(connectionsManager.resolve(project, "PROJECT_EXT_MISSING")).thenReturn(Optional.empty());
+
+    processor.updateParameters(buildStartContext);
+
+    verify(build).addBuildProblem(any(BuildProblemData.class));
+    verify(runnerContext, never()).addRunnerParameter(eq(CONSTANTS.getServerKey()), anyString());
+  }
+
+  @Test
   void ignoresNonOctopusRunners() {
     when(runnerContext.getType()).thenReturn("some.other.runner");
     // getParameters() is never called for non-Octopus runners — do not stub it.

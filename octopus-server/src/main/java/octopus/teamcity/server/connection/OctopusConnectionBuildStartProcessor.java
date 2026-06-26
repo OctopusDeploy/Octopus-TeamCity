@@ -82,10 +82,12 @@ public class OctopusConnectionBuildStartProcessor implements BuildStartContextPr
       final Optional<OAuthConnectionDescriptor> resolved =
           connectionsManager.resolve(project, connectionId);
       if (!resolved.isPresent()) {
-        logger.warn(
+        failBuild(
+            buildStartContext.getBuild(),
+            "octopusConnectionUnresolved",
             "Octopus connection '"
                 + connectionId
-                + "' referenced by build step could not be resolved");
+                + "' referenced by build step could not be resolved.");
         continue;
       }
 
