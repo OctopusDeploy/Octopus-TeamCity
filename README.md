@@ -109,12 +109,12 @@ An Octopus connection can supply credentials three ways, chosen by the **API key
 - **Enter an API key** (default) — a stored secret API key, as before.
 - **Reference a parameter** — a single parameter reference such as `%octopus.apikey%`. Keep the
   secret in that TeamCity parameter; the connection just points at it.
-- **Use an OIDC token** — references an *OIDC Identity Token* connector (from the TeamCity OIDC
-  plugin). The connector's audience is the Octopus service account id; the token is taken from the
-  connector's token variable (default `%jwt.token%`). This option appears only when an OIDC
-  connector exists in the project.
+- **Use an OIDC token** — It the Octopus [TeamCity OIDC plugin](https://github.com/OctopusDeploy/teamcity-oidc-plugin) 
+  is installed, you can reference an *OIDC Identity Token* connector. The connector's audience is the 
+  Octopus service account id; the token is taken from the connector's token variable (default `%jwt.token%`). 
+  This option appears only when an OIDC connector exists in the project.
 
-Choosing OIDC switches the step to the new (standard) Octopus CLI — the legacy `octo` CLI cannot use
+Note: Choosing OIDC switches the step to the new (standard) Octopus CLI — the legacy `octo` CLI cannot use
 OIDC. The OIDC token is short-lived (the JWT lifetime defaults to ~10 minutes): the CLI logs in once
 and reuses the session, so a single long-running deploy-with-wait that outlives the token may fail
 when it expires. OIDC is not available for the **Promote release** step (the standard CLI cannot
