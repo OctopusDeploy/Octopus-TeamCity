@@ -118,20 +118,13 @@ public final class TeamCityRest {
       final String space)
       throws Exception {
     final String json =
-        "{"
-            + "\"type\":\"OAuthProvider\",\"properties\":{\"property\":["
-            + prop("providerType", "OctopusConnection")
-            + ","
-            + prop("displayName", displayName)
-            + ","
-            + prop("octopus_host", octopusUrl)
-            + ","
-            + prop("secure:octopus_apikey", apiKey)
-            + ","
-            + prop("octopus_version", version)
-            + ","
-            + prop("octopus_space_name", space)
-            + "]}}";
+        createOauthProviderJson(
+            createProp("providerType", "OctopusConnection"),
+            createProp("displayName", displayName),
+            createProp("octopus_host", octopusUrl),
+            createProp("secure:octopus_apikey", apiKey),
+            createProp("octopus_version", version),
+            createProp("octopus_space_name", space));
     final Http.Response resp =
         send(
             "POST",
@@ -154,22 +147,14 @@ public final class TeamCityRest {
       final String space)
       throws Exception {
     final String json =
-        "{"
-            + "\"type\":\"OAuthProvider\",\"properties\":{\"property\":["
-            + prop("providerType", "OctopusConnection")
-            + ","
-            + prop("displayName", displayName)
-            + ","
-            + prop("octopus_host", octopusUrl)
-            + ","
-            + prop("octopus_apikey_source", "parameter")
-            + ","
-            + prop("octopus_apikey_parameter", apiKeyParameterRef)
-            + ","
-            + prop("octopus_version", version)
-            + ","
-            + prop("octopus_space_name", space)
-            + "]}}";
+        createOauthProviderJson(
+            createProp("providerType", "OctopusConnection"),
+            createProp("displayName", displayName),
+            createProp("octopus_host", octopusUrl),
+            createProp("octopus_apikey_source", "parameter"),
+            createProp("octopus_apikey_parameter", apiKeyParameterRef),
+            createProp("octopus_version", version),
+            createProp("octopus_space_name", space));
     final Http.Response resp =
         send(
             "POST",
@@ -191,20 +176,13 @@ public final class TeamCityRest {
       final String tokenVariableName)
       throws Exception {
     final String json =
-        "{"
-            + "\"type\":\"OAuthProvider\",\"properties\":{\"property\":["
-            + prop("providerType", "oidc-identity-token")
-            + ","
-            + prop("displayName", displayName)
-            + ","
-            + prop("audience", audience)
-            + ","
-            + prop("token_variable_name", tokenVariableName)
-            + ","
-            + prop("ttl_minutes", "10")
-            + ","
-            + prop("algorithm", "RS256")
-            + "]}}";
+        createOauthProviderJson(
+            createProp("providerType", "oidc-identity-token"),
+            createProp("displayName", displayName),
+            createProp("audience", audience),
+            createProp("token_variable_name", tokenVariableName),
+            createProp("ttl_minutes", "10"),
+            createProp("algorithm", "RS256"));
     final Http.Response resp =
         send(
             "POST",
@@ -233,8 +211,26 @@ public final class TeamCityRest {
         json);
   }
 
-  private static String prop(final String name, final String value) {
+  private static String createProp(final String name, final String value) {
     return "{\"name\":\"" + name + "\",\"value\":\"" + value.replace("\"", "\\\"") + "\"}";
+  }
+
+  /** Wraps name/value properties in an OAuthProvider projectFeature payload. */
+  private static String createOauthProviderJson(final String... props) {
+    return "{\"type\":\"OAuthProvider\",\"properties\":{\"property\":["
+        + String.join(",", props)
+        + "]}}";
+  }
+
+  /** Wraps name/value properties in a build-step payload of the given name and runner type. */
+  private static String createStepFeatureJson(final String name, final String type, final String... props) {
+    return "{\"name\":\""
+        + name
+        + "\",\"type\":\""
+        + type
+        + "\",\"properties\":{\"property\":["
+        + String.join(",", props)
+        + "]}}";
   }
 
   public void createBuildType(final String id, final String name, final String projectId)
@@ -260,15 +256,12 @@ public final class TeamCityRest {
       final String packageVersion)
       throws Exception {
     final String json =
-        "{"
-            + "\"name\":\"Publish build information\",\"type\":\"octopus.metadata\","
-            + "\"properties\":{\"property\":["
-            + prop("octopus_connection_id", connectionId)
-            + ","
-            + prop("octopus_packageid", packageId)
-            + ","
-            + prop("octopus_packageversion", packageVersion)
-            + "]}}";
+        createStepFeatureJson(
+            "Publish build information",
+            "octopus.metadata",
+            createProp("octopus_connection_id", connectionId),
+            createProp("octopus_packageid", packageId),
+            createProp("octopus_packageversion", packageVersion));
     send(
         "POST",
         "/httpAuth/app/rest/buildTypes/" + buildTypeId + "/steps",
@@ -281,15 +274,12 @@ public final class TeamCityRest {
    * Returns the generated runner id (e.g. {@code RUNNER_1}).
    */
   public String addCreateReleaseStep(final String buildTypeId) throws Exception {
-    final String json =
-        "{\"name\":\"Create release\",\"type\":\"octopus.create.release\","
-            + "\"properties\":{\"property\":[]}}";
     final Http.Response resp =
         send(
             "POST",
             "/httpAuth/app/rest/buildTypes/" + buildTypeId + "/steps",
             "application/json",
-            json);
+            createStepFeatureJson("Create release", "octopus.create.release"));
     return jsonField(resp.body(), "id");
   }
 
@@ -301,11 +291,7 @@ public final class TeamCityRest {
             "POST",
             "/httpAuth/app/rest/buildTypes/" + buildTypeId + "/steps",
             "application/json",
-            "{\"name\":\""
-                + name
-                + "\",\"type\":\""
-                + type
-                + "\",\"properties\":{\"property\":[]}}");
+            createStepFeatureJson(name, type));
     return jsonField(resp.body(), "id");
   }
 
@@ -313,13 +299,11 @@ public final class TeamCityRest {
   public void addCommandLineStep(final String buildTypeId, final String name, final String script)
       throws Exception {
     final String json =
-        "{\"name\":\""
-            + name
-            + "\",\"type\":\"simpleRunner\",\"properties\":{\"property\":["
-            + prop("use.custom.script", "true")
-            + ","
-            + prop("script.content", script)
-            + "]}}";
+        createStepFeatureJson(
+            name,
+            "simpleRunner",
+            createProp("use.custom.script", "true"),
+            createProp("script.content", script));
     send(
         "POST",
         "/httpAuth/app/rest/buildTypes/" + buildTypeId + "/steps",
@@ -337,21 +321,16 @@ public final class TeamCityRest {
       final String outputPath)
       throws Exception {
     final String json =
-        "{\"name\":\"Pack\",\"type\":\"octopus.pack.package\",\"properties\":{\"property\":["
-            + prop("octopus_version", "3.0+")
-            + ","
-            + prop("octopus_packageid", packageId)
-            + ","
-            + prop("octopus_packageformat", packageFormat)
-            + ","
-            + prop("octopus_packageversion", packageVersion)
-            + ","
-            + prop("octopus_packagesourcepath", sourcePath)
-            + ","
-            + prop("octopus_packageoutputpath", outputPath)
-            + ","
-            + prop("octopus_publishartifacts", "true")
-            + "]}}";
+        createStepFeatureJson(
+            "Pack",
+            "octopus.pack.package",
+            createProp("octopus_version", "3.0+"),
+            createProp("octopus_packageid", packageId),
+            createProp("octopus_packageformat", packageFormat),
+            createProp("octopus_packageversion", packageVersion),
+            createProp("octopus_packagesourcepath", sourcePath),
+            createProp("octopus_packageoutputpath", outputPath),
+            createProp("octopus_publishartifacts", "true"));
     send(
         "POST",
         "/httpAuth/app/rest/buildTypes/" + buildTypeId + "/steps",
@@ -364,11 +343,11 @@ public final class TeamCityRest {
       final String buildTypeId, final String connectionId, final String packagePaths)
       throws Exception {
     final String json =
-        "{\"name\":\"Push package\",\"type\":\"octopus.push.package\",\"properties\":{\"property\":["
-            + prop("octopus_connection_id", connectionId)
-            + ","
-            + prop("octopus_packagepaths", packagePaths)
-            + "]}}";
+        createStepFeatureJson(
+            "Push package",
+            "octopus.push.package",
+            createProp("octopus_connection_id", connectionId),
+            createProp("octopus_packagepaths", packagePaths));
     send(
         "POST",
         "/httpAuth/app/rest/buildTypes/" + buildTypeId + "/steps",
@@ -388,18 +367,14 @@ public final class TeamCityRest {
       final String packageVersion)
       throws Exception {
     final String json =
-        "{\"name\":\"Publish build information\",\"type\":\"octopus.metadata\","
-            + "\"properties\":{\"property\":["
-            + prop("octopus_host", octopusUrl)
-            + ","
-            + prop("secure:octopus_apikey", apiKey)
-            + ","
-            + prop("octopus_version", "3.0+")
-            + ","
-            + prop("octopus_packageid", packageId)
-            + ","
-            + prop("octopus_packageversion", packageVersion)
-            + "]}}";
+        createStepFeatureJson(
+            "Publish build information",
+            "octopus.metadata",
+            createProp("octopus_host", octopusUrl),
+            createProp("secure:octopus_apikey", apiKey),
+            createProp("octopus_version", "3.0+"),
+            createProp("octopus_packageid", packageId),
+            createProp("octopus_packageversion", packageVersion));
     send(
         "POST",
         "/httpAuth/app/rest/buildTypes/" + buildTypeId + "/steps",
@@ -415,14 +390,12 @@ public final class TeamCityRest {
       final String releaseNumber)
       throws Exception {
     final String json =
-        "{\"name\":\"Create release\",\"type\":\"octopus.create.release\","
-            + "\"properties\":{\"property\":["
-            + prop("octopus_connection_id", connectionId)
-            + ","
-            + prop("octopus_project_name", projectName)
-            + ","
-            + prop("octopus_releasenumber", releaseNumber)
-            + "]}}";
+        createStepFeatureJson(
+            "Create release",
+            "octopus.create.release",
+            createProp("octopus_connection_id", connectionId),
+            createProp("octopus_project_name", projectName),
+            createProp("octopus_releasenumber", releaseNumber));
     send(
         "POST",
         "/httpAuth/app/rest/buildTypes/" + buildTypeId + "/steps",
@@ -442,18 +415,14 @@ public final class TeamCityRest {
       final String deployTo)
       throws Exception {
     final String json =
-        "{\"name\":\"Deploy release\",\"type\":\"octopus.deploy.release\","
-            + "\"properties\":{\"property\":["
-            + prop("octopus_connection_id", connectionId)
-            + ","
-            + prop("octopus_project_name", projectName)
-            + ","
-            + prop("octopus_releasenumber", releaseNumber)
-            + ","
-            + prop("octopus_deployto", deployTo)
-            + ","
-            + prop("octopus_waitfordeployments", "true")
-            + "]}}";
+        createStepFeatureJson(
+            "Deploy release",
+            "octopus.deploy.release",
+            createProp("octopus_connection_id", connectionId),
+            createProp("octopus_project_name", projectName),
+            createProp("octopus_releasenumber", releaseNumber),
+            createProp("octopus_deployto", deployTo),
+            createProp("octopus_waitfordeployments", "true"));
     send(
         "POST",
         "/httpAuth/app/rest/buildTypes/" + buildTypeId + "/steps",
@@ -473,18 +442,14 @@ public final class TeamCityRest {
       final String deployTo)
       throws Exception {
     final String json =
-        "{\"name\":\"Promote release\",\"type\":\"octopus.promote.release\","
-            + "\"properties\":{\"property\":["
-            + prop("octopus_connection_id", connectionId)
-            + ","
-            + prop("octopus_project_name", projectName)
-            + ","
-            + prop("octopus_promotefrom", promoteFrom)
-            + ","
-            + prop("octopus_deployto", deployTo)
-            + ","
-            + prop("octopus_waitfordeployments", "true")
-            + "]}}";
+        createStepFeatureJson(
+            "Promote release",
+            "octopus.promote.release",
+            createProp("octopus_connection_id", connectionId),
+            createProp("octopus_project_name", projectName),
+            createProp("octopus_promotefrom", promoteFrom),
+            createProp("octopus_deployto", deployTo),
+            createProp("octopus_waitfordeployments", "true"));
     send(
         "POST",
         "/httpAuth/app/rest/buildTypes/" + buildTypeId + "/steps",
