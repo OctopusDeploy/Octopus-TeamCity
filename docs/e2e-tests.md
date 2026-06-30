@@ -86,7 +86,8 @@ download:
 OIDC_PLUGIN_ZIP=/path/to/Octopus.TeamCity.OIDC.<ver>.zip ./gradlew :e2e:e2eTest
 ```
 
-(Set `GITHUB_TOKEN` if you hit the unauthenticated GitHub API rate limit.)
+(Set the `GITHUB_TOKEN` environment variable if you hit the unauthenticated GitHub API rate limit when 
+its restoring packages)
 
 `OctopusConnectionOidcSourceUiTest` checks the cross-plugin discovery (the connector appears in our
 form); `OctopusParameterSourcePushE2ETest` covers the `%param%` api-key source end to end.
