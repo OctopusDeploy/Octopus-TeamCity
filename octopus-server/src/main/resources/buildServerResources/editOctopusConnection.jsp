@@ -87,8 +87,8 @@
       </props:selectProperty>
       <span class="error" id="error_${keys.oidcConnectionIdPropertyName}"></span>
       <span class="smallNote">
-        An OIDC Identity Token connector. Using OIDC switches this connection to the new Octopus CLI
-        (the current standard; the legacy CLI does not support OIDC).
+        An OIDC Identity Token connection. Using OIDC switches to the new Octopus CLI (the legacy
+        CLI does not support OIDC).
       </span>
     </td>
   </tr>
