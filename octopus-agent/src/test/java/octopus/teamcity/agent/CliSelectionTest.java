@@ -35,7 +35,7 @@ class CliSelectionTest {
   void usesNewCliWhenEnvVarSet() {
     final Map<String, String> env = new HashMap<>();
     env.put("OCTOPUS_NEW_CLI", "true");
-    assertThat(CliSelection.shouldUseNewCli(buildWithEnv(env), contextWith(new HashMap<>())))
+    assertThat(OctopusCliSelector.shouldUseNewCli(buildWithEnv(env), contextWith(new HashMap<>())))
         .isTrue();
   }
 
@@ -44,14 +44,14 @@ class CliSelectionTest {
     final Map<String, String> runnerParams = new HashMap<>();
     runnerParams.put(constants.getApiKeySourceKey(), ConnectionPropertyNames.API_KEY_SOURCE_OIDC);
     assertThat(
-            CliSelection.shouldUseNewCli(buildWithEnv(new HashMap<>()), contextWith(runnerParams)))
+            OctopusCliSelector.shouldUseNewCli(buildWithEnv(new HashMap<>()), contextWith(runnerParams)))
         .isTrue();
   }
 
   @Test
   void usesLegacyCliByDefault() {
     assertThat(
-            CliSelection.shouldUseNewCli(
+            OctopusCliSelector.shouldUseNewCli(
                 buildWithEnv(new HashMap<>()), contextWith(new HashMap<>())))
         .isFalse();
   }

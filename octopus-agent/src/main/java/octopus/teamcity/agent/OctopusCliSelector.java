@@ -28,8 +28,8 @@ import octopus.teamcity.common.connection.ConnectionPropertyNames;
  * True when the {@code OCTOPUS_NEW_CLI} environment variable is truthy, or when a connection has
  * injected an OIDC api-key source (OIDC requires the new CLI; the legacy CLI cannot use it).
  */
-public final class CliSelection {
-  private CliSelection() {}
+public final class OctopusCliSelector {
+  private OctopusCliSelector() {}
 
   public static boolean shouldUseNewCli(
       final AgentRunningBuild runningBuild, final BuildRunnerContext context) {

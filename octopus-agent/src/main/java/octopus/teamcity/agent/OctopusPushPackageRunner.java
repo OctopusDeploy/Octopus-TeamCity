@@ -40,7 +40,7 @@ public class OctopusPushPackageRunner implements AgentBuildRunner {
   public BuildProcess createBuildProcess(
       @NotNull AgentRunningBuild runningBuild, @NotNull BuildRunnerContext context)
       throws RunBuildException {
-    if (CliSelection.shouldUseNewCli(runningBuild, context)) {
+    if (OctopusCliSelector.shouldUseNewCli(runningBuild, context)) {
       return new PushPackageBuildProcess(runningBuild, context, myExtensionHolder);
     }
     return new OctopusPushPackageBuildProcess(runningBuild, context, myExtensionHolder);
