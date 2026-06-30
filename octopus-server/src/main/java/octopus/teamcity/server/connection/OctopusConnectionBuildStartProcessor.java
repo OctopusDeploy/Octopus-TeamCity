@@ -105,13 +105,13 @@ public class OctopusConnectionBuildStartProcessor implements BuildStartContextPr
           connParams.getOrDefault(
               CONNECTION_KEYS.getApiKeySourcePropertyName(),
               ConnectionPropertyNames.API_KEY_SOURCE_KEY);
-      if (ConnectionPropertyNames.API_KEY_SOURCE_OIDC.equals(source)) {
-        injectOidcCredentials(buildStartContext.getBuild(), runner, project, connParams);
-      } else if (ConnectionPropertyNames.API_KEY_SOURCE_PARAMETER.equals(source)) {
+      if (ConnectionPropertyNames.API_KEY_SOURCE_PARAMETER.equals(source)) {
         setIfPresent(
             runner,
             CONSTANTS.getApiKey(),
             connParams.get(CONNECTION_KEYS.getApiKeyParameterPropertyName()));
+      } else if (ConnectionPropertyNames.API_KEY_SOURCE_OIDC.equals(source)) {
+        injectOidcCredentials(buildStartContext.getBuild(), runner, project, connParams);
       } else {
         // either it's blank (legacy) or API_KEY_SOURCE_KEY
         setIfPresent(
