@@ -42,8 +42,10 @@ import org.testcontainers.utility.MountableFile;
 public final class OctopusTeamCityStack implements AutoCloseable {
 
   private static final Logger LOG = LogManager.getLogger();
-  private static final String TC_IMAGE = "jetbrains/teamcity-server:2024.12";
-  private static final String AGENT_IMAGE = "jetbrains/teamcity-agent:2024.12";
+  // 2025.03+ bundles Java 21; required because the teamcity-oidc-plugin is compiled for Java 21
+  // (it won't load on the Java 17 that 2024.12 shipped).
+  private static final String TC_IMAGE = "jetbrains/teamcity-server:2025.03.3";
+  private static final String AGENT_IMAGE = "jetbrains/teamcity-agent:2025.03.3";
   private static final String OCTOPUS_IMAGE = "octopusdeploy/octopusdeploy:2025.4";
   private static final String MSSQL_IMAGE = "mcr.microsoft.com/mssql/server:2022-latest";
   private static final int TC_PORT = 8111;
@@ -172,6 +174,15 @@ public final class OctopusTeamCityStack implements AutoCloseable {
     Files.copy(
         Paths.get(pluginDist),
         pluginsDir.resolve("Octopus.Teamcity.zip"),
+        StandardCopyOption.REPLACE_EXISTING);
+
+    // Also install the teamcity-oidc-plugin so the OIDC api-key source can be exercised end to end:
+    // it registers the "oidc-identity-token" connection type that our connection form lists. The
+    // latest release is downloaded on demand (or taken from $OIDC_PLUGIN_ZIP); see
+    // docs/e2e-tests.md.
+    Files.copy(
+        OidcPluginFixture.resolve(),
+        pluginsDir.resolve("Octopus.TeamCity.OIDC.zip"),
         StandardCopyOption.REPLACE_EXISTING);
     return dataDir;
   }

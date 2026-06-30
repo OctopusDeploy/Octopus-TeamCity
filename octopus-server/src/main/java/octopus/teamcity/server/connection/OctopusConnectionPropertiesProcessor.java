@@ -43,14 +43,45 @@ public class OctopusConnectionPropertiesProcessor implements PropertiesProcessor
     }
 
     validateServerUrl(properties.get(KEYS.getServerUrlPropertyName()), result);
-
-    if (StringUtil.isEmptyOrSpaces(properties.get(KEYS.getApiKeyPropertyName()))) {
-      result.add(new InvalidProperty(KEYS.getApiKeyPropertyName(), "API key must be specified"));
-    }
-
     validateVersion(properties.get(KEYS.getVersionPropertyName()), result);
 
+    final String source =
+        properties.getOrDefault(
+            KEYS.getApiKeySourcePropertyName(), ConnectionPropertyNames.API_KEY_SOURCE_KEY);
+
+    if (ConnectionPropertyNames.API_KEY_SOURCE_PARAMETER.equals(source)) {
+      validateParameterReference(properties.get(KEYS.getApiKeyParameterPropertyName()), result);
+    } else if (ConnectionPropertyNames.API_KEY_SOURCE_OIDC.equals(source)) {
+      if (StringUtil.isEmptyOrSpaces(properties.get(KEYS.getOidcConnectionIdPropertyName()))) {
+        result.add(
+            new InvalidProperty(
+                KEYS.getOidcConnectionIdPropertyName(), "An OIDC connector must be selected"));
+      }
+    } else { // key (default / unknown)
+      if (StringUtil.isEmptyOrSpaces(properties.get(KEYS.getApiKeyPropertyName()))) {
+        result.add(new InvalidProperty(KEYS.getApiKeyPropertyName(), "API key must be specified"));
+      }
+    }
+
     return result;
+  }
+
+  private void validateParameterReference(final String value, final List<InvalidProperty> result) {
+    final String id = KEYS.getApiKeyParameterPropertyName();
+    if (StringUtil.isEmptyOrSpaces(value)) {
+      result.add(new InvalidProperty(id, "A parameter reference must be specified"));
+      return;
+    }
+    final String trimmed = value.trim();
+    final boolean singleReference =
+        trimmed.length() > 2
+            && trimmed.startsWith("%")
+            && trimmed.endsWith("%")
+            && trimmed.indexOf('%', 1) == trimmed.length() - 1;
+    if (!singleReference) {
+      result.add(
+          new InvalidProperty(id, "Must be a single parameter reference, e.g. %octopus.apikey%"));
+    }
   }
 
   private void validateServerUrl(final String serverUrl, final List<InvalidProperty> result) {

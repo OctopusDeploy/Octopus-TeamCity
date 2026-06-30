@@ -102,6 +102,25 @@ docker compose -f e2e/docker-compose.yml up --abort-on-container-exit --exit-cod
 See [docs/e2e-tests.md](docs/e2e-tests.md) for prerequisites, the `TEAMCITY_PLUGIN_DIST` and
 `GRADLE_TESTS` options, how to add a test, and interactive manual testing.
 
+## Connection API key sources
+
+An Octopus connection can supply credentials three ways, chosen by the **API key source** field:
+
+- **Enter an API key** (default) — a stored secret API key, as before.
+- **Reference a parameter** — a single parameter reference such as `%octopus.apikey%`. Keep the
+  secret in that TeamCity parameter; the connection just points at it.
+- **Use an OIDC token** — It the Octopus [TeamCity OIDC plugin](https://github.com/OctopusDeploy/teamcity-oidc-plugin) 
+  is installed, you can reference an *OIDC Identity Token* connector. The connector's audience is the 
+  Octopus service account id; the token is taken from the connector's token variable (default `%jwt.token%`). 
+  This option appears only when an OIDC connector exists in the project.
+
+Note: Choosing OIDC switches the step to the new Octopus CLI — the legacy `octo` CLI does not support
+OIDC. The OIDC token is short-lived (the JWT lifetime defaults to ~10 minutes): the CLI logs in once
+and reuses the session, so a single long-running deploy-with-wait that outlives the token may fail
+when it expires. OIDC is not available for the **Promote release** step, as the new Octopus CLI does not
+currently support promote-from; use an API key or parameter source there, or promote via a Deploy
+release step.
+
 ## Versioning, Releasing and Publishing
 
 The version is computed from git, and releases are cut by

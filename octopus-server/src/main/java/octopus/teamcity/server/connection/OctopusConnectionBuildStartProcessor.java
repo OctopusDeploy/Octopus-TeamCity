@@ -22,6 +22,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import com.intellij.openapi.diagnostic.Logger;
+import jetbrains.buildServer.BuildProblemData;
 import jetbrains.buildServer.ExtensionHolder;
 import jetbrains.buildServer.log.Loggers;
 import jetbrains.buildServer.serverSide.BuildStartContext;
@@ -29,6 +30,7 @@ import jetbrains.buildServer.serverSide.BuildStartContextProcessor;
 import jetbrains.buildServer.serverSide.SBuildType;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.SRunnerContext;
+import jetbrains.buildServer.serverSide.SRunningBuild;
 import jetbrains.buildServer.serverSide.oauth.OAuthConnectionDescriptor;
 import jetbrains.buildServer.util.StringUtil;
 import octopus.teamcity.common.OctopusConstants;
@@ -80,10 +82,12 @@ public class OctopusConnectionBuildStartProcessor implements BuildStartContextPr
       final Optional<OAuthConnectionDescriptor> resolved =
           connectionsManager.resolve(project, connectionId);
       if (!resolved.isPresent()) {
-        logger.warn(
+        failBuild(
+            buildStartContext.getBuild(),
+            "octopusConnectionUnresolved",
             "Octopus connection '"
                 + connectionId
-                + "' referenced by build step could not be resolved");
+                + "' referenced by build step could not be resolved.");
         continue;
       }
 
@@ -93,11 +97,26 @@ public class OctopusConnectionBuildStartProcessor implements BuildStartContextPr
           CONSTANTS.getServerKey(),
           connParams.get(CONNECTION_KEYS.getServerUrlPropertyName()));
       setIfPresent(
-          runner, CONSTANTS.getApiKey(), connParams.get(CONNECTION_KEYS.getApiKeyPropertyName()));
-      setIfPresent(
           runner,
           CONSTANTS.getOctopusVersion(),
           connParams.get(CONNECTION_KEYS.getVersionPropertyName()));
+
+      final String source =
+          connParams.getOrDefault(
+              CONNECTION_KEYS.getApiKeySourcePropertyName(),
+              ConnectionPropertyNames.API_KEY_SOURCE_KEY);
+      if (ConnectionPropertyNames.API_KEY_SOURCE_PARAMETER.equals(source)) {
+        setIfPresent(
+            runner,
+            CONSTANTS.getApiKey(),
+            connParams.get(CONNECTION_KEYS.getApiKeyParameterPropertyName()));
+      } else if (ConnectionPropertyNames.API_KEY_SOURCE_OIDC.equals(source)) {
+        injectOidcCredentials(buildStartContext.getBuild(), runner, project, connParams);
+      } else {
+        // either it's blank (legacy) or API_KEY_SOURCE_KEY
+        setIfPresent(
+            runner, CONSTANTS.getApiKey(), connParams.get(CONNECTION_KEYS.getApiKeyPropertyName()));
+      }
 
       // Space precedence: keep the step's value if it set one; otherwise use the connection's.
       if (StringUtil.isEmptyOrSpaces(stepParams.get(CONSTANTS.getSpaceName()))) {
@@ -109,9 +128,57 @@ public class OctopusConnectionBuildStartProcessor implements BuildStartContextPr
     }
   }
 
+  private void injectOidcCredentials(
+      final SRunningBuild build,
+      final SRunnerContext runner,
+      final SProject project,
+      final Map<String, String> connParams) {
+    final String oidcConnectionId =
+        connParams.get(CONNECTION_KEYS.getOidcConnectionIdPropertyName());
+    final Optional<OAuthConnectionDescriptor> oidcConnector =
+        connectionsManager.resolve(project, oidcConnectionId);
+    if (!oidcConnector.isPresent()) {
+      failBuild(
+          build,
+          "octopusOidcConnectorUnresolved",
+          "Octopus connection uses OIDC but its OIDC connector '"
+              + oidcConnectionId
+              + "' could not be resolved.");
+      return;
+    }
+    final Map<String, String> oidcParams = oidcConnector.get().getParameters();
+    final String audience = oidcParams.get(ConnectionPropertyNames.OIDC_CONNECTOR_AUDIENCE);
+    if (StringUtil.isEmptyOrSpaces(audience)) {
+      failBuild(
+          build,
+          "octopusOidcConnectorNoAudience",
+          "OIDC connector '"
+              + oidcConnectionId
+              + "' has no audience (Octopus service account id).");
+      return;
+    }
+    String tokenVariable =
+        oidcParams.get(ConnectionPropertyNames.OIDC_CONNECTOR_TOKEN_VARIABLE_NAME);
+    if (StringUtil.isEmptyOrSpaces(tokenVariable)) {
+      tokenVariable = ConnectionPropertyNames.OIDC_DEFAULT_TOKEN_VARIABLE;
+    }
+    runner.addRunnerParameter(
+        CONSTANTS.getApiKeySourceKey(), ConnectionPropertyNames.API_KEY_SOURCE_OIDC);
+    runner.addRunnerParameter(CONSTANTS.getOidcServiceAccountIdKey(), audience);
+    runner.addRunnerParameter(CONSTANTS.getOidcIdTokenKey(), "%" + tokenVariable + "%");
+  }
+
   private void setIfPresent(final SRunnerContext runner, final String key, final String value) {
     if (value != null) {
       runner.addRunnerParameter(key, value);
     }
+  }
+
+  /** Fails the build with a visible build problem rather than running it without credentials. */
+  private void failBuild(
+      final SRunningBuild build, final String identity, final String description) {
+    logger.warn(description);
+    build.addBuildProblem(
+        BuildProblemData.createBuildProblem(identity, "OctopusConnection", description));
   }
 }

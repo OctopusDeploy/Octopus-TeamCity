@@ -71,6 +71,27 @@ Tests build everything programmatically — there's no project export to maintai
 Use **unique** TeamCity ids and Octopus project/environment names per test — the stack is shared, so
 clashing names will collide.
 
+## OIDC plugin dependency
+
+The OIDC api-key source depends on the separate **teamcity-oidc-plugin** (it provides the
+`oidc-identity-token` connection type our connection form lists). The stack installs that plugin
+alongside ours: `OidcPluginFixture` downloads the **latest public release** on demand and caches it
+by version under the temp dir, so the tests always run against the current plugin without vendoring a
+binary in the repo.
+
+For offline runs, or to pin a specific version, point `OIDC_PLUGIN_ZIP` at a local zip to skip the
+download:
+
+```bash
+OIDC_PLUGIN_ZIP=/path/to/Octopus.TeamCity.OIDC.<ver>.zip ./gradlew :e2e:e2eTest
+```
+
+(Set the `GITHUB_TOKEN` environment variable if you hit the unauthenticated GitHub API rate limit when 
+its restoring packages)
+
+`OctopusConnectionOidcSourceUiTest` checks the cross-plugin discovery (the connector appears in our
+form); `OctopusParameterSourcePushE2ETest` covers the `%param%` api-key source end to end.
+
 ## Interactive manual testing
 
 To bring the same stack up and click around by hand (rather than asserting in code), use

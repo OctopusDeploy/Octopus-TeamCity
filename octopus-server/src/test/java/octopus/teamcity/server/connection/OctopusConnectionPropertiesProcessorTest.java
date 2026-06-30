@@ -82,4 +82,89 @@ class OctopusConnectionPropertiesProcessorTest {
     properties.put(ConnectionPropertyNames.API_KEY, "   ");
     assertThat(invalidKeys(properties)).contains(ConnectionPropertyNames.API_KEY);
   }
+
+  @Test
+  void parameterSourceRequiresAReference() {
+    final Map<String, String> properties = validProps();
+    properties.remove(ConnectionPropertyNames.API_KEY);
+    properties.put(
+        ConnectionPropertyNames.API_KEY_SOURCE, ConnectionPropertyNames.API_KEY_SOURCE_PARAMETER);
+    assertThat(invalidKeys(properties)).contains(ConnectionPropertyNames.API_KEY_PARAMETER);
+  }
+
+  @Test
+  void parameterSourceRejectsNonReferenceValue() {
+    final Map<String, String> properties = validProps();
+    properties.remove(ConnectionPropertyNames.API_KEY);
+    properties.put(
+        ConnectionPropertyNames.API_KEY_SOURCE, ConnectionPropertyNames.API_KEY_SOURCE_PARAMETER);
+    properties.put(ConnectionPropertyNames.API_KEY_PARAMETER, "API-NOT-A-REFERENCE");
+    assertThat(invalidKeys(properties)).contains(ConnectionPropertyNames.API_KEY_PARAMETER);
+  }
+
+  @Test
+  void parameterSourceAcceptsASingleReference() {
+    final Map<String, String> properties = validProps();
+    properties.remove(ConnectionPropertyNames.API_KEY);
+    properties.put(
+        ConnectionPropertyNames.API_KEY_SOURCE, ConnectionPropertyNames.API_KEY_SOURCE_PARAMETER);
+    properties.put(ConnectionPropertyNames.API_KEY_PARAMETER, "%octopus.apikey%");
+    assertThat(invalidKeys(properties)).doesNotContain(ConnectionPropertyNames.API_KEY_PARAMETER);
+  }
+
+  @Test
+  void oidcSourceRequiresAConnector() {
+    final Map<String, String> properties = validProps();
+    properties.remove(ConnectionPropertyNames.API_KEY);
+    properties.put(
+        ConnectionPropertyNames.API_KEY_SOURCE, ConnectionPropertyNames.API_KEY_SOURCE_OIDC);
+    assertThat(invalidKeys(properties)).contains(ConnectionPropertyNames.OIDC_CONNECTION_ID);
+  }
+
+  @Test
+  void oidcSourceWithConnectorIsValid() {
+    final Map<String, String> properties = validProps();
+    properties.remove(ConnectionPropertyNames.API_KEY);
+    properties.put(
+        ConnectionPropertyNames.API_KEY_SOURCE, ConnectionPropertyNames.API_KEY_SOURCE_OIDC);
+    properties.put(ConnectionPropertyNames.OIDC_CONNECTION_ID, "PROJECT_EXT_oidc1");
+    assertThat(invalidKeys(properties)).doesNotContain(ConnectionPropertyNames.OIDC_CONNECTION_ID);
+  }
+
+  @Test
+  void keySourceStillRequiresApiKey() {
+    final Map<String, String> properties = validProps();
+    properties.put(
+        ConnectionPropertyNames.API_KEY_SOURCE, ConnectionPropertyNames.API_KEY_SOURCE_KEY);
+    properties.remove(ConnectionPropertyNames.API_KEY);
+    assertThat(invalidKeys(properties)).contains(ConnectionPropertyNames.API_KEY);
+  }
+
+  @Test
+  void unknownSourceFallsBackToRequiringApiKey() {
+    final Map<String, String> properties = validProps();
+    properties.put(ConnectionPropertyNames.API_KEY_SOURCE, "banana");
+    properties.remove(ConnectionPropertyNames.API_KEY);
+    assertThat(invalidKeys(properties)).contains(ConnectionPropertyNames.API_KEY);
+  }
+
+  @Test
+  void parameterSourceRejectsConcatenatedReferences() {
+    final Map<String, String> properties = validProps();
+    properties.remove(ConnectionPropertyNames.API_KEY);
+    properties.put(
+        ConnectionPropertyNames.API_KEY_SOURCE, ConnectionPropertyNames.API_KEY_SOURCE_PARAMETER);
+    properties.put(ConnectionPropertyNames.API_KEY_PARAMETER, "%first%%second%");
+    assertThat(invalidKeys(properties)).contains(ConnectionPropertyNames.API_KEY_PARAMETER);
+  }
+
+  @Test
+  void parameterSourceRejectsEmptyReferenceTokens() {
+    final Map<String, String> properties = validProps();
+    properties.remove(ConnectionPropertyNames.API_KEY);
+    properties.put(
+        ConnectionPropertyNames.API_KEY_SOURCE, ConnectionPropertyNames.API_KEY_SOURCE_PARAMETER);
+    properties.put(ConnectionPropertyNames.API_KEY_PARAMETER, "%%");
+    assertThat(invalidKeys(properties)).contains(ConnectionPropertyNames.API_KEY_PARAMETER);
+  }
 }

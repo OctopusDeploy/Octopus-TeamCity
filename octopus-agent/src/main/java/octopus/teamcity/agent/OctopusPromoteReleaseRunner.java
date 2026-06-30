@@ -24,6 +24,7 @@ import jetbrains.buildServer.agent.BuildAgentConfiguration;
 import jetbrains.buildServer.agent.BuildProcess;
 import jetbrains.buildServer.agent.BuildRunnerContext;
 import octopus.teamcity.common.OctopusConstants;
+import octopus.teamcity.common.connection.ConnectionPropertyNames;
 import org.jetbrains.annotations.NotNull;
 
 public class OctopusPromoteReleaseRunner implements AgentBuildRunner {
@@ -32,6 +33,12 @@ public class OctopusPromoteReleaseRunner implements AgentBuildRunner {
   public BuildProcess createBuildProcess(
       @NotNull AgentRunningBuild runningBuild, @NotNull BuildRunnerContext context)
       throws RunBuildException {
+    if (ConnectionPropertyNames.API_KEY_SOURCE_OIDC.equals(
+        context.getRunnerParameters().get(OctopusConstants.Instance.getApiKeySourceKey()))) {
+      throw new RunBuildException(
+          "OIDC authentication is not supported for the Promote release step. Use an API key or"
+              + " parameter-based connection, or perform the promotion with a Deploy release step.");
+    }
     return new OctopusPromoteReleaseBuildProcess(runningBuild, context);
   }
 

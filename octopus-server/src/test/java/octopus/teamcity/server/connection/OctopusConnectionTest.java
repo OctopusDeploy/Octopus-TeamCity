@@ -36,6 +36,14 @@ class OctopusConnectionTest {
   }
 
   @Test
+  void defaultPropertiesSelectKeySource() {
+    final OctopusConnection connection = new OctopusConnection(mock(PluginDescriptor.class));
+    assertThat(connection.getDefaultProperties())
+        .containsEntry(
+            ConnectionPropertyNames.API_KEY_SOURCE, ConnectionPropertyNames.API_KEY_SOURCE_KEY);
+  }
+
+  @Test
   void describeConnectionOmitsTheDefaultVersion() {
     final Map<String, String> params = new HashMap<>();
     params.put(ConnectionPropertyNames.SERVER_URL, "https://octopus.example.com");

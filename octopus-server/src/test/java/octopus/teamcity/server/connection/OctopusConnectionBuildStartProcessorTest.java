@@ -1,5 +1,8 @@
 package octopus.teamcity.server.connection;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -12,6 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import jetbrains.buildServer.BuildProblemData;
 import jetbrains.buildServer.ExtensionHolder;
 import jetbrains.buildServer.serverSide.BuildStartContext;
 import jetbrains.buildServer.serverSide.SBuildType;
@@ -122,6 +126,19 @@ class OctopusConnectionBuildStartProcessorTest {
   }
 
   @Test
+  void unresolvableConnectionFailsTheBuild() {
+    final Map<String, String> properties = new HashMap<>();
+    properties.put(CONSTANTS.getConnectionIdKey(), "PROJECT_EXT_MISSING");
+    when(runnerContext.getParameters()).thenReturn(properties);
+    when(connectionsManager.resolve(project, "PROJECT_EXT_MISSING")).thenReturn(Optional.empty());
+
+    processor.updateParameters(buildStartContext);
+
+    verify(build).addBuildProblem(any(BuildProblemData.class));
+    verify(runnerContext, never()).addRunnerParameter(eq(CONSTANTS.getServerKey()), anyString());
+  }
+
+  @Test
   void ignoresNonOctopusRunners() {
     when(runnerContext.getType()).thenReturn("some.other.runner");
     // getParameters() is never called for non-Octopus runners — do not stub it.
@@ -130,5 +147,133 @@ class OctopusConnectionBuildStartProcessorTest {
 
     verify(connectionsManager, never())
         .resolve(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+  }
+
+  private OAuthConnectionDescriptor parameterConnectionWith(final String reference) {
+    final OAuthConnectionDescriptor descriptor = mock(OAuthConnectionDescriptor.class);
+    final Map<String, String> params = new HashMap<>();
+    params.put(ConnectionPropertyNames.SERVER_URL, "https://octo");
+    params.put(ConnectionPropertyNames.VERSION, "3.0+");
+    params.put(
+        ConnectionPropertyNames.API_KEY_SOURCE, ConnectionPropertyNames.API_KEY_SOURCE_PARAMETER);
+    params.put(ConnectionPropertyNames.API_KEY_PARAMETER, reference);
+    when(descriptor.getParameters()).thenReturn(params);
+    return descriptor;
+  }
+
+  private OAuthConnectionDescriptor oidcOctopusConnectionWith(final String oidcConnectorId) {
+    final OAuthConnectionDescriptor descriptor = mock(OAuthConnectionDescriptor.class);
+    final Map<String, String> params = new HashMap<>();
+    params.put(ConnectionPropertyNames.SERVER_URL, "https://octo");
+    params.put(ConnectionPropertyNames.VERSION, "3.0+");
+    params.put(ConnectionPropertyNames.API_KEY_SOURCE, ConnectionPropertyNames.API_KEY_SOURCE_OIDC);
+    params.put(ConnectionPropertyNames.OIDC_CONNECTION_ID, oidcConnectorId);
+    when(descriptor.getParameters()).thenReturn(params);
+    return descriptor;
+  }
+
+  private OAuthConnectionDescriptor oidcConnectorWith(
+      final String audience, final String tokenVar) {
+    final OAuthConnectionDescriptor descriptor = mock(OAuthConnectionDescriptor.class);
+    final Map<String, String> params = new HashMap<>();
+    if (audience != null) {
+      params.put(ConnectionPropertyNames.OIDC_CONNECTOR_AUDIENCE, audience);
+    }
+    if (tokenVar != null) {
+      params.put(ConnectionPropertyNames.OIDC_CONNECTOR_TOKEN_VARIABLE_NAME, tokenVar);
+    }
+    when(descriptor.getParameters()).thenReturn(params);
+    return descriptor;
+  }
+
+  @Test
+  void parameterSourceInjectsReferenceIntoApiKeySlot() {
+    final Map<String, String> properties = new HashMap<>();
+    properties.put(CONSTANTS.getConnectionIdKey(), "CONN_PARAM");
+    when(runnerContext.getParameters()).thenReturn(properties);
+    final OAuthConnectionDescriptor paramConn = parameterConnectionWith("%octopus.apikey%");
+    when(connectionsManager.resolve(project, "CONN_PARAM")).thenReturn(Optional.of(paramConn));
+
+    processor.updateParameters(buildStartContext);
+
+    verify(runnerContext).addRunnerParameter(CONSTANTS.getApiKey(), "%octopus.apikey%");
+  }
+
+  @Test
+  void oidcSourceInjectsAudienceAndTokenReference() {
+    final Map<String, String> properties = new HashMap<>();
+    properties.put(CONSTANTS.getConnectionIdKey(), "CONN_OIDC");
+    when(runnerContext.getParameters()).thenReturn(properties);
+    final OAuthConnectionDescriptor oidcOctopusConn = oidcOctopusConnectionWith("OIDC_CONN_1");
+    final OAuthConnectionDescriptor oidcConnector = oidcConnectorWith("Spaces-SA-123", "my.jwt");
+    when(connectionsManager.resolve(project, "CONN_OIDC")).thenReturn(Optional.of(oidcOctopusConn));
+    when(connectionsManager.resolve(project, "OIDC_CONN_1")).thenReturn(Optional.of(oidcConnector));
+
+    processor.updateParameters(buildStartContext);
+
+    verify(runnerContext)
+        .addRunnerParameter(
+            CONSTANTS.getApiKeySourceKey(), ConnectionPropertyNames.API_KEY_SOURCE_OIDC);
+    verify(runnerContext)
+        .addRunnerParameter(CONSTANTS.getOidcServiceAccountIdKey(), "Spaces-SA-123");
+    verify(runnerContext).addRunnerParameter(CONSTANTS.getOidcIdTokenKey(), "%my.jwt%");
+    verify(runnerContext, never()).addRunnerParameter(eq(CONSTANTS.getApiKey()), anyString());
+  }
+
+  @Test
+  void oidcSourceDefaultsTokenVariableToJwtToken() {
+    final Map<String, String> properties = new HashMap<>();
+    properties.put(CONSTANTS.getConnectionIdKey(), "CONN_OIDC");
+    when(runnerContext.getParameters()).thenReturn(properties);
+    final OAuthConnectionDescriptor oidcOctopusConn = oidcOctopusConnectionWith("OIDC_CONN_1");
+    final OAuthConnectionDescriptor oidcConnector = oidcConnectorWith("Spaces-SA-123", null);
+    when(connectionsManager.resolve(project, "CONN_OIDC")).thenReturn(Optional.of(oidcOctopusConn));
+    when(connectionsManager.resolve(project, "OIDC_CONN_1")).thenReturn(Optional.of(oidcConnector));
+
+    processor.updateParameters(buildStartContext);
+
+    verify(runnerContext)
+        .addRunnerParameter(
+            CONSTANTS.getApiKeySourceKey(), ConnectionPropertyNames.API_KEY_SOURCE_OIDC);
+    verify(runnerContext).addRunnerParameter(CONSTANTS.getOidcIdTokenKey(), "%jwt.token%");
+  }
+
+  @Test
+  void oidcSourceWithBlankAudienceFailsTheBuild() {
+    final Map<String, String> properties = new HashMap<>();
+    properties.put(CONSTANTS.getConnectionIdKey(), "CONN_OIDC");
+    when(runnerContext.getParameters()).thenReturn(properties);
+    final OAuthConnectionDescriptor oidcOctopusConn = oidcOctopusConnectionWith("OIDC_CONN_1");
+    final OAuthConnectionDescriptor oidcConnector = oidcConnectorWith("", null);
+    when(connectionsManager.resolve(project, "CONN_OIDC")).thenReturn(Optional.of(oidcOctopusConn));
+    when(connectionsManager.resolve(project, "OIDC_CONN_1")).thenReturn(Optional.of(oidcConnector));
+
+    processor.updateParameters(buildStartContext);
+
+    verify(runnerContext, never())
+        .addRunnerParameter(eq(CONSTANTS.getOidcServiceAccountIdKey()), anyString());
+    verify(runnerContext, never())
+        .addRunnerParameter(eq(CONSTANTS.getOidcIdTokenKey()), anyString());
+    verify(runnerContext, never())
+        .addRunnerParameter(eq(CONSTANTS.getApiKeySourceKey()), anyString());
+    verify(build).addBuildProblem(any(BuildProblemData.class));
+  }
+
+  @Test
+  void oidcSourceWithUnresolvableConnectorFailsTheBuild() {
+    final Map<String, String> properties = new HashMap<>();
+    properties.put(CONSTANTS.getConnectionIdKey(), "CONN_OIDC");
+    when(runnerContext.getParameters()).thenReturn(properties);
+    final OAuthConnectionDescriptor oidcOctopusConn = oidcOctopusConnectionWith("OIDC_CONN_1");
+    when(connectionsManager.resolve(project, "CONN_OIDC")).thenReturn(Optional.of(oidcOctopusConn));
+    when(connectionsManager.resolve(project, "OIDC_CONN_1")).thenReturn(Optional.empty());
+
+    processor.updateParameters(buildStartContext);
+
+    verify(runnerContext, never())
+        .addRunnerParameter(eq(CONSTANTS.getOidcServiceAccountIdKey()), anyString());
+    verify(runnerContext, never())
+        .addRunnerParameter(eq(CONSTANTS.getApiKeySourceKey()), anyString());
+    verify(build).addBuildProblem(any(BuildProblemData.class));
   }
 }

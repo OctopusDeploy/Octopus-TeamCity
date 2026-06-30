@@ -32,13 +32,7 @@ public class OctopusBuildInformationRunner implements AgentBuildRunner {
   @NotNull
   public BuildProcess createBuildProcess(
       @NotNull AgentRunningBuild runningBuild, @NotNull BuildRunnerContext context) {
-    boolean octopusNewCli =
-        Boolean.parseBoolean(
-            runningBuild
-                .getSharedBuildParameters()
-                .getEnvironmentVariables()
-                .get("OCTOPUS_NEW_CLI"));
-    if (octopusNewCli) {
+    if (OctopusCliSelector.shouldUseNewCli(runningBuild, context)) {
       return new BuildInformationBuildProcess(runningBuild, context);
     }
     return new OctopusBuildInformationBuildProcess(runningBuild, context);
