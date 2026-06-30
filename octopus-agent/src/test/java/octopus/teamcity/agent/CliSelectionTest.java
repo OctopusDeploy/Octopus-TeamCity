@@ -45,7 +45,7 @@ class CliSelectionTest {
     runnerParams.put(constants.getApiKeySourceKey(), ConnectionPropertyNames.API_KEY_SOURCE_OIDC);
     assertThat(
             OctopusCliSelector.shouldUseNewCli(
-                    buildWithEnv(new HashMap<>()), contextWith(runnerParams)))
+                buildWithEnv(new HashMap<>()), contextWith(runnerParams)))
         .isTrue();
   }
 
