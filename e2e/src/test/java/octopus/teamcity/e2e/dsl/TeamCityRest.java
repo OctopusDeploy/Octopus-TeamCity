@@ -223,7 +223,8 @@ public final class TeamCityRest {
   }
 
   /** Wraps name/value properties in a build-step payload of the given name and runner type. */
-  private static String createStepFeatureJson(final String name, final String type, final String... props) {
+  private static String createStepFeatureJson(
+      final String name, final String type, final String... props) {
     return "{\"name\":\""
         + name
         + "\",\"type\":\""
