@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.4.3](https://github.com/OctopusDeploy/Octopus-TeamCity/compare/v6.4.2...v6.4.3) (2026-07-02)
+
+
+### Bug Fixes
+
+* Remove stored inline creds on save when a connection is selected ([#207](https://github.com/OctopusDeploy/Octopus-TeamCity/issues/207)) ([567ca26](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/567ca26c8df79b4542a4c11d859e610a06def671))
+
 ## [6.4.2](https://github.com/OctopusDeploy/Octopus-TeamCity/compare/v6.4.1...v6.4.2) (2026-06-17)
 
 
