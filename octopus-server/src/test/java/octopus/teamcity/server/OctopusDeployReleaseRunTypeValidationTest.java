@@ -55,4 +55,38 @@ class OctopusDeployReleaseRunTypeValidationTest {
     final Map<String, String> properties = withMandatoryNonCredentialFields(new HashMap<>());
     assertThat(validate(properties)).contains(CONSTANTS.getServerKey(), CONSTANTS.getApiKey());
   }
+
+  @Test
+  void stripsInlineCredentialFieldsWhenConnectionSelectedAndValidationPasses() {
+    final Map<String, String> properties = withMandatoryNonCredentialFields(new HashMap<>());
+    properties.put(CONSTANTS.getConnectionIdKey(), "PROJECT_EXT_1");
+    properties.put(CONSTANTS.getServerKey(), "https://octo");
+    properties.put(CONSTANTS.getApiKey(), "API-KEY");
+    properties.put(CONSTANTS.getOctopusVersion(), "3.0+");
+    properties.put(CONSTANTS.getSpaceName(), "Default");
+
+    assertThat(validate(properties)).isEmpty();
+
+    assertThat(properties)
+        .doesNotContainKeys(
+            CONSTANTS.getServerKey(), CONSTANTS.getApiKey(), CONSTANTS.getOctopusVersion());
+    assertThat(properties).containsEntry(CONSTANTS.getSpaceName(), "Default");
+  }
+
+  @Test
+  void retainsInlineCredentialFieldsWhenValidationFails() {
+    // Missing mandatory project name. Validation fails, so nothing should be stripped.
+    final Map<String, String> properties = new HashMap<>();
+    properties.put(CONSTANTS.getConnectionIdKey(), "PROJECT_EXT_1");
+    properties.put(CONSTANTS.getServerKey(), "https://octo");
+    properties.put(CONSTANTS.getApiKey(), "API-KEY");
+    properties.put(CONSTANTS.getOctopusVersion(), "3.0+");
+
+    final Collection<String> errors = validate(properties);
+
+    assertThat(errors).contains(CONSTANTS.getProjectNameKey());
+    assertThat(properties)
+        .containsKeys(
+            CONSTANTS.getServerKey(), CONSTANTS.getApiKey(), CONSTANTS.getOctopusVersion());
+  }
 }
