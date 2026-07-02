@@ -65,7 +65,7 @@ class OctopusDeployReleaseRunTypeValidationTest {
     properties.put(CONSTANTS.getOctopusVersion(), "3.0+");
     properties.put(CONSTANTS.getSpaceName(), "Default");
 
-    validate(properties);
+    assertThat(validate(properties)).isEmpty();
 
     assertThat(properties)
         .doesNotContainKeys(
