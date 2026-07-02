@@ -28,6 +28,7 @@ import jetbrains.buildServer.serverSide.RunTypeRegistry;
 import jetbrains.buildServer.util.StringUtil;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import octopus.teamcity.common.OctopusConstants;
+import octopus.teamcity.server.connection.ConnectionInlineFieldCleaner;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -84,6 +85,10 @@ public class OctopusBuildInformationRunType extends RunType {
         }
         checkNotEmpty(p, c.getPackageIdKey(), "Package ID must be specified", result);
         checkNotEmpty(p, c.getPackageVersionKey(), "Package version be specified", result);
+
+        if (result.isEmpty()) {
+          ConnectionInlineFieldCleaner.stripInlineFieldsIfUsingConnection(p);
+        }
 
         return result;
       }
