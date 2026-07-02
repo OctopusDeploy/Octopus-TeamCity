@@ -75,7 +75,7 @@ class OctopusDeployReleaseRunTypeValidationTest {
 
   @Test
   void retainsInlineCredentialFieldsWhenValidationFails() {
-    // Missing mandatory project name => validation fails, so nothing is stripped.
+    // Missing mandatory project name. Validation fails, so nothing should be stripped.
     final Map<String, String> properties = new HashMap<>();
     properties.put(CONSTANTS.getConnectionIdKey(), "PROJECT_EXT_1");
     properties.put(CONSTANTS.getServerKey(), "https://octo");
