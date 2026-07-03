@@ -8,6 +8,7 @@
 <%
   pageContext.setAttribute("octopusConnections", OctopusConnectionUiData.availableConnections(request));
   pageContext.setAttribute("editConnectionUrl", OctopusConnectionUiData.editConnectionUrl(request));
+  pageContext.setAttribute("buildFeaturesUrl", OctopusConnectionUiData.buildFeaturesUrl(request));
 %>
 
 <tr>
@@ -27,13 +28,30 @@
         <span class="octopusConnMeta"
               data-conn-id="<c:out value='${conn.id}'/>"
               data-conn-space="<c:out value='${conn.space}'/>"
-              data-conn-version="<c:out value='${conn.version}'/>"></span>
+              data-conn-version="<c:out value='${conn.version}'/>"
+              data-conn-oidc-warning="<c:out value='${conn.oidcWarning}'/>"
+              data-conn-oidc-expected-var="<c:out value='${conn.oidcExpectedTokenVariable}'/>"></span>
       </c:forEach>
     </span>
     <span class="smallNote">
       Reuse a connection defined under
       <a href="${editConnectionUrl}" target="_blank">Project Settings &raquo; Connections</a>.
     </span>
+    <div class="octopusOidcWarning octopusOidcFeatureMissing error" style="display:none;">
+      This connection authenticates using OIDC, but this build configuration has no OIDC Identity
+      Token build feature referencing its connector. Add one on the
+      <c:choose>
+        <c:when test="${not empty buildFeaturesUrl}"><a href="${buildFeaturesUrl}">Build Features</a></c:when>
+        <c:otherwise>Build Features</c:otherwise>
+      </c:choose>
+      page, or the build will fail to authenticate.
+    </div>
+    <div class="octopusOidcWarning octopusOidcTokenMismatch error" style="display:none;">
+      The OIDC Identity Token build feature for this connector publishes its token under a different
+      variable name than this connection expects (<code class="octopusExpectedVar"></code>), so the
+      build will not find the token. Set the feature's token variable name to
+      <code class="octopusExpectedVar"></code>.
+    </div>
   </td>
 </tr>
 
@@ -72,11 +90,39 @@
       }
     }
 
+    function updateOctopusOidcWarning() {
+      const select = document.getElementById("octopusConnectionId");
+      if (!select) return;
+      const missingEl = document.querySelector(".octopusOidcFeatureMissing");
+      const mismatchEl = document.querySelector(".octopusOidcTokenMismatch");
+      let warning = "none";
+      let expectedVar = "";
+      if (select.value !== "") {
+        const meta = getOctopusConnectionMetadataFor(select.value);
+        if (meta) {
+          warning = meta.getAttribute("data-conn-oidc-warning") || "none";
+          expectedVar = meta.getAttribute("data-conn-oidc-expected-var") || "";
+        }
+      }
+      if (missingEl) {
+        missingEl.style.display = warning === "feature-missing" ? "block" : "none";
+      }
+      if (mismatchEl) {
+        mismatchEl.style.display = warning === "token-mismatch" ? "block" : "none";
+        const varSpans = mismatchEl.querySelectorAll(".octopusExpectedVar");
+        for (let i = 0; i < varSpans.length; i++) {
+          varSpans[i].textContent = expectedVar;
+        }
+      }
+    }
+
     $j(document).ready(function () {
       const select = document.getElementById("octopusConnectionId");
       if (select) {
         select.addEventListener("change", toggleOctopusInlineConnectionFields);
+        select.addEventListener("change", updateOctopusOidcWarning);
         toggleOctopusInlineConnectionFields();
+        updateOctopusOidcWarning();
       }
     });
 
