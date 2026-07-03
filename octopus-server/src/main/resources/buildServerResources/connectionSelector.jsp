@@ -8,6 +8,7 @@
 <%
   pageContext.setAttribute("octopusConnections", OctopusConnectionUiData.availableConnections(request));
   pageContext.setAttribute("editConnectionUrl", OctopusConnectionUiData.editConnectionUrl(request));
+  pageContext.setAttribute("buildFeaturesUrl", OctopusConnectionUiData.buildFeaturesUrl(request));
 %>
 
 <tr>
@@ -27,12 +28,33 @@
         <span class="octopusConnMeta"
               data-conn-id="<c:out value='${conn.id}'/>"
               data-conn-space="<c:out value='${conn.space}'/>"
-              data-conn-version="<c:out value='${conn.version}'/>"></span>
+              data-conn-version="<c:out value='${conn.version}'/>"
+              data-conn-oidc-warning="<c:out value='${conn.oidcWarning}'/>"
+              data-conn-oidc-expected-var="<c:out value='${conn.oidcExpectedTokenVariable}'/>"></span>
       </c:forEach>
     </span>
     <span class="smallNote">
       Reuse a connection defined under
       <a href="${editConnectionUrl}" target="_blank">Project Settings &raquo; Connections</a>.
+    </span>
+    <span class="octopusOidcWarning octopusOidcFeatureMissing error smallNote" style="display:none;">
+      This connection authenticates using OIDC, but this build configuration has no OIDC Identity
+      Token build feature referencing its connector. Add one on the
+      <c:choose>
+        <c:when test="${not empty buildFeaturesUrl}"><a href="${buildFeaturesUrl}">Build Features</a></c:when>
+        <c:otherwise>Build Features</c:otherwise>
+      </c:choose>
+      page, or the build will fail to authenticate.
+    </span>
+    <span class="octopusOidcWarning octopusOidcTokenMismatch error smallNote" style="display:none;">
+      The OIDC Identity Token build feature for this connector publishes its token under a different
+      variable name than this connection expects (<code class="octopusExpectedVar"></code>), so the
+      build will not be able to find the token. Update the
+        <c:choose>
+          <c:when test="${not empty buildFeaturesUrl}"><a href="${buildFeaturesUrl}">feature's</a></c:when>
+          <c:otherwise>feature's</c:otherwise>
+        </c:choose>
+      token variable name to <code class="octopusExpectedVar"></code>.
     </span>
   </td>
 </tr>
@@ -72,11 +94,39 @@
       }
     }
 
+    function updateOctopusOidcWarning() {
+      const select = document.getElementById("octopusConnectionId");
+      if (!select) return;
+      const missingEl = document.querySelector(".octopusOidcFeatureMissing");
+      const mismatchEl = document.querySelector(".octopusOidcTokenMismatch");
+      let warning = "none";
+      let expectedVar = "";
+      if (select.value !== "") {
+        const meta = getOctopusConnectionMetadataFor(select.value);
+        if (meta) {
+          warning = meta.getAttribute("data-conn-oidc-warning") || "none";
+          expectedVar = meta.getAttribute("data-conn-oidc-expected-var") || "";
+        }
+      }
+      if (missingEl) {
+        missingEl.style.display = warning === "feature-missing" ? "" : "none";
+      }
+      if (mismatchEl) {
+        mismatchEl.style.display = warning === "token-mismatch" ? "" : "none";
+        const varSpans = mismatchEl.querySelectorAll(".octopusExpectedVar");
+        for (let i = 0; i < varSpans.length; i++) {
+          varSpans[i].textContent = expectedVar;
+        }
+      }
+    }
+
     $j(document).ready(function () {
       const select = document.getElementById("octopusConnectionId");
       if (select) {
         select.addEventListener("change", toggleOctopusInlineConnectionFields);
+        select.addEventListener("change", updateOctopusOidcWarning);
         toggleOctopusInlineConnectionFields();
+        updateOctopusOidcWarning();
       }
     });
 
