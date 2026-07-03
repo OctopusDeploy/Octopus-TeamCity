@@ -42,6 +42,12 @@ public class ConnectionPropertyNames {
   public static final String OIDC_CONNECTOR_TOKEN_VARIABLE_NAME = "token_variable_name";
   public static final String OIDC_DEFAULT_TOKEN_VARIABLE = "jwt.token";
 
+  // The teamcity-oidc-plugin's build feature (type "oidc-plugin", display name "OIDC Identity
+  // Token") that publishes the JWT. Its optional "connection_id" param references an
+  // oidc-identity-token OAuth connection. Referenced by stable strings (no compile dependency).
+  public static final String OIDC_BUILD_FEATURE_TYPE = "oidc-plugin";
+  public static final String OIDC_BUILD_FEATURE_CONNECTION_ID_PARAM = "connection_id";
+
   public ConnectionPropertyNames() {}
 
   public String getDisplayName() {

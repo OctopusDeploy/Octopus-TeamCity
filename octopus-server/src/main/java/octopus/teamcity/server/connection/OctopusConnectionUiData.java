@@ -16,13 +16,16 @@
 package octopus.teamcity.server.connection;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
 import jetbrains.buildServer.serverSide.ProjectManager;
+import jetbrains.buildServer.serverSide.SBuildFeatureDescriptor;
 import jetbrains.buildServer.serverSide.SBuildType;
+import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.oauth.OAuthConnectionDescriptor;
 import jetbrains.buildServer.users.SUser;
 import jetbrains.buildServer.web.util.SessionUser;
@@ -58,15 +61,25 @@ public class OctopusConnectionUiData {
    */
   @NotNull
   public static List<Map<String, String>> availableConnections(final HttpServletRequest request) {
-    return availableConnections(SessionUser.getUser(request));
+    return availableConnections(SessionUser.getUser(request), currentBuildType(request));
   }
 
   /** As {@link #availableConnections(HttpServletRequest)} but for an already-resolved user. */
   static List<Map<String, String>> availableConnections(final SUser user) {
+    return availableConnections(user, null);
+  }
+
+  static List<Map<String, String>> availableConnections(
+      final SUser user, final SBuildType buildType) {
     final List<Map<String, String>> result = new ArrayList<>();
     if (user == null || connectionsManager == null) {
       return result;
     }
+
+    final List<OidcFeatureWarningEvaluator.BuildFeature> oidcFeatures =
+        buildType == null ? Collections.emptyList() : collectOidcFeatures(buildType);
+    final SProject project = buildType == null ? null : buildType.getProject();
+
     for (final OAuthConnectionDescriptor descriptor :
         connectionsManager.listAvailableConnections(user)) {
       final Map<String, String> params = descriptor.getParameters();
@@ -76,9 +89,57 @@ public class OctopusConnectionUiData {
       view.put("url", params.getOrDefault(CONNECTION_KEYS.getServerUrlPropertyName(), ""));
       view.put("version", params.getOrDefault(CONNECTION_KEYS.getVersionPropertyName(), ""));
       view.put("space", params.getOrDefault(CONNECTION_KEYS.getSpaceNamePropertyName(), ""));
+
+      final String apiKeySource =
+          params.getOrDefault(CONNECTION_KEYS.getApiKeySourcePropertyName(), "");
+      final boolean isOidc = ConnectionPropertyNames.API_KEY_SOURCE_OIDC.equals(apiKeySource);
+      String connectorTokenVariable = "";
+      OidcFeatureWarningEvaluator.Warning warning = OidcFeatureWarningEvaluator.Warning.NONE;
+      if (isOidc && buildType != null) {
+        final String oidcConnectionId =
+            params.getOrDefault(CONNECTION_KEYS.getOidcConnectionIdPropertyName(), "");
+        connectorTokenVariable = connectorTokenVariable(project, oidcConnectionId);
+        warning =
+            OidcFeatureWarningEvaluator.evaluate(
+                apiKeySource, oidcConnectionId, connectorTokenVariable, oidcFeatures);
+      }
+      view.put("oidcWarning", warning.attributeValue());
+      view.put(
+          "oidcExpectedTokenVariable",
+          isOidc ? OidcFeatureWarningEvaluator.expectedTokenVariable(connectorTokenVariable) : "");
       result.add(view);
     }
     return result;
+  }
+
+  private static List<OidcFeatureWarningEvaluator.BuildFeature> collectOidcFeatures(
+      final SBuildType buildType) {
+    final List<OidcFeatureWarningEvaluator.BuildFeature> features = new ArrayList<>();
+    for (final SBuildFeatureDescriptor descriptor :
+        buildType.getBuildFeaturesOfType(ConnectionPropertyNames.OIDC_BUILD_FEATURE_TYPE)) {
+      final Map<String, String> params = descriptor.getParameters();
+      features.add(
+          new OidcFeatureWarningEvaluator.BuildFeature(
+              params.getOrDefault(
+                  ConnectionPropertyNames.OIDC_BUILD_FEATURE_CONNECTION_ID_PARAM, ""),
+              params.getOrDefault(ConnectionPropertyNames.OIDC_CONNECTOR_TOKEN_VARIABLE_NAME, "")));
+    }
+    return features;
+  }
+
+  private static String connectorTokenVariable(
+      final SProject project, final String oidcConnectionId) {
+    if (project == null) {
+      return "";
+    }
+    return connectionsManager
+        .resolve(project, oidcConnectionId)
+        .map(
+            connector ->
+                connector
+                    .getParameters()
+                    .getOrDefault(ConnectionPropertyNames.OIDC_CONNECTOR_TOKEN_VARIABLE_NAME, ""))
+        .orElse("");
   }
 
   /**
@@ -95,7 +156,26 @@ public class OctopusConnectionUiData {
         : base + "?projectId=" + projectExternalId + "&tab=oauthConnections";
   }
 
+  /**
+   * Context-relative URL of the current build configuration's Build Features tab, where the OIDC
+   * Identity Token build feature is added. Empty when the build configuration cannot be resolved.
+   */
+  public static String buildFeaturesUrl(final HttpServletRequest request) {
+    final SBuildType buildType = currentBuildType(request);
+    if (buildType == null) {
+      return "";
+    }
+    return request.getContextPath()
+        + "/admin/editBuildFeatures.html?id=buildType:"
+        + buildType.getExternalId();
+  }
+
   private static String currentProjectExternalId(final HttpServletRequest request) {
+    final SBuildType buildType = currentBuildType(request);
+    return buildType == null ? null : buildType.getProject().getExternalId();
+  }
+
+  private static SBuildType currentBuildType(final HttpServletRequest request) {
     if (projectManager == null) {
       return null;
     }
@@ -103,8 +183,6 @@ public class OctopusConnectionUiData {
     if (idParam == null || !idParam.startsWith("buildType:")) {
       return null;
     }
-    final SBuildType buildType =
-        projectManager.findBuildTypeByExternalId(idParam.substring("buildType:".length()));
-    return buildType == null ? null : buildType.getProject().getExternalId();
+    return projectManager.findBuildTypeByExternalId(idParam.substring("buildType:".length()));
   }
 }
