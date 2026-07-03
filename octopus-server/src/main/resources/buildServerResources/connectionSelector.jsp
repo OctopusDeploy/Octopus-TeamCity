@@ -37,7 +37,7 @@
       Reuse a connection defined under
       <a href="${editConnectionUrl}" target="_blank">Project Settings &raquo; Connections</a>.
     </span>
-    <div class="octopusOidcWarning octopusOidcFeatureMissing error" style="display:none;">
+    <span class="octopusOidcWarning octopusOidcFeatureMissing error smallNote" style="display:none;">
       This connection authenticates using OIDC, but this build configuration has no OIDC Identity
       Token build feature referencing its connector. Add one on the
       <c:choose>
@@ -45,13 +45,17 @@
         <c:otherwise>Build Features</c:otherwise>
       </c:choose>
       page, or the build will fail to authenticate.
-    </div>
-    <div class="octopusOidcWarning octopusOidcTokenMismatch error" style="display:none;">
+    </span>
+    <span class="octopusOidcWarning octopusOidcTokenMismatch error smallNote" style="display:none;">
       The OIDC Identity Token build feature for this connector publishes its token under a different
       variable name than this connection expects (<code class="octopusExpectedVar"></code>), so the
-      build will not find the token. Set the feature's token variable name to
-      <code class="octopusExpectedVar"></code>.
-    </div>
+      build will not be able to find the token. Update the
+        <c:choose>
+          <c:when test="${not empty buildFeaturesUrl}"><a href="${buildFeaturesUrl}">feature's</a></c:when>
+          <c:otherwise>feature's</c:otherwise>
+        </c:choose>
+      token variable name to <code class="octopusExpectedVar"></code>.
+    </span>
   </td>
 </tr>
 
@@ -105,10 +109,10 @@
         }
       }
       if (missingEl) {
-        missingEl.style.display = warning === "feature-missing" ? "block" : "none";
+        missingEl.style.display = warning === "feature-missing" ? "" : "none";
       }
       if (mismatchEl) {
-        mismatchEl.style.display = warning === "token-mismatch" ? "block" : "none";
+        mismatchEl.style.display = warning === "token-mismatch" ? "" : "none";
         const varSpans = mismatchEl.querySelectorAll(".octopusExpectedVar");
         for (let i = 0; i < varSpans.length; i++) {
           varSpans[i].textContent = expectedVar;
