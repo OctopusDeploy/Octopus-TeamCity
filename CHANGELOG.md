@@ -5,6 +5,7 @@
 
 ### Features
 
+* Allow specification of API Key source (inline, parameter, or oidc plugin) ([#205](https://github.com/OctopusDeploy/Octopus-TeamCity/pull/205)) ([401a10d](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/401a10d2562ec2feca405726512be5dbad9a3dde))
 * Warn when OIDC build feature is missing or misconfigured ([#209](https://github.com/OctopusDeploy/Octopus-TeamCity/issues/209)) ([5880907](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/588090775e8697ec161b2accac436f800408fa77))
 
 
