@@ -1,5 +1,18 @@
 # Changelog
 
+## [6.5.0](https://github.com/OctopusDeploy/Octopus-TeamCity/compare/v6.4.2...v6.5.0) (2026-07-03)
+
+
+### Features
+
+* Allow specification of API Key source (inline, parameter, or oidc plugin) ([#205](https://github.com/OctopusDeploy/Octopus-TeamCity/pull/205)) ([401a10d](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/401a10d2562ec2feca405726512be5dbad9a3dde))
+* Warn when OIDC build feature is missing or misconfigured ([#209](https://github.com/OctopusDeploy/Octopus-TeamCity/issues/209)) ([5880907](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/588090775e8697ec161b2accac436f800408fa77))
+
+
+### Bug Fixes
+
+* Remove stored inline creds on save when a connection is selected ([#207](https://github.com/OctopusDeploy/Octopus-TeamCity/issues/207)) ([567ca26](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/567ca26c8df79b4542a4c11d859e610a06def671))
+
 ## [6.4.2](https://github.com/OctopusDeploy/Octopus-TeamCity/compare/v6.4.1...v6.4.2) (2026-06-17)
 
 
