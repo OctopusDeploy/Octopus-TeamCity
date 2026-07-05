@@ -11,6 +11,7 @@ import jetbrains.buildServer.serverSide.SRunningBuild;
 import jetbrains.buildServer.serverSide.WebLinks;
 import jetbrains.buildServer.vcs.VcsRootInstanceEntry;
 import octopus.teamcity.common.OctopusConstants;
+import org.jetbrains.annotations.NotNull;
 
 public class OctopusBuildInformationBuildStartProcessor implements BuildStartContextProcessor {
 
@@ -25,7 +26,7 @@ public class OctopusBuildInformationBuildStartProcessor implements BuildStartCon
   }
 
   @Override
-  public void updateParameters(final BuildStartContext buildStartContext) {
+  public void updateParameters(@NotNull final BuildStartContext buildStartContext) {
     try {
       boolean buildContainsBuildInformationStep =
           buildStartContext.getRunnerContexts().stream()

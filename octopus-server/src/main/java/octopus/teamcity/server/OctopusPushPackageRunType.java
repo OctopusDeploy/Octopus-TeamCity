@@ -47,11 +47,13 @@ public class OctopusPushPackageRunType extends RunType {
     return OctopusConstants.PUSH_PACKAGE_RUNNER_TYPE;
   }
 
+  @NotNull
   @Override
   public String getDisplayName() {
     return "OctopusDeploy: Push Packages";
   }
 
+  @NotNull
   @Override
   public String getDescription() {
     return "Pushes package files (.nupkg, .zip, .tar.gz, etc.) to an Octopus Deploy server";

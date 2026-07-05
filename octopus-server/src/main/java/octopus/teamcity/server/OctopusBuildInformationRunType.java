@@ -47,11 +47,13 @@ public class OctopusBuildInformationRunType extends RunType {
     return OctopusConstants.METADATA_RUNNER_TYPE;
   }
 
+  @NotNull
   @Override
   public String getDisplayName() {
     return "OctopusDeploy: Build Information";
   }
 
+  @NotNull
   @Override
   public String getDescription() {
     return "Collect information related to the build, including commit messages, and store in custom build information in Octopus.";

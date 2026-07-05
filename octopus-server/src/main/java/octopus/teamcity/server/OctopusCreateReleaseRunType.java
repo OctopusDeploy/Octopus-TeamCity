@@ -31,11 +31,13 @@ public class OctopusCreateReleaseRunType extends RunType {
     return OctopusConstants.CREATE_RELEASE_RUNNER_TYPE;
   }
 
+  @NotNull
   @Override
   public String getDisplayName() {
     return "OctopusDeploy: Create release";
   }
 
+  @NotNull
   @Override
   public String getDescription() {
     return "Creates and, optionally, deploys releases in Octopus Deploy";
