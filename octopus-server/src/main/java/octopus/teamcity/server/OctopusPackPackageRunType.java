@@ -16,6 +16,8 @@
 
 package octopus.teamcity.server;
 
+import static octopus.teamcity.server.PropertiesValidator.checkNotEmpty;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -60,16 +62,6 @@ public class OctopusPackPackageRunType extends RunType {
   public PropertiesProcessor getRunnerPropertiesProcessor() {
     final OctopusConstants c = new OctopusConstants();
     return new PropertiesProcessor() {
-      private void checkNotEmpty(
-          @NotNull final Map<String, String> properties,
-          @NotNull final String key,
-          @NotNull final String message,
-          @NotNull final Collection<InvalidProperty> res) {
-        if (jetbrains.buildServer.util.StringUtil.isEmptyOrSpaces(properties.get(key))) {
-          res.add(new InvalidProperty(key, message));
-        }
-      }
-
       @Override
       @NotNull
       public Collection<InvalidProperty> process(@Nullable final Map<String, String> p) {
