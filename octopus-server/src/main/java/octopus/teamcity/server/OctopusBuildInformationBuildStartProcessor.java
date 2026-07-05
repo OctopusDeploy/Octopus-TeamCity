@@ -36,7 +36,7 @@ public class OctopusBuildInformationBuildStartProcessor implements BuildStartCon
         final SRunningBuild build = buildStartContext.getBuild();
         final List<VcsRootInstanceEntry> vcsRoots = build.getVcsRootEntries();
 
-        if (vcsRoots.size() != 0) {
+        if (!vcsRoots.isEmpty()) {
           final VcsRootInstanceEntry vcsRoot = vcsRoots.get(0);
           String vcsType = "Unknown";
           if (vcsRoot.getVcsName().contains("git")) {

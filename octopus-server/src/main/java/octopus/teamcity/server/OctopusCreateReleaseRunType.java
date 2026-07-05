@@ -59,7 +59,7 @@ public class OctopusCreateReleaseRunType extends RunType {
       @Override
       @NotNull
       public Collection<InvalidProperty> process(@Nullable final Map<String, String> p) {
-        final Collection<InvalidProperty> result = new ArrayList<InvalidProperty>();
+        final Collection<InvalidProperty> result = new ArrayList<>();
         if (p == null) return result;
 
         final boolean usingConnection = !StringUtil.isEmptyOrSpaces(p.get(c.getConnectionIdKey()));
@@ -93,7 +93,6 @@ public class OctopusCreateReleaseRunType extends RunType {
   @Nullable
   @Override
   public Map<String, String> getDefaultRunnerProperties() {
-    final Map<String, String> map = new HashMap<String, String>();
-    return map;
+    return new HashMap<>();
   }
 }
