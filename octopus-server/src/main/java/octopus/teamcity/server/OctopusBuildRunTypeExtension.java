@@ -6,7 +6,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 
-import jetbrains.buildServer.serverSide.InvalidProperty;
 import jetbrains.buildServer.serverSide.PropertiesProcessor;
 import jetbrains.buildServer.serverSide.RunTypeExtension;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
@@ -21,7 +20,7 @@ public class OctopusBuildRunTypeExtension extends RunTypeExtension {
 
   @Override
   public Collection<String> getRunTypes() {
-    Collection<String> items = new HashSet<String>();
+    Collection<String> items = new HashSet<>();
     items.add("MSBuild");
     items.add("VS.Solution");
     return items;
@@ -30,10 +29,7 @@ public class OctopusBuildRunTypeExtension extends RunTypeExtension {
   @Nullable
   @Override
   public PropertiesProcessor getRunnerPropertiesProcessor() {
-    return p -> {
-      final Collection<InvalidProperty> result = new ArrayList<>();
-      return result;
-    };
+    return p -> new ArrayList<>();
   }
 
   @Nullable
