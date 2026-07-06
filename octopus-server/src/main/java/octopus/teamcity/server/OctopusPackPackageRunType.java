@@ -45,11 +45,13 @@ public class OctopusPackPackageRunType extends RunType {
     return OctopusConstants.PACK_PACKAGE_RUNNER_TYPE;
   }
 
+  @NotNull
   @Override
   public String getDisplayName() {
     return "OctopusDeploy: Pack";
   }
 
+  @NotNull
   @Override
   public String getDescription() {
     return "Packages files (.nupkg, .zip, .tar.gz, etc.)";

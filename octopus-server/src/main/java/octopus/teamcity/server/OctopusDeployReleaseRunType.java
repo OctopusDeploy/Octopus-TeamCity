@@ -47,11 +47,13 @@ public class OctopusDeployReleaseRunType extends RunType {
     return OctopusConstants.DEPLOY_RELEASE_RUNNER_TYPE;
   }
 
+  @NotNull
   @Override
   public String getDisplayName() {
     return "OctopusDeploy: Deploy release";
   }
 
+  @NotNull
   @Override
   public String getDescription() {
     return "Deploys a specific release in Octopus Deploy";
