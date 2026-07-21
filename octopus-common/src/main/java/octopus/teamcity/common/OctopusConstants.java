@@ -86,11 +86,11 @@ public class OctopusConstants {
   }
 
   public String getTenantsKey() {
-    return "octoups_tenants";
+    return "octopus_tenants";
   }
 
   public String getTenantTagsKey() {
-    return "octoups_tenanttags";
+    return "octopus_tenanttags";
   }
 
   public String getPackageIdKey() {
