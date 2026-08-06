@@ -133,9 +133,15 @@ public class EmbeddedResourceExtractor {
       throws Exception {
     String binaryArchive =
         getArchiveName(String.format("resources/newcli/%s/%s", octopusVersion, osFolder));
-    extractTarGzResource(
-        String.format("/resources/newcli/%s/%s/%s", octopusVersion, osFolder, binaryArchive),
-        Paths.get(destinationPath));
+    String resourcePath =
+        String.format("/resources/newcli/%s/%s/%s", octopusVersion, osFolder, binaryArchive);
+    Path destDir = Paths.get(destinationPath);
+
+    if (binaryArchive.endsWith(".zip")) {
+      extractZipResource(resourcePath, destDir);
+    } else {
+      extractTarGzResource(resourcePath, destDir);
+    }
   }
 
   public void extractTarGzResource(String resourcePath, Path destDir) throws IOException {
@@ -173,6 +179,46 @@ public class EmbeddedResourceExtractor {
               }
             }
           }
+        }
+      }
+    }
+  }
+
+  public void extractZipResource(String resourcePath, Path destDir) throws IOException {
+    Files.createDirectories(destDir);
+    Path realDestDir = destDir.toRealPath();
+
+    try (InputStream fi = getClass().getResourceAsStream(resourcePath)) {
+      if (fi == null) {
+        throw new IOException("Resource not found: " + resourcePath);
+      }
+
+      try (BufferedInputStream bi = new BufferedInputStream(fi);
+          ZipInputStream zipIn = new ZipInputStream(bi)) {
+
+        ZipEntry entry;
+        byte[] buffer = new byte[4096];
+        while ((entry = zipIn.getNextEntry()) != null) {
+          Path entryPath = realDestDir.resolve(entry.getName()).normalize();
+
+          if (!entryPath.startsWith(realDestDir)) {
+            throw new IOException(
+                "Zip Slip detected! Entry is outside of the target directory: " + entry.getName());
+          }
+
+          if (entry.isDirectory()) {
+            Files.createDirectories(entryPath);
+          } else {
+            Files.createDirectories(entryPath.getParent());
+
+            try (OutputStream out = Files.newOutputStream(entryPath)) {
+              int bytesRead;
+              while ((bytesRead = zipIn.read(buffer)) != -1) {
+                out.write(buffer, 0, bytesRead);
+              }
+            }
+          }
+          zipIn.closeEntry();
         }
       }
     }
