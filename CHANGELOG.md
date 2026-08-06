@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.5.1](https://github.com/OctopusDeploy/Octopus-TeamCity/compare/v6.5.0...v6.5.1) (2026-08-06)
+
+
+### Bug Fixes
+
+* new Octopus CLI extraction failing on windows agents ([#215](https://github.com/OctopusDeploy/Octopus-TeamCity/issues/215)) ([0421c68](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/0421c686322e32b15e5156a034c9c66a6a42c337))
+
 ## [6.5.0](https://github.com/OctopusDeploy/Octopus-TeamCity/compare/v6.4.2...v6.5.0) (2026-07-03)
 
 
