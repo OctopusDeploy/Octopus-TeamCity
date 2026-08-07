@@ -27,6 +27,7 @@ import java.util.Map;
 
 import jetbrains.buildServer.agent.AgentRunningBuild;
 import jetbrains.buildServer.agent.BuildRunnerContext;
+import octopus.teamcity.agent.BranchResolver;
 import octopus.teamcity.agent.OctopusBuildInformation;
 import octopus.teamcity.agent.OctopusBuildInformationBuilder;
 import octopus.teamcity.agent.OctopusBuildInformationWriter;
@@ -91,12 +92,15 @@ public class BuildInformationBuildProcess extends CLIBuildProcess {
         buildUrlString = teamCityServerUrl + "/viewLog.html?buildId=" + buildNumber;
       }
 
+      final String branch =
+          BranchResolver.resolve(parameters, constants, restfulBuild.getBranch().getName());
+
       final OctopusBuildInformation buildInformation =
           builder.build(
               sharedConfigParameters.get("octopus_vcstype"),
               sharedConfigParameters.get("vcsroot.url"),
               sharedConfigParameters.get("build.vcs.number"),
-              restfulBuild.getBranch().getName(),
+              branch,
               createJsonCommitHistory(restfulBuild),
               buildUrlString,
               buildNumber);
