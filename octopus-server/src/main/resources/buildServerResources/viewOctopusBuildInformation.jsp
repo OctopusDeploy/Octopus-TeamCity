@@ -52,3 +52,13 @@
   Verbose logging:
   <strong><props:displayValue name="${keys.verboseLoggingKey}" emptyValue="not specified"/></strong>
 </div>
+
+<div class="parameter">
+  Override branch:
+  <strong><props:displayValue name="${keys.branchOverrideEnabledKey}" emptyValue="false"/></strong>
+</div>
+
+<div class="parameter">
+  Branch name:
+  <strong><props:displayValue name="${keys.branchOverrideValueKey}" emptyValue="not specified"/></strong>
+</div>

@@ -165,6 +165,14 @@ public class OctopusConstants {
     return "octopus_git_commit";
   }
 
+  public String getBranchOverrideEnabledKey() {
+    return "octopus_branch_override_enabled";
+  }
+
+  public String getBranchOverrideValueKey() {
+    return "octopus_branch_override_value";
+  }
+
   public String getConnectionIdKey() {
     return "octopus_connection_id";
   }

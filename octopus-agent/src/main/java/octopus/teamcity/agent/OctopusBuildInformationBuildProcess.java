@@ -88,12 +88,15 @@ public class OctopusBuildInformationBuildProcess extends OctopusBuildProcess {
         buildUrlString = teamCityServerUrl + "/viewLog.html?buildId=" + buildNumber;
       }
 
+      final String branch =
+          BranchResolver.resolve(parameters, constants, restfulBuild.getBranch().getName());
+
       final OctopusBuildInformation buildInformation =
           builder.build(
               sharedConfigParameters.get("octopus_vcstype"),
               sharedConfigParameters.get("vcsroot.url"),
               sharedConfigParameters.get("build.vcs.number"),
-              restfulBuild.getBranch().getName(),
+              branch,
               createJsonCommitHistory(restfulBuild),
               buildUrlString,
               buildNumber);

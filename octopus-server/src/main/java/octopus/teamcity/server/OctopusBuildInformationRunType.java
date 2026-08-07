@@ -76,6 +76,16 @@ public class OctopusBuildInformationRunType extends RunType {
         checkNotEmpty(p, c.getPackageIdKey(), "Package ID must be specified", result);
         checkNotEmpty(p, c.getPackageVersionKey(), "Package version be specified", result);
 
+        final boolean branchOverrideEnabled =
+            Boolean.parseBoolean(p.get(c.getBranchOverrideEnabledKey()));
+        if (branchOverrideEnabled) {
+          checkNotEmpty(
+              p,
+              c.getBranchOverrideValueKey(),
+              "Branch name must be specified when branch override is enabled",
+              result);
+        }
+
         if (result.isEmpty()) {
           ConnectionInlineFieldCleaner.stripInlineFieldsIfUsingConnection(p);
         }

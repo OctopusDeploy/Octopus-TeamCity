@@ -55,4 +55,31 @@ class OctopusBuildInformationRunTypeValidationTest {
     final Map<String, String> properties = withMandatoryNonCredentialFields(new HashMap<>());
     assertThat(validate(properties)).contains(CONSTANTS.getServerKey(), CONSTANTS.getApiKey());
   }
+
+  @Test
+  void branchOverrideEnabledWithValueIsValid() {
+    final Map<String, String> properties = withMandatoryNonCredentialFields(new HashMap<>());
+    properties.put(CONSTANTS.getServerKey(), "https://octo");
+    properties.put(CONSTANTS.getApiKey(), "API-KEY");
+    properties.put(CONSTANTS.getBranchOverrideEnabledKey(), "true");
+    properties.put(CONSTANTS.getBranchOverrideValueKey(), "%env.BRANCH%");
+    assertThat(validate(properties)).doesNotContain(CONSTANTS.getBranchOverrideValueKey());
+  }
+
+  @Test
+  void branchOverrideEnabledWithoutValueIsInvalid() {
+    final Map<String, String> properties = withMandatoryNonCredentialFields(new HashMap<>());
+    properties.put(CONSTANTS.getServerKey(), "https://octo");
+    properties.put(CONSTANTS.getApiKey(), "API-KEY");
+    properties.put(CONSTANTS.getBranchOverrideEnabledKey(), "true");
+    assertThat(validate(properties)).contains(CONSTANTS.getBranchOverrideValueKey());
+  }
+
+  @Test
+  void branchOverrideDisabledDoesNotRequireValue() {
+    final Map<String, String> properties = withMandatoryNonCredentialFields(new HashMap<>());
+    properties.put(CONSTANTS.getServerKey(), "https://octo");
+    properties.put(CONSTANTS.getApiKey(), "API-KEY");
+    assertThat(validate(properties)).doesNotContain(CONSTANTS.getBranchOverrideValueKey());
+  }
 }

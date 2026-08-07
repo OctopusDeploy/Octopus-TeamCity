@@ -121,6 +121,14 @@ when it expires. OIDC is not available for the **Promote release** step, as the 
 currently support promote-from; use an API key or parameter source there, or promote via a Deploy
 release step.
 
+## Branch override
+
+The **Build Information** step normally detects the branch automatically from the build's VCS
+branch via the TeamCity REST API. Check **Override branch** to supply it yourself — enter either a
+literal branch name or a TeamCity parameter reference (e.g. `%teamcity.build.branch%` or
+`%env.BRANCH%`); TeamCity resolves parameter references in this plain text field before the value
+reaches the agent, so no special handling is needed.
+
 ## Versioning, Releasing and Publishing
 
 The version is computed from git, and releases are cut by
