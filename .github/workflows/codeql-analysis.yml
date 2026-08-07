@@ -54,7 +54,7 @@ jobs:
     # distributions) to avoid re-downloading them on every analysis. Keyed on the Gradle build
     # files; falls back to the most recent compatible cache.
     - name: Cache Gradle dependencies
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: |
           ~/.gradle/caches
