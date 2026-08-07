@@ -1,0 +1,16 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      # Patch/minor bumps are almost always safe and generate a lot of noise
+      # individually, so batch them into a single PR.
+      actions-minor:
+        update-types:
+          - "minor"
+          - "patch"
+    commit-message:
+      prefix: "chore"
