@@ -94,6 +94,22 @@
       <span class="smallNote">Set this to get more verbose logging.</span>
     </td>
   </tr>
+  <tr>
+    <th>Override branch:</th>
+    <td>
+      <props:checkboxProperty name="${keys.branchOverrideEnabledKey}" />
+      <span class="error" id="error_${keys.branchOverrideEnabledKey}"></span>
+      <span class="smallNote">By default the branch is detected automatically from the build's VCS branch. Check this to supply the branch name yourself.</span>
+    </td>
+  </tr>
+  <tr>
+    <th>Branch name:</th>
+    <td>
+      <props:textProperty name="${keys.branchOverrideValueKey}" className="longField"/>
+      <span class="error" id="error_${keys.branchOverrideValueKey}"></span>
+      <span class="smallNote">Only used when "Override branch" is checked. Enter a literal branch name or a TeamCity parameter reference, e.g. <code>%teamcity.build.branch%</code> or <code>%env.BRANCH%</code>.</span>
+    </td>
+  </tr>
 </l:settingsGroup>
 
 <l:settingsGroup title="Advanced">
