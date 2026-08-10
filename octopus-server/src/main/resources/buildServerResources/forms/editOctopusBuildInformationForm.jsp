@@ -94,7 +94,7 @@
       <span class="smallNote">Set this to get more verbose logging.</span>
     </td>
   </tr>
-  <tr>
+  <tr class="advancedSetting">
     <th>Override branch:</th>
     <td>
       <props:checkboxProperty name="${keys.branchOverrideEnabledKey}" />
@@ -102,7 +102,7 @@
       <span class="smallNote">By default the branch is detected automatically from the build's VCS branch. Check this to supply the branch name yourself.</span>
     </td>
   </tr>
-  <tr>
+  <tr class="advancedSetting">
     <th>Branch name:</th>
     <td>
       <props:textProperty name="${keys.branchOverrideValueKey}" className="longField"/>
