@@ -452,6 +452,33 @@ public final class TeamCityRest {
         json);
   }
 
+  /**
+   * Adds a Run runbook (octopus.run.runbook) step referencing a connection. Waits for the runbook
+   * run so the build fails if the run fails.
+   */
+  public void addRunRunbookStepUsingConnection(
+      final String buildTypeId,
+      final String connectionId,
+      final String projectName,
+      final String runbookName,
+      final String runIn)
+      throws Exception {
+    final String json =
+        createStepFeatureJson(
+            "Run runbook",
+            "octopus.run.runbook",
+            createProp("octopus_connection_id", connectionId),
+            createProp("octopus_project_name", projectName),
+            createProp("octopus_runbook_name", runbookName),
+            createProp("octopus_deployto", runIn),
+            createProp("octopus_waitfordeployments", "true"));
+    send(
+        "POST",
+        "/httpAuth/app/rest/buildTypes/" + buildTypeId + "/steps",
+        "application/json",
+        json);
+  }
+
   /** Lists the names of a finished build's artifacts (top-level children). */
   public String listBuildArtifacts(final String buildId) throws Exception {
     return send(

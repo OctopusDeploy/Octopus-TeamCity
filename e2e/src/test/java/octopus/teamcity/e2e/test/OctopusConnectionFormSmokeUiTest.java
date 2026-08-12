@@ -48,6 +48,8 @@ class OctopusConnectionFormSmokeUiTest {
           "Push package", tc.addEmptyStep("FormIT_Steps", "octopus.push.package", "Push"));
       runnerIdsByForm.put(
           "Build information", tc.addEmptyStep("FormIT_Steps", "octopus.metadata", "Build info"));
+      runnerIdsByForm.put(
+          "Run runbook", tc.addEmptyStep("FormIT_Steps", "octopus.run.runbook", "Runbook"));
 
       PlaywrightUi.withLoggedInPage(
           stack,

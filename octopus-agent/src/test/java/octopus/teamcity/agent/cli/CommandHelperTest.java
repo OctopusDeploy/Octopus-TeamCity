@@ -83,6 +83,65 @@ class CommandHelperTest {
   }
 
   @Test
+  void runbookRunCommand() {
+    Map<String, String> params = new HashMap<>();
+    final OctopusConstants constants = OctopusConstants.Instance;
+
+    params.put(constants.getProjectNameKey(), "MyProject");
+    params.put(constants.getRunbookNameKey(), "Rebuild indexes");
+    params.put(constants.getRunbookSnapshotKey(), "Snapshot ABC");
+    params.put(constants.getDeployToKey(), "Env1,Env2");
+    params.put(constants.getTenantsKey(), "TenantA");
+    params.put(constants.getTenantTagsKey(), "TagX");
+    params.put(constants.getCommandLineArgumentsKey(), "--variable Name:Value");
+
+    String[] command = CommandHelper.runbookRun(params);
+
+    assertThat(command)
+        .containsExactly(
+            "runbook",
+            "run",
+            "--space",
+            "Default",
+            "--project",
+            "MyProject",
+            "--name",
+            "Rebuild indexes",
+            "--snapshot",
+            "Snapshot ABC",
+            "--environment",
+            "Env1",
+            "--environment",
+            "Env2",
+            "--tenant",
+            "TenantA",
+            "--tenant-tag",
+            "TagX",
+            "--output-format",
+            "json",
+            "--variable",
+            "Name:Value",
+            "--no-prompt");
+  }
+
+  @Test
+  void runbookRunCommandDropsAdditionalArgsTheStepAlreadySets() {
+    Map<String, String> params = new HashMap<>();
+    final OctopusConstants constants = OctopusConstants.Instance;
+
+    params.put(constants.getProjectNameKey(), "MyProject");
+    params.put(constants.getRunbookNameKey(), "Rebuild indexes");
+    params.put(constants.getDeployToKey(), "Env1");
+    params.put(
+        constants.getCommandLineArgumentsKey(), "--environment Sneaky --force-package-download");
+
+    String[] command = CommandHelper.runbookRun(params);
+
+    assertThat(command).doesNotContain("Sneaky");
+    assertThat(command).contains("--force-package-download");
+  }
+
+  @Test
   void waitCommand() {
     Map<String, String> params = new HashMap<>();
     final OctopusConstants constants = OctopusConstants.Instance;

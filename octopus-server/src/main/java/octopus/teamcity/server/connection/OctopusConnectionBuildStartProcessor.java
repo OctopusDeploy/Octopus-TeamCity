@@ -48,6 +48,7 @@ public class OctopusConnectionBuildStartProcessor implements BuildStartContextPr
               OctopusConstants.CREATE_RELEASE_RUNNER_TYPE,
               OctopusConstants.DEPLOY_RELEASE_RUNNER_TYPE,
               OctopusConstants.PROMOTE_RELEASE_RUNNER_TYPE,
+              OctopusConstants.RUN_RUNBOOK_RUNNER_TYPE,
               OctopusConstants.PUSH_PACKAGE_RUNNER_TYPE,
               OctopusConstants.METADATA_RUNNER_TYPE));
 

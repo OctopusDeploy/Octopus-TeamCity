@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -115,15 +116,103 @@ public final class OctopusProvisioning {
     return JsonParser.parseString(resp.body()).getAsJsonObject().get("Id").getAsString();
   }
 
+  /**
+   * Adds a runbook with the same single run-on-server script step to an existing project, and
+   * publishes a snapshot so it can be run without naming one. Returns the runbook's id.
+   */
+  public static String createRunbookWithServerScriptStep(
+      final OctopusClient client,
+      final SpaceHome spaceHome,
+      final String octopusBaseUrl,
+      final String apiKey,
+      final String projectName,
+      final String runbookName)
+      throws Exception {
+    final String projectId =
+        ProjectApi.create(client, spaceHome)
+            .getByName(projectName)
+            .orElseThrow(() -> new IllegalStateException("No project named " + projectName))
+            .getProperties()
+            .getId();
+
+    final JsonObject retention = new JsonObject();
+    retention.addProperty("QuantityToKeep", 10);
+    retention.addProperty("ShouldKeepForever", false);
+    final JsonObject runbook = new JsonObject();
+    runbook.addProperty("ProjectId", projectId);
+    runbook.addProperty("Name", runbookName);
+    runbook.addProperty("EnvironmentScope", "All");
+    runbook.add("RunRetentionPolicy", retention);
+
+    final JsonObject created =
+        readJson(
+            octopusRequest(
+                "POST",
+                octopusBaseUrl + stripUriTemplate(spaceHome.getRunbooksLink()),
+                apiKey,
+                runbook.toString()),
+            "create runbook");
+    final String runbookId = created.get("Id").getAsString();
+    final String processUrl =
+        octopusBaseUrl
+            + stripUriTemplate(spaceHome.getRunbookProcessesLink())
+            + "/"
+            + created.get("RunbookProcessId").getAsString();
+
+    final JsonObject process =
+        readJson(octopusRequest("GET", processUrl, apiKey, null), "get runbook process");
+    process.add("Steps", scriptStep());
+    readJson(octopusRequest("PUT", processUrl, apiKey, process.toString()), "put runbook process");
+
+    final JsonObject template =
+        readJson(
+            octopusRequest("GET", processUrl + "/runbookSnapshotTemplate", apiKey, null),
+            "get runbook snapshot template");
+    final JsonObject snapshot = new JsonObject();
+    snapshot.addProperty("ProjectId", projectId);
+    snapshot.addProperty("RunbookId", runbookId);
+    snapshot.addProperty("Name", template.get("NextNameIncrement").getAsString());
+    snapshot.add("SelectedPackages", new JsonArray());
+    readJson(
+        octopusRequest(
+            "POST",
+            octopusBaseUrl
+                + stripUriTemplate(spaceHome.getRunbookSnapshotsLink())
+                + "?publish=true",
+            apiKey,
+            snapshot.toString()),
+        "publish runbook snapshot");
+
+    return runbookId;
+  }
+
+  /** True if the runbook has been run at least once. */
+  public static boolean hasRunbookRun(
+      final SpaceHome spaceHome,
+      final String octopusBaseUrl,
+      final String apiKey,
+      final String runbookId)
+      throws Exception {
+    final JsonObject runs =
+        readJson(
+            octopusRequest(
+                "GET",
+                octopusBaseUrl + stripUriTemplate(spaceHome.getRunbookRunsLink()) + "?take=100",
+                apiKey,
+                null),
+            "list runbook runs");
+    for (final JsonElement run : runs.getAsJsonArray("Items")) {
+      if (runbookId.equals(run.getAsJsonObject().get("RunbookId").getAsString())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   private static void addInlineScriptStep(
       final String octopusBaseUrl, final String apiKey, final String deploymentProcessLink)
       throws Exception {
-    // Links may carry a URI template suffix (e.g. "{?...}"); strip it.
-    final String path =
-        deploymentProcessLink.contains("{")
-            ? deploymentProcessLink.substring(0, deploymentProcessLink.indexOf('{'))
-            : deploymentProcessLink;
-    final String url = octopusBaseUrl + path;
+    final String url = octopusBaseUrl + stripUriTemplate(deploymentProcessLink);
 
     final Http.Response get = octopusRequest("GET", url, apiKey, null);
     if (get.statusCode() != 200) {
@@ -139,6 +228,19 @@ public final class OctopusProvisioning {
       throw new IllegalStateException(
           "PUT deployment process -> " + put.statusCode() + ": " + put.body());
     }
+  }
+
+  /** Links may carry a URI template suffix (e.g. "{?...}"); strip it. */
+  private static String stripUriTemplate(final String link) {
+    return link.contains("{") ? link.substring(0, link.indexOf('{')) : link;
+  }
+
+  private static JsonObject readJson(final Http.Response response, final String what) {
+    if (response.statusCode() < 200 || response.statusCode() >= 300) {
+      throw new IllegalStateException(
+          what + " -> " + response.statusCode() + ": " + response.body());
+    }
+    return JsonParser.parseString(response.body()).getAsJsonObject();
   }
 
   private static Http.Response octopusRequest(

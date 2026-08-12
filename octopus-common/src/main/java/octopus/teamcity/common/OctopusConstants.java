@@ -125,6 +125,14 @@ public class OctopusConstants {
     return "octopus_promotefrom";
   }
 
+  public String getRunbookNameKey() {
+    return "octopus_runbook_name";
+  }
+
+  public String getRunbookSnapshotKey() {
+    return "octopus_runbook_snapshot";
+  }
+
   public String getCommandLineArgumentsKey() {
     return "octopus_additionalcommandlinearguments";
   }
@@ -188,6 +196,7 @@ public class OctopusConstants {
   public static final String CREATE_RELEASE_RUNNER_TYPE = "octopus.create.release";
   public static final String DEPLOY_RELEASE_RUNNER_TYPE = "octopus.deploy.release";
   public static final String PROMOTE_RELEASE_RUNNER_TYPE = "octopus.promote.release";
+  public static final String RUN_RUNBOOK_RUNNER_TYPE = "octopus.run.runbook";
   public static final String PACK_PACKAGE_RUNNER_TYPE = "octopus.pack.package";
   public static final String PUSH_PACKAGE_RUNNER_TYPE = "octopus.push.package";
   public static final String METADATA_RUNNER_TYPE = "octopus.metadata";

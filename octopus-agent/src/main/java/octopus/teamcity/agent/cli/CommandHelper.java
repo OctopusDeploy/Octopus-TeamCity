@@ -22,6 +22,8 @@ public class CommandHelper {
 
   static final String deployReleaseAdditionalArgumentsToBeIgnored =
       "-e,--environment,--tenant,--tenant-tag,--deploy-at,--deploy-at-expiry,--variable,--update-variables,--skip,--guided-failure,--force-package-download,--deployment-target,--exclude-deployment-target,--deployment-freeze-name,--deployment-freeze-override-reason";
+  static final String runbookRunAdditionalArgumentsToBeIgnored =
+      "-p,--project,-n,--name,-e,--environment,--tenant,--tenant-tag,--snapshot,--space";
   static final String createReleaseAdditionalArgumentsToBeIgnored =
       "-c,-r,-x,--channel,--git-ref,--git-commit,--package,--git-resource,--release-notes,--release-notes-file,--ignore-existing,--ignore-channel-rules,--custom-field";
   static final String defaultSpace = "Default";
@@ -79,6 +81,65 @@ public class CommandHelper {
       List<String> updatedCommandArgs =
           sanitizeCommandArgs(commandArgs, createReleaseAdditionalArgumentsToBeIgnored);
       commands.addAll(updatedCommandArgs);
+    }
+
+    commands.add("--no-prompt");
+    return commands.toArray(new String[0]);
+  }
+
+  public static String[] runbookRun(Map<String, String> params) {
+    final OctopusConstants constants = OctopusConstants.Instance;
+    final ArrayList<String> commands = new ArrayList<>();
+    String spaceName = params.get(constants.getSpaceName());
+    final String commandLineArguments = params.get(constants.getCommandLineArgumentsKey());
+    final String projectName = params.get(constants.getProjectNameKey());
+    final String runbookName = params.get(constants.getRunbookNameKey());
+    final String snapshot = params.get(constants.getRunbookSnapshotKey());
+    final String runIn = params.get(constants.getDeployToKey());
+    final String tenants = params.get(constants.getTenantsKey());
+    final String tenantTags = params.get(constants.getTenantTagsKey());
+
+    commands.add("runbook");
+    commands.add("run");
+
+    if (StringUtils.isBlank(spaceName)) {
+      spaceName = defaultSpace;
+    }
+    commands.add("--space");
+    commands.add(spaceName);
+
+    commands.add("--project");
+    commands.add(projectName);
+
+    commands.add("--name");
+    commands.add(runbookName);
+
+    if (StringUtils.isNotBlank(snapshot)) {
+      commands.add("--snapshot");
+      commands.add(snapshot);
+    }
+
+    for (String env : splitCommaSeparatedValues(runIn)) {
+      commands.add("--environment");
+      commands.add(env);
+    }
+
+    for (String tenant : splitCommaSeparatedValues(tenants)) {
+      commands.add("--tenant");
+      commands.add(tenant);
+    }
+
+    for (String tenantTag : splitCommaSeparatedValues(tenantTags)) {
+      commands.add("--tenant-tag");
+      commands.add(tenantTag);
+    }
+
+    commands.add("--output-format");
+    commands.add("json");
+
+    if (StringUtils.isNotBlank(commandLineArguments)) {
+      List<String> commandArgs = splitSpaceSeparatedValues(commandLineArguments);
+      commands.addAll(sanitizeCommandArgs(commandArgs, runbookRunAdditionalArgumentsToBeIgnored));
     }
 
     commands.add("--no-prompt");

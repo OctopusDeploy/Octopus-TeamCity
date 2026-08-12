@@ -27,6 +27,10 @@ public class CommandUtils {
     return output != null && output.contains("ServerTaskId");
   }
 
+  protected static boolean isRunbookRunCommand(String output) {
+    return output != null && output.contains("RunbookRunId");
+  }
+
   public static String getOverwriteMode(OverwriteMode overwriteMode) {
     switch (overwriteMode) {
       case FailIfExists:
