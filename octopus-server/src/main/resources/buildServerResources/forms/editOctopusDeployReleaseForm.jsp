@@ -23,7 +23,8 @@
   <td>
     <props:passwordProperty name="${keys.apiKey}" className="longField"/>
     <span class="error" id="error_${keys.apiKey}"></span>
-    <span class="smallNote">Specify Octopus API key. You can get this from your user page in the Octopus web portal.</span>
+    <span class="smallNote">Specify Octopus API key. You can get this from your user page in the Octopus web portal.
+      You can also reference a build parameter here, e.g. <code>%octopus.apikey%</code>.</span>
   </td>
 </tr>
 <tr class="octopusInlineConnectionField">
