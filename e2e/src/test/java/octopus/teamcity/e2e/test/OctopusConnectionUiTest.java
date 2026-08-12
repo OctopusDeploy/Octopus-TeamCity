@@ -69,9 +69,8 @@ class OctopusConnectionUiTest {
             // — the connection's space is used.
             assertThat(page.locator("#octopus_space_name").isHidden()).isTrue();
 
-            // Create-release Git Ref/Commit rows are driven by the *connection's* version: 3.0+
-            // supports
-            // Git projects, so the rows become visible once the connection is selected.
+            // Git projects are supported on every Octopus version the plugin still targets, so the
+            // Create-release Git Ref/Commit rows are always shown.
             assertThat(page.locator("#gitRefRow").isVisible()).isTrue();
             assertThat(page.locator("#gitCommitRow").isVisible()).isTrue();
           });

@@ -19,7 +19,6 @@ class OctopusConnectionPropertiesProcessorTest {
     final Map<String, String> properties = new HashMap<>();
     properties.put(ConnectionPropertyNames.SERVER_URL, "https://octopus.example.com");
     properties.put(ConnectionPropertyNames.API_KEY, "API-XXXXXXXXXXXXXXXXXXXXXXXX");
-    properties.put(ConnectionPropertyNames.VERSION, "3.0+");
     return properties;
   }
 
@@ -63,10 +62,15 @@ class OctopusConnectionPropertiesProcessorTest {
   }
 
   @Test
-  void unknownVersionIsInvalid() {
+  void connectionWithoutAVersionIsValid() {
+    assertThat(invalidKeys(validProps())).doesNotContain(ConnectionPropertyNames.VERSION);
+  }
+
+  @Test
+  void versionStoredByAnOlderPluginIsAccepted() {
     final Map<String, String> properties = validProps();
     properties.put(ConnectionPropertyNames.VERSION, "banana");
-    assertThat(invalidKeys(properties)).contains(ConnectionPropertyNames.VERSION);
+    assertThat(processor.process(properties)).isEmpty();
   }
 
   @Test

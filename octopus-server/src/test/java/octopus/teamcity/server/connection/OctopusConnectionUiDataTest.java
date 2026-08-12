@@ -67,8 +67,8 @@ class OctopusConnectionUiDataTest {
     assertThat(view.get("id")).isEqualTo("PROJECT_EXT_1");
     assertThat(view.get("displayName")).isEqualTo("Prod");
     assertThat(view.get("url")).isEqualTo("https://octo");
-    assertThat(view.get("version")).isEqualTo("3.0+");
     assertThat(view.get("space")).isEqualTo("Spaces-1");
+    assertThat(view).doesNotContainKey("version");
   }
 
   @Test

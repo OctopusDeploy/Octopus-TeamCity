@@ -18,22 +18,16 @@ package octopus.teamcity.server.connection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import jetbrains.buildServer.serverSide.InvalidProperty;
 import jetbrains.buildServer.serverSide.PropertiesProcessor;
 import jetbrains.buildServer.util.StringUtil;
-import octopus.teamcity.common.OctopusConstants;
 import octopus.teamcity.common.connection.ConnectionPropertyNames;
 
 public class OctopusConnectionPropertiesProcessor implements PropertiesProcessor {
   private static final ConnectionPropertyNames KEYS = new ConnectionPropertyNames();
-  private static final Set<String> KNOWN_VERSIONS =
-      new HashSet<>(Arrays.asList(OctopusConstants.Instance.getOctopusVersions()));
 
   @Override
   public List<InvalidProperty> process(final Map<String, String> properties) {
@@ -43,7 +37,6 @@ public class OctopusConnectionPropertiesProcessor implements PropertiesProcessor
     }
 
     validateServerUrl(properties.get(KEYS.getServerUrlPropertyName()), result);
-    validateVersion(properties.get(KEYS.getVersionPropertyName()), result);
 
     final String source =
         properties.getOrDefault(
@@ -97,18 +90,6 @@ public class OctopusConnectionPropertiesProcessor implements PropertiesProcessor
       }
     } catch (final MalformedURLException e) {
       result.add(new InvalidProperty(id, "Malformed URL - " + e.getLocalizedMessage()));
-    }
-  }
-
-  private void validateVersion(final String version, final List<InvalidProperty> result) {
-    final String id = KEYS.getVersionPropertyName();
-    if (StringUtil.isEmptyOrSpaces(version)) {
-      result.add(new InvalidProperty(id, "Octopus version must be specified"));
-      return;
-    }
-    final boolean known = KNOWN_VERSIONS.contains(version);
-    if (!known) {
-      result.add(new InvalidProperty(id, "Unknown Octopus version: " + version));
     }
   }
 }

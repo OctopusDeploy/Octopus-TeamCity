@@ -29,6 +29,8 @@ public class OctopusConstants {
     return Constants.SECURE_PROPERTY_PREFIX + "octopus_apikey";
   }
 
+  // No longer settable in the UI. Still read on the agent so steps and Kotlin DSL saved before the
+  // field was removed keep selecting the same CLI they always did.
   public String getOctopusVersion() {
     return "octopus_version";
   }
@@ -47,10 +49,6 @@ public class OctopusConstants {
 
   public String getPreviewVersion() {
     return "Preview";
-  }
-
-  public String[] getOctopusVersions() {
-    return new String[] {getVersion3(), getVersion2(), getVersion1(), getPreviewVersion()};
   }
 
   public String getSpaceName() {

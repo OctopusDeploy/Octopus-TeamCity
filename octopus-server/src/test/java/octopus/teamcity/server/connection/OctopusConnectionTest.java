@@ -30,9 +30,8 @@ class OctopusConnectionTest {
   }
 
   @Test
-  void defaultPropertiesSeedTheVersion() {
-    assertThat(provider.getDefaultProperties())
-        .containsEntry(ConnectionPropertyNames.VERSION, "3.0+");
+  void defaultPropertiesDoNotSeedTheVersion() {
+    assertThat(provider.getDefaultProperties()).doesNotContainKey(ConnectionPropertyNames.VERSION);
   }
 
   @Test
