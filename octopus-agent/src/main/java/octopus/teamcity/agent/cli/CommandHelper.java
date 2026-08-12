@@ -6,8 +6,12 @@ import static octopus.teamcity.agent.cli.CommandUtils.getOverwriteMode;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import jetbrains.buildServer.agent.BuildProgressLogger;
 import jetbrains.buildServer.agent.impl.artifacts.ArtifactsCollection;
@@ -20,12 +24,50 @@ import org.apache.commons.lang3.StringUtils;
 
 public class CommandHelper {
 
-  static final String deployReleaseAdditionalArgumentsToBeIgnored =
-      "-e,--environment,--tenant,--tenant-tag,--deploy-at,--deploy-at-expiry,--variable,--update-variables,--skip,--guided-failure,--force-package-download,--deployment-target,--exclude-deployment-target,--deployment-freeze-name,--deployment-freeze-override-reason";
-  static final String runbookRunAdditionalArgumentsToBeIgnored =
-      "-p,--project,-n,--name,-e,--environment,--tenant,--tenant-tag,--snapshot,--space";
-  static final String createReleaseAdditionalArgumentsToBeIgnored =
-      "-c,-r,-x,--channel,--git-ref,--git-commit,--package,--git-resource,--release-notes,--release-notes-file,--ignore-existing,--ignore-channel-rules,--custom-field";
+  static final Set<String> deployReleaseAdditionalArgumentsToBeIgnored =
+      argumentSet(
+          "-e",
+          "--environment",
+          "--tenant",
+          "--tenant-tag",
+          "--deploy-at",
+          "--deploy-at-expiry",
+          "--variable",
+          "--update-variables",
+          "--skip",
+          "--guided-failure",
+          "--force-package-download",
+          "--deployment-target",
+          "--exclude-deployment-target",
+          "--deployment-freeze-name",
+          "--deployment-freeze-override-reason");
+  static final Set<String> runbookRunAdditionalArgumentsToBeIgnored =
+      argumentSet(
+          "-p",
+          "--project",
+          "-n",
+          "--name",
+          "-e",
+          "--environment",
+          "--tenant",
+          "--tenant-tag",
+          "--snapshot",
+          "--space");
+  static final Set<String> createReleaseAdditionalArgumentsToBeIgnored =
+      argumentSet(
+          "-c",
+          "-r",
+          "-x",
+          "--channel",
+          "--git-ref",
+          "--git-commit",
+          "--package",
+          "--git-resource",
+          "--release-notes",
+          "--release-notes-file",
+          "--ignore-existing",
+          "--ignore-channel-rules",
+          "--custom-field");
   static final String defaultSpace = "Default";
 
   public static String[] deployRelease(
@@ -427,17 +469,49 @@ public class CommandHelper {
     return commands.toArray(new String[0]);
   }
 
-  public static List<String> sanitizeCommandArgs(List<String> args, String argsToBeIgnore) {
-    List<String> result = new ArrayList<>();
+  /**
+   * Removes the arguments in {@code argsToBeIgnored} - along with their values - from a list of
+   * user-supplied additional command line arguments.
+   *
+   * <p>The "Additional command line arguments" field is shared by every command a step runs, so
+   * each command has to drop the arguments that belong to the other. Matching is exact: a substring
+   * match would strip {@code --var} because {@code --variable} is on the list. A value is only
+   * consumed when the following token is not itself an argument, so switches that take no value
+   * (such as {@code --update-variables}) no longer swallow the argument that follows them.
+   *
+   * <p>The consequence is that a value which legitimately starts with {@code -} is left behind as a
+   * stray positional argument. That is rare, and preferable to silently dropping a real argument.
+   */
+  public static List<String> sanitizeCommandArgs(
+      final List<String> args, final Set<String> argsToBeIgnored) {
+    final List<String> result = new ArrayList<>();
     int i = 0;
     while (i < args.size()) {
-      if (argsToBeIgnore.contains(args.get(i))) {
-        i += 2; // skip this element and the next element
-      } else {
-        result.add(args.get(i));
-        i++;
+      final String arg = args.get(i);
+      i++;
+      if (!isIgnored(arg, argsToBeIgnored)) {
+        result.add(arg);
+      } else if (!hasInlineValue(arg) && i < args.size() && !isArgumentName(args.get(i))) {
+        i++; // the following token is this argument's value
       }
     }
     return result;
+  }
+
+  private static Set<String> argumentSet(final String... args) {
+    return Collections.unmodifiableSet(new LinkedHashSet<>(Arrays.asList(args)));
+  }
+
+  private static boolean isIgnored(final String arg, final Set<String> argsToBeIgnored) {
+    final int equals = arg.indexOf('=');
+    return argsToBeIgnored.contains(equals > 0 ? arg.substring(0, equals) : arg);
+  }
+
+  private static boolean hasInlineValue(final String arg) {
+    return arg.indexOf('=') > 0;
+  }
+
+  private static boolean isArgumentName(final String token) {
+    return token.startsWith("-");
   }
 }

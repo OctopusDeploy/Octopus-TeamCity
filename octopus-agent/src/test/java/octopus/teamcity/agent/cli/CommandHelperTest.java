@@ -9,8 +9,10 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import jetbrains.buildServer.agent.AgentRunningBuild;
 import jetbrains.buildServer.agent.BuildRunnerContext;
@@ -357,12 +359,16 @@ class CommandHelperTest {
     assertThat(command).doesNotContain("--service-account-id", "--id-token");
   }
 
+  private static Set<String> ignoring(String... args) {
+    return new LinkedHashSet<>(Arrays.asList(args));
+  }
+
   @Test
   void sanitizeCommandExtraArgsRemovesForbiddenArgAndValue() {
     List<String> args =
         Arrays.asList("project", "MyProject", "channel", "Release", "version", "1.0.0");
 
-    List<String> result = CommandHelper.sanitizeCommandArgs(args, "channel");
+    List<String> result = CommandHelper.sanitizeCommandArgs(args, ignoring("channel"));
 
     assertThat(result).containsExactly("project", "MyProject", "version", "1.0.0");
   }
@@ -373,7 +379,7 @@ class CommandHelperTest {
         Arrays.asList(
             "project", "MyProject", "channel", "Release", "tenant", "TenantA", "version", "1.0.0");
 
-    List<String> result = CommandHelper.sanitizeCommandArgs(args, "channel, tenant");
+    List<String> result = CommandHelper.sanitizeCommandArgs(args, ignoring("channel", "tenant"));
 
     assertThat(result).containsExactly("project", "MyProject", "version", "1.0.0");
   }
@@ -382,8 +388,66 @@ class CommandHelperTest {
   void sanitizeCommandExtraArgsKeepsArgsWhenNoForbiddenPresent() {
     List<String> args = Arrays.asList("project", "MyProject", "version", "1.0.0");
 
-    List<String> result = CommandHelper.sanitizeCommandArgs(args, "channel");
+    List<String> result = CommandHelper.sanitizeCommandArgs(args, ignoring("channel"));
 
     assertThat(result).containsExactly("project", "MyProject", "version", "1.0.0");
+  }
+
+  @Test
+  void sanitizeCommandExtraArgsDoesNotConsumeArgumentAfterAValuelessSwitch() {
+    List<String> args = Arrays.asList("--ignore-existing", "--variable", "ImageTag:1.5.2");
+
+    List<String> result =
+        CommandHelper.sanitizeCommandArgs(
+            args, CommandHelper.createReleaseAdditionalArgumentsToBeIgnored);
+
+    assertThat(result).containsExactly("--variable", "ImageTag:1.5.2");
+  }
+
+  @Test
+  void sanitizeCommandExtraArgsDoesNotLeaveAStrayValueBehind() {
+    List<String> args = Arrays.asList("--update-variables", "--channel", "Beta");
+
+    List<String> result =
+        CommandHelper.sanitizeCommandArgs(
+            args, CommandHelper.deployReleaseAdditionalArgumentsToBeIgnored);
+
+    assertThat(result).containsExactly("--channel", "Beta");
+  }
+
+  @Test
+  void sanitizeCommandExtraArgsMatchesArgumentNamesExactly() {
+    List<String> args = Arrays.asList("--var", "Something", "--e", "SomethingElse");
+
+    List<String> result =
+        CommandHelper.sanitizeCommandArgs(
+            args, CommandHelper.deployReleaseAdditionalArgumentsToBeIgnored);
+
+    assertThat(result).containsExactly("--var", "Something", "--e", "SomethingElse");
+  }
+
+  @Test
+  void sanitizeCommandExtraArgsRemovesForbiddenArgWithAnInlineValue() {
+    List<String> args = Arrays.asList("--variable=ImageTag:1.5.2", "--channel", "Beta");
+
+    List<String> result =
+        CommandHelper.sanitizeCommandArgs(
+            args, CommandHelper.deployReleaseAdditionalArgumentsToBeIgnored);
+
+    assertThat(result).containsExactly("--channel", "Beta");
+  }
+
+  @Test
+  void createReleaseWithDeployToForwardsPromptedVariablesToTheDeployCommand() {
+    Map<String, String> params = new HashMap<>();
+    final OctopusConstants constants = OctopusConstants.Instance;
+    params.put(constants.getProjectNameKey(), "MyProject");
+    params.put(constants.getDeployToKey(), "Dev");
+    params.put(constants.getCommandLineArgumentsKey(), "--variable ImageTag:1.5.2");
+
+    assertThat(CommandHelper.createRelease(params).buildCommand())
+        .doesNotContain("--variable", "ImageTag:1.5.2");
+    assertThat(CommandHelper.deployRelease(params, "1.0.0"))
+        .containsSequence("--variable", "ImageTag:1.5.2");
   }
 }
