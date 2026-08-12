@@ -2,6 +2,7 @@ package octopus.teamcity.server;
 
 import static octopus.teamcity.server.PropertiesValidator.checkCredentialsUnlessUsingConnection;
 import static octopus.teamcity.server.PropertiesValidator.checkNotEmpty;
+import static octopus.teamcity.server.PropertiesValidator.checkPromptedVariablesOnlyWhenDeploying;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -58,6 +59,7 @@ public class OctopusCreateReleaseRunType extends RunType {
 
         checkCredentialsUnlessUsingConnection(p, c, result);
         checkNotEmpty(p, c.getProjectNameKey(), "Project name must be specified", result);
+        checkPromptedVariablesOnlyWhenDeploying(p, c, result);
 
         if (result.isEmpty()) {
           ConnectionInlineFieldCleaner.stripInlineFieldsIfUsingConnection(p);

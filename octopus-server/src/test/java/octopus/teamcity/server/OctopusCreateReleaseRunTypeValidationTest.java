@@ -53,4 +53,43 @@ class OctopusCreateReleaseRunTypeValidationTest {
     final Map<String, String> properties = withMandatoryNonCredentialFields(new HashMap<>());
     assertThat(validate(properties)).contains(CONSTANTS.getServerKey(), CONSTANTS.getApiKey());
   }
+
+  private Map<String, String> withAdditionalArguments(final String additionalArguments) {
+    final Map<String, String> properties = withMandatoryNonCredentialFields(new HashMap<>());
+    properties.put(CONSTANTS.getConnectionIdKey(), "PROJECT_EXT_1");
+    properties.put(CONSTANTS.getCommandLineArgumentsKey(), additionalArguments);
+    return properties;
+  }
+
+  @Test
+  void promptedVariableWithoutDeployToIsInvalid() {
+    assertThat(validate(withAdditionalArguments("--variable ImageTag:1.5.2")))
+        .contains(CONSTANTS.getCommandLineArgumentsKey());
+  }
+
+  @Test
+  void promptedVariableWithAnInlineValueAndWithoutDeployToIsInvalid() {
+    assertThat(validate(withAdditionalArguments("--progress --variable=ImageTag:1.5.2")))
+        .contains(CONSTANTS.getCommandLineArgumentsKey());
+  }
+
+  @Test
+  void promptedVariableWithDeployToIsValid() {
+    final Map<String, String> properties = withAdditionalArguments("--variable ImageTag:1.5.2");
+    properties.put(CONSTANTS.getDeployToKey(), "Dev");
+    assertThat(validate(properties)).doesNotContain(CONSTANTS.getCommandLineArgumentsKey());
+  }
+
+  @Test
+  void otherArgumentsEndingInVariableAreValid() {
+    assertThat(validate(withAdditionalArguments("--update-variables --progress")))
+        .doesNotContain(CONSTANTS.getCommandLineArgumentsKey());
+  }
+
+  @Test
+  void noAdditionalArgumentsIsValid() {
+    final Map<String, String> properties = withMandatoryNonCredentialFields(new HashMap<>());
+    properties.put(CONSTANTS.getConnectionIdKey(), "PROJECT_EXT_1");
+    assertThat(validate(properties)).doesNotContain(CONSTANTS.getCommandLineArgumentsKey());
+  }
 }
