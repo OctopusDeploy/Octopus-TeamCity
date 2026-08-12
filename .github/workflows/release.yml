@@ -7,7 +7,9 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     steps:
-      - uses: google-github-actions/release-please-action@v3
+      # google-github-actions/release-please-action is archived (last pushed May 2024); the
+      # action now lives at googleapis/release-please-action.
+      - uses: googleapis/release-please-action@v5
         with:
           release-type: simple
           token: ${{ secrets.INTEGRATIONS_FNM_BOT_TOKEN }}
