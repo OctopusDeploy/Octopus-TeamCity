@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.6.0](https://github.com/OctopusDeploy/Octopus-TeamCity/compare/v6.5.1...v6.6.0) (2026-08-12)
+
+
+### Features
+
+* allow branch override in build information ([#217](https://github.com/OctopusDeploy/Octopus-TeamCity/issues/217)) ([3d015e7](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/3d015e710b4736778a69fecdcee878125822796b))
+
 ## [6.5.1](https://github.com/OctopusDeploy/Octopus-TeamCity/compare/v6.5.0...v6.5.1) (2026-08-06)
 
 
