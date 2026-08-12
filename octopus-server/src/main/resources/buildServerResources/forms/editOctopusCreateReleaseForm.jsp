@@ -141,7 +141,8 @@
     <td>
       <props:textProperty name="${keys.commandLineArgumentsKey}" className="longField"/>
       <span class="error" id="error_${keys.commandLineArgumentsKey}"></span>
-      <span class="smallNote">Additional arguments to be passed to <a href="https://g.octopushq.com/OctoExeCreateRelease">Octopus CLI</a></span>
+      <span class="smallNote">Additional arguments to be passed to <a href="https://g.octopushq.com/OctoExeCreateRelease">Octopus CLI</a>.
+        <code>--variable</code> supplies prompted variables to a <em>deployment</em>, so it only takes effect when <strong>Deploy to</strong> is also set on this step.</span>
     </td>
   </tr>
 </l:settingsGroup>
