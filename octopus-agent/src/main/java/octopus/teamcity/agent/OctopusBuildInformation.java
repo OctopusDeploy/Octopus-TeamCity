@@ -14,6 +14,7 @@ public class OctopusBuildInformation {
   public String VcsCommitNumber;
 
   public List<Commit> Commits;
+  public String IncompleteDataWarning;
 
   public OctopusBuildInformation() {
     BuildEnvironment = "TeamCity";

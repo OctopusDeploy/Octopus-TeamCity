@@ -16,8 +16,6 @@
 
 package octopus.teamcity.agent;
 
-import static octopus.teamcity.agent.BuildInfoUtils.createJsonCommitHistory;
-
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
@@ -91,13 +89,18 @@ public class OctopusBuildInformationBuildProcess extends OctopusBuildProcess {
       final String branch =
           BranchResolver.resolve(parameters, constants, restfulBuild.getBranch().getName());
 
+      final CommitHistory commitHistory =
+          new CommitHistoryFetcher(
+                  teamCityServerUrl, build.getAccessUser(), build.getAccessCode(), buildLogger)
+              .fetch(restfulBuild, build.getBuildId());
+
       final OctopusBuildInformation buildInformation =
           builder.build(
               sharedConfigParameters.get("octopus_vcstype"),
               sharedConfigParameters.get("vcsroot.url"),
               sharedConfigParameters.get("build.vcs.number"),
               branch,
-              createJsonCommitHistory(restfulBuild),
+              commitHistory,
               buildUrlString,
               buildNumber);
 

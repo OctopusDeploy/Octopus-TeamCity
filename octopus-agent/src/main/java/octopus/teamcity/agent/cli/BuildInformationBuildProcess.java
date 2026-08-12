@@ -16,8 +16,6 @@
 
 package octopus.teamcity.agent.cli;
 
-import static octopus.teamcity.agent.BuildInfoUtils.createJsonCommitHistory;
-
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
@@ -28,6 +26,8 @@ import java.util.Map;
 import jetbrains.buildServer.agent.AgentRunningBuild;
 import jetbrains.buildServer.agent.BuildRunnerContext;
 import octopus.teamcity.agent.BranchResolver;
+import octopus.teamcity.agent.CommitHistory;
+import octopus.teamcity.agent.CommitHistoryFetcher;
 import octopus.teamcity.agent.OctopusBuildInformation;
 import octopus.teamcity.agent.OctopusBuildInformationBuilder;
 import octopus.teamcity.agent.OctopusBuildInformationWriter;
@@ -95,13 +95,18 @@ public class BuildInformationBuildProcess extends CLIBuildProcess {
       final String branch =
           BranchResolver.resolve(parameters, constants, restfulBuild.getBranch().getName());
 
+      final CommitHistory commitHistory =
+          new CommitHistoryFetcher(
+                  teamCityServerUrl, build.getAccessUser(), build.getAccessCode(), logger)
+              .fetch(restfulBuild, build.getBuildId());
+
       final OctopusBuildInformation buildInformation =
           builder.build(
               sharedConfigParameters.get("octopus_vcstype"),
               sharedConfigParameters.get("vcsroot.url"),
               sharedConfigParameters.get("build.vcs.number"),
               branch,
-              createJsonCommitHistory(restfulBuild),
+              commitHistory,
               buildUrlString,
               buildNumber);
 
