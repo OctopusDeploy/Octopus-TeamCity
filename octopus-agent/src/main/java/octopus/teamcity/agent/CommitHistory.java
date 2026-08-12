@@ -15,30 +15,25 @@
  */
 package octopus.teamcity.agent;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import octopus.teamcity.common.Commit;
-import org.jetbrains.teamcity.rest.Build;
-import org.jetbrains.teamcity.rest.Change;
 
-public class BuildInfoUtils {
-  public static String createJsonCommitHistory(final Build build) {
-    final List<Change> changes = build.fetchChanges();
+public class CommitHistory {
 
-    final List<Commit> commits = new ArrayList<>();
-    for (Change change : changes) {
+  private final List<Commit> commits;
+  private final String incompleteDataWarning;
 
-      final Commit c = new Commit();
-      c.Id = change.getVersion();
-      c.Comment = change.getComment();
+  public CommitHistory(final List<Commit> commits, final String incompleteDataWarning) {
+    this.commits = commits;
+    this.incompleteDataWarning = incompleteDataWarning;
+  }
 
-      commits.add(c);
-    }
+  public List<Commit> getCommits() {
+    return commits;
+  }
 
-    final Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
-    return gson.toJson(commits);
+  public String getIncompleteDataWarning() {
+    return incompleteDataWarning;
   }
 }
