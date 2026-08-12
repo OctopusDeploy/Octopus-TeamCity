@@ -119,7 +119,7 @@ jobs:
     # Use the exact plugin zip built by the `build` job rather than rebuilding it here. e2eTest
     # picks it up from TEAMCITY_PLUGIN_DIST and skips its own distZip, so the plugin is built once.
     - name: Download plugin artifact
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: Octopus.TeamCity.${{ needs.build.outputs.version }}
         path: plugin
@@ -151,7 +151,7 @@ jobs:
         fetch-depth: '0'
 
     - name: Download package artifact
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: Octopus.TeamCity.${{ needs.build.outputs.version }}
         path: package
