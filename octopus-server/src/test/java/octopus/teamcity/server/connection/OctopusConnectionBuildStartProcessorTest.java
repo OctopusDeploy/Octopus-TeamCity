@@ -61,12 +61,11 @@ class OctopusConnectionBuildStartProcessorTest {
    * UnfinishedStubbingException caused by nested when() calls.
    */
   private OAuthConnectionDescriptor connectionWith(
-      final String url, final String key, final String version, final String space) {
+      final String url, final String key, final String space) {
     final OAuthConnectionDescriptor descriptor = mock(OAuthConnectionDescriptor.class);
     final Map<String, String> params = new HashMap<>();
     params.put(ConnectionPropertyNames.SERVER_URL, url);
     params.put(ConnectionPropertyNames.API_KEY, key);
-    params.put(ConnectionPropertyNames.VERSION, version);
     if (space != null) {
       params.put(ConnectionPropertyNames.SPACE_NAME, space);
     }
@@ -81,14 +80,13 @@ class OctopusConnectionBuildStartProcessorTest {
     when(runnerContext.getParameters()).thenReturn(properties);
 
     final OAuthConnectionDescriptor descriptor =
-        connectionWith("https://octo", "API-KEY", "3.0+", "Spaces-1");
+        connectionWith("https://octo", "API-KEY", "Spaces-1");
     when(connectionsManager.resolve(project, "PROJECT_EXT_1")).thenReturn(Optional.of(descriptor));
 
     processor.updateParameters(buildStartContext);
 
     verify(runnerContext).addRunnerParameter(CONSTANTS.getServerKey(), "https://octo");
     verify(runnerContext).addRunnerParameter(CONSTANTS.getApiKey(), "API-KEY");
-    verify(runnerContext).addRunnerParameter(CONSTANTS.getOctopusVersion(), "3.0+");
     verify(runnerContext).addRunnerParameter(CONSTANTS.getSpaceName(), "Spaces-1");
   }
 
@@ -100,7 +98,7 @@ class OctopusConnectionBuildStartProcessorTest {
     when(runnerContext.getParameters()).thenReturn(properties);
 
     final OAuthConnectionDescriptor descriptor =
-        connectionWith("https://octo", "API-KEY", "3.0+", "ConnSpace");
+        connectionWith("https://octo", "API-KEY", "ConnSpace");
     when(connectionsManager.resolve(project, "PROJECT_EXT_1")).thenReturn(Optional.of(descriptor));
 
     processor.updateParameters(buildStartContext);
@@ -153,7 +151,6 @@ class OctopusConnectionBuildStartProcessorTest {
     final OAuthConnectionDescriptor descriptor = mock(OAuthConnectionDescriptor.class);
     final Map<String, String> params = new HashMap<>();
     params.put(ConnectionPropertyNames.SERVER_URL, "https://octo");
-    params.put(ConnectionPropertyNames.VERSION, "3.0+");
     params.put(
         ConnectionPropertyNames.API_KEY_SOURCE, ConnectionPropertyNames.API_KEY_SOURCE_PARAMETER);
     params.put(ConnectionPropertyNames.API_KEY_PARAMETER, reference);
@@ -165,7 +162,6 @@ class OctopusConnectionBuildStartProcessorTest {
     final OAuthConnectionDescriptor descriptor = mock(OAuthConnectionDescriptor.class);
     final Map<String, String> params = new HashMap<>();
     params.put(ConnectionPropertyNames.SERVER_URL, "https://octo");
-    params.put(ConnectionPropertyNames.VERSION, "3.0+");
     params.put(ConnectionPropertyNames.API_KEY_SOURCE, ConnectionPropertyNames.API_KEY_SOURCE_OIDC);
     params.put(ConnectionPropertyNames.OIDC_CONNECTION_ID, oidcConnectorId);
     when(descriptor.getParameters()).thenReturn(params);

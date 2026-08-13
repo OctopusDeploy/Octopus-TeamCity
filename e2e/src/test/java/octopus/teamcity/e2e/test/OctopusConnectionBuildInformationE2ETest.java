@@ -44,7 +44,6 @@ class OctopusConnectionBuildInformationE2ETest {
               "IT Octopus",
               stack.octopusUrlForContainers(),
               stack.octopusApiKey(),
-              "3.0+",
               "");
       tc.createBuildType("ConnIT_BuildInfo", "Publish build info", "ConnIT");
       tc.addBuildInfoStepUsingConnection(

@@ -56,7 +56,6 @@ public class OctopusConnection extends OAuthProvider {
   @Override
   public Map<String, String> getDefaultProperties() {
     final Map<String, String> defaults = new LinkedHashMap<>();
-    defaults.put(ConnectionPropertyNames.VERSION, "3.0+");
     defaults.put(
         ConnectionPropertyNames.API_KEY_SOURCE, ConnectionPropertyNames.API_KEY_SOURCE_KEY);
     return defaults;
@@ -67,13 +66,9 @@ public class OctopusConnection extends OAuthProvider {
   public String describeConnection(@NotNull final OAuthConnectionDescriptor connection) {
     final Map<String, String> params = connection.getParameters();
     final String url = params.getOrDefault(ConnectionPropertyNames.SERVER_URL, "(no URL)");
-    final String version = params.getOrDefault(ConnectionPropertyNames.VERSION, "");
     final String space = params.getOrDefault(ConnectionPropertyNames.SPACE_NAME, "");
     // TeamCity renders newlines in a connection description as line breaks on the Connections tab.
     final StringBuilder description = new StringBuilder("Octopus URL: ").append(url);
-    if (!version.isEmpty() && !version.equals("3.0+")) {
-      description.append("\nVersion: ").append(version);
-    }
     if (!space.isEmpty()) {
       description.append("\nSpace Name: ").append(space);
     }

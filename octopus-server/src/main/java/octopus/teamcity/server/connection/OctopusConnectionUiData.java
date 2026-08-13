@@ -57,7 +57,7 @@ public class OctopusConnectionUiData {
 
   /**
    * Connections available to the current user ({@code id}, {@code displayName}, {@code url}, {@code
-   * version}, {@code space}) for the JSP. API key is deliberately not included.
+   * space}) for the JSP. API key is deliberately not included.
    */
   @NotNull
   public static List<Map<String, String>> availableConnections(final HttpServletRequest request) {
@@ -87,7 +87,6 @@ public class OctopusConnectionUiData {
       view.put("id", descriptor.getId());
       view.put("displayName", descriptor.getConnectionDisplayName());
       view.put("url", params.getOrDefault(CONNECTION_KEYS.getServerUrlPropertyName(), ""));
-      view.put("version", params.getOrDefault(CONNECTION_KEYS.getVersionPropertyName(), ""));
       view.put("space", params.getOrDefault(CONNECTION_KEYS.getSpaceNamePropertyName(), ""));
 
       final String apiKeySource =

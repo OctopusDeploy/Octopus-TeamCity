@@ -38,7 +38,6 @@ class OctopusPushPackageE2ETest {
               "IT Octopus",
               stack.octopusUrlForContainers(),
               stack.octopusApiKey(),
-              "3.0+",
               "");
       tc.createBuildType("PushIT_Push", "Pack and push", "PushIT");
       tc.addCommandLineStep(

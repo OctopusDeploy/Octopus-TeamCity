@@ -96,10 +96,6 @@ public class OctopusConnectionBuildStartProcessor implements BuildStartContextPr
           runner,
           CONSTANTS.getServerKey(),
           connParams.get(CONNECTION_KEYS.getServerUrlPropertyName()));
-      setIfPresent(
-          runner,
-          CONSTANTS.getOctopusVersion(),
-          connParams.get(CONNECTION_KEYS.getVersionPropertyName()));
 
       final String source =
           connParams.getOrDefault(

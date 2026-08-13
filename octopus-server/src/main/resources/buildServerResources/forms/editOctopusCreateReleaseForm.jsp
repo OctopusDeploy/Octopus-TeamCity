@@ -7,47 +7,6 @@
 <jsp:useBean id="keys" class="octopus.teamcity.common.OctopusConstants" />
 <jsp:useBean id="propertiesBean" scope="request" type="jetbrains.buildServer.controllers.BasePropertiesBean"/>
 
-<c:set var="selectedOctopusVersion"
-       value="${propertiesBean.properties['octopus_version']}"/>
-
-<script type="text/javascript">
-  (function () {
-    function getOctopusEffectiveVersion() {
-      const connectionId = window.octopusSelectedConnectionId ? window.octopusSelectedConnectionId() : "";
-      if (connectionId && window.octopusConnectionVersion) {
-        const version = window.octopusConnectionVersion(connectionId);
-        if (version) { return version; }
-      }
-      return document.getElementById("${keys.octopusVersion}").value;
-    }
-
-    function showHideGitRefField() {
-        const gitRefRow  = document.getElementById("gitRefRow");
-        const gitCommitRow  = document.getElementById("gitCommitRow");
-        const versionSelected = getOctopusEffectiveVersion();
-        let gitProjectsAreSupported = versionSelected === "${keys.version3}" || versionSelected === "${keys.previewVersion}";
-        if (gitProjectsAreSupported) {
-            gitRefRow.style.display = "table-row";
-            gitCommitRow.style.display = "table-row";
-        } else {
-            gitRefRow.style.display = "none";
-            gitCommitRow.style.display = "none";
-            document.getElementById("${keys.gitRefKey}").value = null
-            document.getElementById("${keys.gitCommitKey}").value = null
-        }
-    }
-
-    $j(document).ready(function () {
-        document.getElementById("${keys.octopusVersion}").addEventListener("change", showHideGitRefField);
-        var octoConnSelect = document.getElementById("octopusConnectionId");
-        if (octoConnSelect) {
-            octoConnSelect.addEventListener("change", showHideGitRefField);
-        }
-        showHideGitRefField();
-    });
-  })();
-</script>
-
 <l:settingsGroup title="Octopus Connection">
   <jsp:include page="../connectionSelector.jsp"/>
 <tr class="octopusInlineConnectionField">
@@ -66,25 +25,6 @@
     <span class="smallNote">Specify Octopus API key. You can get this from your user page in the Octopus web portal.
       You can also reference a build parameter here, e.g. <code>%octopus.apikey%</code>.</span>
   </td>
-</tr>
-<tr class="octopusInlineConnectionField">
-    <th>Octopus version:<l:star/></th>
-    <td>
-        <props:selectProperty name="${keys.octopusVersion}" multiple="false">
-            <c:set var="selected" value="false"/>
-            <c:forEach var="version" items="${keys.octopusVersions}">
-                <c:set var="selected" value="false"/>
-                <c:if test="${selectedOctopusVersion == version}">
-                    <c:set var="selected" value="true"/>
-                </c:if>
-                <props:option value="${version}"
-                              selected="${selected}"><c:out value="${version}"/></props:option>
-            </c:forEach>
-        </props:selectProperty>
-
-        <span class="error" id="error_${keys.octopusVersion}"></span>
-        <span class="smallNote">Which version of the Octopus Deploy server are you using?</span>
-    </td>
 </tr>
 <tr>
   <th>Space name:</th>

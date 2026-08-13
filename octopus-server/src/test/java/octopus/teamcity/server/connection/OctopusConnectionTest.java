@@ -30,12 +30,6 @@ class OctopusConnectionTest {
   }
 
   @Test
-  void defaultPropertiesSeedTheVersion() {
-    assertThat(provider.getDefaultProperties())
-        .containsEntry(ConnectionPropertyNames.VERSION, "3.0+");
-  }
-
-  @Test
   void defaultPropertiesSelectKeySource() {
     final OctopusConnection connection = new OctopusConnection(mock(PluginDescriptor.class));
     assertThat(connection.getDefaultProperties())
@@ -44,30 +38,19 @@ class OctopusConnectionTest {
   }
 
   @Test
-  void describeConnectionOmitsTheDefaultVersion() {
+  void describeConnectionOmitsAnyStoredVersion() {
     final Map<String, String> params = new HashMap<>();
     params.put(ConnectionPropertyNames.SERVER_URL, "https://octopus.example.com");
-    params.put(ConnectionPropertyNames.VERSION, "3.0+");
+    params.put(ConnectionPropertyNames.VERSION, "2019.1");
 
     assertThat(provider.describeConnection(descriptorWith(params)))
         .isEqualTo("Octopus URL: https://octopus.example.com");
   }
 
   @Test
-  void describeConnectionShowsTheVersionOnItsOwnLineWhenNotTheDefault() {
-    final Map<String, String> params = new HashMap<>();
-    params.put(ConnectionPropertyNames.SERVER_URL, "https://octopus.example.com");
-    params.put(ConnectionPropertyNames.VERSION, "2019.1");
-
-    assertThat(provider.describeConnection(descriptorWith(params)))
-        .isEqualTo("Octopus URL: https://octopus.example.com\nVersion: 2019.1");
-  }
-
-  @Test
   void describeConnectionIncludesSpaceOnItsOwnLineWhenSet() {
     final Map<String, String> params = new HashMap<>();
     params.put(ConnectionPropertyNames.SERVER_URL, "https://octopus.example.com");
-    params.put(ConnectionPropertyNames.VERSION, "3.0+");
     params.put(ConnectionPropertyNames.SPACE_NAME, "My Space");
 
     assertThat(provider.describeConnection(descriptorWith(params)))

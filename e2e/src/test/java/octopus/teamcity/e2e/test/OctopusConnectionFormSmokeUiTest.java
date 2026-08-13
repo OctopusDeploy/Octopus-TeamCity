@@ -35,7 +35,6 @@ class OctopusConnectionFormSmokeUiTest {
           "Smoke Connection",
           "https://octopus.example.com",
           "API-EXAMPLEKEY0000000000000",
-          "3.0+",
           "");
       tc.createBuildType("FormIT_Steps", "Steps", "FormIT");
 

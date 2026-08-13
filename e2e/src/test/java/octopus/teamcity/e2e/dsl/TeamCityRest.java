@@ -114,7 +114,6 @@ public final class TeamCityRest {
       final String displayName,
       final String octopusUrl,
       final String apiKey,
-      final String version,
       final String space)
       throws Exception {
     final String json =
@@ -123,7 +122,6 @@ public final class TeamCityRest {
             createProp("displayName", displayName),
             createProp("octopus_host", octopusUrl),
             createProp("secure:octopus_apikey", apiKey),
-            createProp("octopus_version", version),
             createProp("octopus_space_name", space));
     final Http.Response resp =
         send(
@@ -143,7 +141,6 @@ public final class TeamCityRest {
       final String displayName,
       final String octopusUrl,
       final String apiKeyParameterRef,
-      final String version,
       final String space)
       throws Exception {
     final String json =
@@ -153,7 +150,6 @@ public final class TeamCityRest {
             createProp("octopus_host", octopusUrl),
             createProp("octopus_apikey_source", "parameter"),
             createProp("octopus_apikey_parameter", apiKeyParameterRef),
-            createProp("octopus_version", version),
             createProp("octopus_space_name", space));
     final Http.Response resp =
         send(
@@ -325,7 +321,6 @@ public final class TeamCityRest {
         createStepFeatureJson(
             "Pack",
             "octopus.pack.package",
-            createProp("octopus_version", "3.0+"),
             createProp("octopus_packageid", packageId),
             createProp("octopus_packageformat", packageFormat),
             createProp("octopus_packageversion", packageVersion),
@@ -373,7 +368,6 @@ public final class TeamCityRest {
             "octopus.metadata",
             createProp("octopus_host", octopusUrl),
             createProp("secure:octopus_apikey", apiKey),
-            createProp("octopus_version", "3.0+"),
             createProp("octopus_packageid", packageId),
             createProp("octopus_packageversion", packageVersion));
     send(

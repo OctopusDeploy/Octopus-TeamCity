@@ -22,8 +22,9 @@ import octopus.teamcity.common.OctopusConstants;
 
 /**
  * Removes a build step's inline Octopus credential parameters when the step references a reusable
- * connection. The connection supplies the server URL, API key, and version; keeping these old
- * inline values leaves stale credentials behind.
+ * connection. The connection supplies the server URL and API key; keeping these old inline values
+ * leaves stale credentials behind. The no-longer-configurable Octopus version is stripped too, so
+ * steps saved before it was removed stop carrying it.
  */
 public final class ConnectionInlineFieldCleaner {
   private static final OctopusConstants CONSTANTS = new OctopusConstants();
