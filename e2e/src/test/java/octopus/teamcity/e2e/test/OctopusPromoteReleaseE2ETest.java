@@ -54,11 +54,7 @@ class OctopusPromoteReleaseE2ETest {
       tc.createProject("PromIT", "Promote IT");
       final String connectionId =
           tc.createOctopusConnection(
-              "PromIT",
-              "IT Octopus",
-              stack.octopusUrlForContainers(),
-              stack.octopusApiKey(),
-              "");
+              "PromIT", "IT Octopus", stack.octopusUrlForContainers(), stack.octopusApiKey(), "");
       tc.createBuildType("PromIT_Promote", "Create, deploy and promote", "PromIT");
       tc.addCreateReleaseStepUsingConnection(
           "PromIT_Promote", connectionId, OCTOPUS_PROJECT, RELEASE_VERSION);

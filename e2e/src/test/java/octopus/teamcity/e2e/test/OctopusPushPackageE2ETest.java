@@ -34,11 +34,7 @@ class OctopusPushPackageE2ETest {
       tc.createProject("PushIT", "Push IT");
       final String connectionId =
           tc.createOctopusConnection(
-              "PushIT",
-              "IT Octopus",
-              stack.octopusUrlForContainers(),
-              stack.octopusApiKey(),
-              "");
+              "PushIT", "IT Octopus", stack.octopusUrlForContainers(), stack.octopusApiKey(), "");
       tc.createBuildType("PushIT_Push", "Pack and push", "PushIT");
       tc.addCommandLineStep(
           "PushIT_Push", "Create source", "mkdir -p topack && printf 'hi' > topack/readme.txt");
