@@ -34,6 +34,13 @@ class OctopusConnectionPropertiesProcessorTest {
   }
 
   @Test
+  void versionStoredByAnOlderPluginIsAccepted() {
+    final Map<String, String> properties = validProps();
+    properties.put(ConnectionPropertyNames.VERSION, "banana");
+    assertThat(processor.process(properties)).isEmpty();
+  }
+
+  @Test
   void missingServerUrlIsInvalid() {
     final Map<String, String> properties = validProps();
     properties.remove(ConnectionPropertyNames.SERVER_URL);
