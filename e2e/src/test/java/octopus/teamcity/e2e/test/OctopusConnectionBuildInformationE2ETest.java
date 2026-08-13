@@ -40,11 +40,7 @@ class OctopusConnectionBuildInformationE2ETest {
       tc.createProject("ConnIT", "Connection IT");
       final String connectionId =
           tc.createOctopusConnection(
-              "ConnIT",
-              "IT Octopus",
-              stack.octopusUrlForContainers(),
-              stack.octopusApiKey(),
-              "");
+              "ConnIT", "IT Octopus", stack.octopusUrlForContainers(), stack.octopusApiKey(), "");
       tc.createBuildType("ConnIT_BuildInfo", "Publish build info", "ConnIT");
       tc.addBuildInfoStepUsingConnection(
           "ConnIT_BuildInfo", connectionId, PACKAGE_ID, PACKAGE_VERSION);
