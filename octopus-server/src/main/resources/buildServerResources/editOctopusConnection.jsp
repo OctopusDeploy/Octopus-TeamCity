@@ -19,9 +19,7 @@
   ~ specific language governing permissions and limitations under the License.
   --%>
 <jsp:useBean id="keys" class="octopus.teamcity.common.connection.ConnectionPropertyNames"/>
-<jsp:useBean id="versionKeys" class="octopus.teamcity.common.OctopusConstants"/>
 <jsp:useBean id="propertiesBean" scope="request" type="jetbrains.buildServer.controllers.BasePropertiesBean"/>
-<c:set var="selectedOctopusVersion" value="${propertiesBean.properties[keys.versionPropertyName]}"/>
 <c:set var="selectedApiKeySource" value="${empty propertiesBean.properties[keys.apiKeySourcePropertyName] ? 'key' : propertiesBean.properties[keys.apiKeySourcePropertyName]}"/>
 <%
   pageContext.setAttribute("oidcConnectors", OctopusOidcConnectorsUiData.availableConnectors(request));
@@ -93,22 +91,6 @@
     </td>
   </tr>
 </c:if>
-<tr>
-  <th>Octopus version:<l:star/></th>
-  <td>
-    <props:selectProperty name="${keys.versionPropertyName}" multiple="false">
-      <c:forEach var="version" items="${versionKeys.octopusVersions}">
-        <c:set var="selected" value="false"/>
-        <c:if test="${selectedOctopusVersion == version}">
-          <c:set var="selected" value="true"/>
-        </c:if>
-        <props:option value="${version}" selected="${selected}"><c:out value="${version}"/></props:option>
-      </c:forEach>
-    </props:selectProperty>
-    <span class="error" id="error_${keys.versionPropertyName}"></span>
-    <span class="smallNote">Which version of the Octopus Deploy server are you using?</span>
-  </td>
-</tr>
 <tr>
   <th>Space name:</th>
   <td>

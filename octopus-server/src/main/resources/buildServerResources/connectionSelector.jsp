@@ -22,13 +22,12 @@
     </props:selectProperty>
     <%-- Connection metadata exposed as HTML-escaped data attributes. JS reads these from the
          DOM rather than from server-interpolated JS string literals, so admin-entered space
-         names / versions cannot break or inject script. --%>
+         names cannot break or inject script. --%>
     <span id="octopusConnectionMeta" style="display:none;">
       <c:forEach var="conn" items="${octopusConnections}">
         <span class="octopusConnMeta"
               data-conn-id="<c:out value='${conn.id}'/>"
               data-conn-space="<c:out value='${conn.space}'/>"
-              data-conn-version="<c:out value='${conn.version}'/>"
               data-conn-oidc-warning="<c:out value='${conn.oidcWarning}'/>"
               data-conn-oidc-expected-var="<c:out value='${conn.oidcExpectedTokenVariable}'/>"></span>
       </c:forEach>
@@ -129,15 +128,5 @@
         updateOctopusOidcWarning();
       }
     });
-
-    // Exposed so step-specific scripts (e.g. Create release git-ref) can react.
-    window.octopusSelectedConnectionId = function () {
-      const s = document.getElementById("octopusConnectionId");
-      return s ? s.value : "";
-    };
-    window.octopusConnectionVersion = function (connId) {
-      const meta = getOctopusConnectionMetadataFor(connId);
-      return meta ? meta.getAttribute("data-conn-version") : "";
-    };
   })();
 </script>

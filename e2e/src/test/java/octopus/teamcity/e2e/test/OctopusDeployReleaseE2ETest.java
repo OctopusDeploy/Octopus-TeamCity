@@ -56,7 +56,6 @@ class OctopusDeployReleaseE2ETest {
               "IT Octopus",
               stack.octopusUrlForContainers(),
               stack.octopusApiKey(),
-              "3.0+",
               "");
       tc.createBuildType("DepIT_Deploy", "Create and deploy", "DepIT");
       tc.addCreateReleaseStepUsingConnection(

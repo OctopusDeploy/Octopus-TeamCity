@@ -40,7 +40,6 @@ class OctopusConnectionInheritanceE2ETest {
               "Parent Octopus",
               stack.octopusUrlForContainers(),
               stack.octopusApiKey(),
-              "3.0+",
               "");
       // ...and is consumed by a build config in a CHILD project.
       tc.createProject("InhChild", "Inheritance child", "InhParent");

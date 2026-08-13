@@ -38,17 +38,12 @@ class OctopusConnectionUiDataTest {
   }
 
   private OAuthConnectionDescriptor connection(
-      final String id,
-      final String name,
-      final String url,
-      final String version,
-      final String space) {
+      final String id, final String name, final String url, final String space) {
     final OAuthConnectionDescriptor descriptor = mock(OAuthConnectionDescriptor.class);
     when(descriptor.getId()).thenReturn(id);
     when(descriptor.getConnectionDisplayName()).thenReturn(name);
     final Map<String, String> params = new HashMap<>();
     params.put(ConnectionPropertyNames.SERVER_URL, url);
-    params.put(ConnectionPropertyNames.VERSION, version);
     params.put(ConnectionPropertyNames.SPACE_NAME, space);
     when(descriptor.getParameters()).thenReturn(params);
     return descriptor;
@@ -57,7 +52,7 @@ class OctopusConnectionUiDataTest {
   @Test
   void mapsConnectionFieldsForTheView() {
     final OAuthConnectionDescriptor descriptor =
-        connection("PROJECT_EXT_1", "Prod", "https://octo", "3.0+", "Spaces-1");
+        connection("PROJECT_EXT_1", "Prod", "https://octo", "Spaces-1");
     when(connectionsManager.listAvailableConnections(user)).thenReturn(Arrays.asList(descriptor));
 
     final List<Map<String, String>> result = OctopusConnectionUiData.availableConnections(user);
@@ -67,14 +62,13 @@ class OctopusConnectionUiDataTest {
     assertThat(view.get("id")).isEqualTo("PROJECT_EXT_1");
     assertThat(view.get("displayName")).isEqualTo("Prod");
     assertThat(view.get("url")).isEqualTo("https://octo");
-    assertThat(view.get("version")).isEqualTo("3.0+");
     assertThat(view.get("space")).isEqualTo("Spaces-1");
   }
 
   @Test
   void doesNotExposeTheApiKey() {
     final OAuthConnectionDescriptor descriptor =
-        connection("PROJECT_EXT_1", "Prod", "https://octo", "3.0+", "Spaces-1");
+        connection("PROJECT_EXT_1", "Prod", "https://octo", "Spaces-1");
     // Even if the descriptor carried a secret, the view map must not contain it.
     descriptor.getParameters().put(ConnectionPropertyNames.API_KEY, "API-SECRETVALUE");
     when(connectionsManager.listAvailableConnections(user)).thenReturn(Arrays.asList(descriptor));
@@ -211,7 +205,7 @@ class OctopusConnectionUiDataTest {
     when(buildType.getBuildFeaturesOfType(ConnectionPropertyNames.OIDC_BUILD_FEATURE_TYPE))
         .thenReturn(Collections.emptyList());
     final OAuthConnectionDescriptor descriptor =
-        connection("OCT_1", "Prod", "https://octo", "3.0+", "Spaces-1");
+        connection("OCT_1", "Prod", "https://octo", "Spaces-1");
     when(connectionsManager.listAvailableConnections(user)).thenReturn(Arrays.asList(descriptor));
 
     final Map<String, String> view =
