@@ -167,11 +167,13 @@ jobs:
       with:
         packages: 'Octopus.TeamCity'
         version: ${{ needs.build.outputs.version }}
+        overwrite_mode: OverwriteExisting
 
     - name: Push a package to Octopus Deploy 🐙
       uses: OctopusDeploy/push-package-action@v3
       with:
         packages: 'package/${{ needs.build.outputs.package-basename }}'
+        overwrite_mode: OverwriteExisting
 
     - name: Fetch Release Notes
       id: fetch-release-notes
