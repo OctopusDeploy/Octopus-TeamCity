@@ -157,7 +157,7 @@ jobs:
         path: package
 
     - name: Login to Octopus
-      uses: OctopusDeploy/login@v1
+      uses: OctopusDeploy/login@v2
       with:
         server: ${{ secrets.OCTOPUS_SERVER }}
         service_account_id: ${{ vars.OCTOPUS_SERVICE_ACCOUNT }}
