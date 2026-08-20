@@ -438,6 +438,23 @@ class CommandHelperTest {
   }
 
   @Test
+  void createReleaseWithDeployToForwardsTheShortPromptedVariableFormToTheDeployCommand() {
+    // -v is --variable on "release deploy" but --version on "release create". Left on the create
+    // command the CLI rejects the release number: "The release number 'ImageTag:1.5.2' does not
+    // appear to be a valid version number".
+    Map<String, String> params = new HashMap<>();
+    final OctopusConstants constants = OctopusConstants.Instance;
+    params.put(constants.getProjectNameKey(), "MyProject");
+    params.put(constants.getDeployToKey(), "Dev");
+    params.put(constants.getCommandLineArgumentsKey(), "-v ImageTag:1.5.2");
+
+    assertThat(CommandHelper.createRelease(params).buildCommand())
+        .doesNotContain("-v", "ImageTag:1.5.2");
+    assertThat(CommandHelper.deployRelease(params, "1.0.0"))
+        .containsSequence("-v", "ImageTag:1.5.2");
+  }
+
+  @Test
   void createReleaseWithDeployToForwardsPromptedVariablesToTheDeployCommand() {
     Map<String, String> params = new HashMap<>();
     final OctopusConstants constants = OctopusConstants.Instance;
