@@ -67,15 +67,25 @@ public class CommitHistoryFetcher {
   }
 
   public CommitHistory fetch(final Build build, final long buildId) {
+    final List<Commit> commits = new ArrayList<>();
     try {
-      return fetchAllPages(buildId);
+      return fetchAllPages(buildId, commits);
     } catch (Exception ex) {
+      if (!commits.isEmpty()) {
+        logger.warning(
+            "Unable to read the rest of the change list from the TeamCity REST API ("
+                + ex
+                + "). Keeping the "
+                + commits.size()
+                + " commits already read.");
+        return new CommitHistory(commits, truncationWarning(commits.size()));
+      }
       logger.warning(
-          "Unable to read the full change list from the TeamCity REST API ("
+          "Unable to read the change list from the TeamCity REST API ("
               + ex
               + "). Falling back to the first page of changes only.");
-      final List<Commit> commits = toCommits(build.fetchChanges());
-      return new CommitHistory(commits, fallbackWarning(commits.size()));
+      final List<Commit> fallback = toCommits(build.fetchChanges());
+      return new CommitHistory(fallback, fallbackWarning(fallback.size()));
     }
   }
 
@@ -84,13 +94,17 @@ public class CommitHistoryFetcher {
     if (commitCount < TEAMCITY_DEFAULT_PAGE_SIZE) {
       return null;
     }
+    return truncationWarning(commitCount);
+  }
+
+  private static String truncationWarning(final int commitCount) {
     return "The full change list could not be read from TeamCity, so only the first "
-        + TEAMCITY_DEFAULT_PAGE_SIZE
+        + commitCount
         + " commits of this build were included in the build information.";
   }
 
-  private CommitHistory fetchAllPages(final long buildId) throws IOException {
-    final List<Commit> commits = new ArrayList<>();
+  private CommitHistory fetchAllPages(final long buildId, final List<Commit> commits)
+      throws IOException {
     int start = 0;
     while (true) {
       final List<Commit> page = parsePage(requester.get(changesUrl(buildId, start)));
@@ -99,7 +113,8 @@ public class CommitHistoryFetcher {
       if (page.size() < PAGE_SIZE) {
         return new CommitHistory(commits, null);
       }
-      if (commits.size() >= MAX_COMMITS) {
+      // Only a page past the cap proves commits were left out; exactly MAX_COMMITS is complete.
+      if (commits.size() > MAX_COMMITS) {
         return new CommitHistory(
             new ArrayList<>(commits.subList(0, MAX_COMMITS)),
             "Only the first "

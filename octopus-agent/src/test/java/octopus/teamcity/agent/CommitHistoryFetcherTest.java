@@ -78,7 +78,46 @@ class CommitHistoryFetcherTest {
     assertThat(history.getCommits()).hasSize(CommitHistoryFetcher.MAX_COMMITS);
     assertThat(history.getIncompleteDataWarning())
         .contains(String.valueOf(CommitHistoryFetcher.MAX_COMMITS));
-    assertThat(requestedUrls).hasSize(fullPages);
+    assertThat(requestedUrls).hasSize(fullPages + 1);
+  }
+
+  @Test
+  void doesNotReportTruncationWhenTheCommitCountIsExactlyTheCap() {
+    final int fullPages = CommitHistoryFetcher.MAX_COMMITS / CommitHistoryFetcher.PAGE_SIZE;
+    final int[] pageSizes = new int[fullPages + 1];
+    Arrays.fill(pageSizes, CommitHistoryFetcher.PAGE_SIZE);
+    pageSizes[fullPages] = 0;
+
+    final CommitHistory history =
+        fetcherReturningPagesOf(pageSizes).fetch(mock(Build.class), BUILD_ID);
+
+    assertThat(history.getCommits()).hasSize(CommitHistoryFetcher.MAX_COMMITS);
+    assertThat(history.getIncompleteDataWarning()).isNull();
+  }
+
+  @Test
+  void keepsThePagesAlreadyReadWhenALaterPageFails() {
+    final CommitHistoryFetcher fetcher =
+        new CommitHistoryFetcher(
+            SERVER_URL,
+            logger,
+            url -> {
+              final int pageIndex = requestedUrls.size();
+              requestedUrls.add(url);
+              if (pageIndex == 2) {
+                throw new IOException("read timed out");
+              }
+              return changesJson(
+                  pageIndex * CommitHistoryFetcher.PAGE_SIZE, CommitHistoryFetcher.PAGE_SIZE);
+            });
+
+    final CommitHistory history = fetcher.fetch(buildWithChange("abc123", "a change"), BUILD_ID);
+
+    assertThat(history.getCommits()).hasSize(2 * CommitHistoryFetcher.PAGE_SIZE);
+    assertThat(history.getCommits().get(0).Id).isEqualTo("commit-0");
+    assertThat(history.getIncompleteDataWarning())
+        .contains(String.valueOf(2 * CommitHistoryFetcher.PAGE_SIZE));
+    verify(logger).warning(anyString());
   }
 
   @Test
@@ -130,7 +169,7 @@ class CommitHistoryFetcherTest {
 
     assertThat(history.getCommits()).hasSize(CommitHistoryFetcher.TEAMCITY_DEFAULT_PAGE_SIZE);
     assertThat(history.getIncompleteDataWarning())
-        .contains(String.valueOf(CommitHistoryFetcher.TEAMCITY_DEFAULT_PAGE_SIZE));
+        .contains("only the first " + CommitHistoryFetcher.TEAMCITY_DEFAULT_PAGE_SIZE + " commits");
   }
 
   @Test
