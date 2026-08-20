@@ -1,5 +1,15 @@
 # Changelog
 
+## [6.7.1](https://github.com/OctopusDeploy/Octopus-TeamCity/compare/v6.7.0...v6.7.1) (2026-08-20)
+
+
+### Bug Fixes
+
+* --variable silently ignored on Create release steps that do not deploy ([c867e8c](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/c867e8c1ea54f7976fa077037e9e8c8026a1b9a1)), closes [#204](https://github.com/OctopusDeploy/Octopus-TeamCity/issues/204)
+* accept --variable when the deploy target is a legacy --deployTo argument ([aad9e49](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/aad9e49c633d90c47e84d4b30c83a2a2a8764df6))
+* additional command line arguments dropped by argument filtering ([15b5e59](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/15b5e591df2b598dd4df1206401ab7a4786e7c67))
+* keep -v off the release create command ([6859d67](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/6859d670a165b24a4c3f1be57fda7aa0e21d6b19))
+
 ## [6.7.0](https://github.com/OctopusDeploy/Octopus-TeamCity/compare/v6.6.0...v6.7.0) (2026-08-20)
 
 
