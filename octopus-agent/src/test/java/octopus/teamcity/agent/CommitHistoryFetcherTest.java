@@ -2,6 +2,7 @@ package octopus.teamcity.agent;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -25,6 +26,7 @@ class CommitHistoryFetcherTest {
 
   private final BuildProgressLogger logger = mock(BuildProgressLogger.class);
   private final List<String> requestedUrls = new ArrayList<>();
+  private final List<Integer> pauses = new ArrayList<>();
 
   @Test
   void returnsEveryCommitFromASinglePage() {
@@ -98,17 +100,15 @@ class CommitHistoryFetcherTest {
   @Test
   void keepsThePagesAlreadyReadWhenALaterPageFails() {
     final CommitHistoryFetcher fetcher =
-        new CommitHistoryFetcher(
-            SERVER_URL,
-            logger,
+        fetcherWith(
             url -> {
-              final int pageIndex = requestedUrls.size();
               requestedUrls.add(url);
-              if (pageIndex == 2) {
+              if (url.contains(",start:2000&")) {
                 throw new IOException("read timed out");
               }
               return changesJson(
-                  pageIndex * CommitHistoryFetcher.PAGE_SIZE, CommitHistoryFetcher.PAGE_SIZE);
+                  (requestedUrls.size() - 1) * CommitHistoryFetcher.PAGE_SIZE,
+                  CommitHistoryFetcher.PAGE_SIZE);
             });
 
     final CommitHistory history = fetcher.fetch(buildWithChange("abc123", "a change"), BUILD_ID);
@@ -117,15 +117,13 @@ class CommitHistoryFetcherTest {
     assertThat(history.getCommits().get(0).Id).isEqualTo("commit-0");
     assertThat(history.getIncompleteDataWarning())
         .contains(String.valueOf(2 * CommitHistoryFetcher.PAGE_SIZE));
-    verify(logger).warning(anyString());
+    verify(logger, atLeastOnce()).warning(anyString());
   }
 
   @Test
   void mapsChangeVersionToIdAndChangeCommentToComment() {
     final CommitHistoryFetcher fetcher =
-        new CommitHistoryFetcher(
-            SERVER_URL,
-            logger,
+        fetcherWith(
             url -> "{\"count\":1,\"change\":[{\"version\":\"deadbeef\",\"comment\":\"Fix it\"}]}");
 
     final List<Commit> commits = fetcher.fetch(mock(Build.class), BUILD_ID).getCommits();
@@ -138,9 +136,7 @@ class CommitHistoryFetcherTest {
   @Test
   void fallsBackToTheTeamCityClientWhenTheRequestFails() {
     final CommitHistoryFetcher fetcher =
-        new CommitHistoryFetcher(
-            SERVER_URL,
-            logger,
+        fetcherWith(
             url -> {
               throw new IOException("connection refused");
             });
@@ -151,15 +147,13 @@ class CommitHistoryFetcherTest {
     assertThat(history.getCommits().get(0).Id).isEqualTo("abc123");
     assertThat(history.getCommits().get(0).Comment).isEqualTo("a change");
     assertThat(history.getIncompleteDataWarning()).isNull();
-    verify(logger).warning(anyString());
+    verify(logger, atLeastOnce()).warning(anyString());
   }
 
   @Test
   void reportsTruncationWhenTheFallbackHitsTheTeamCityDefaultPageSize() {
     final CommitHistoryFetcher fetcher =
-        new CommitHistoryFetcher(
-            SERVER_URL,
-            logger,
+        fetcherWith(
             url -> {
               throw new IOException("connection refused");
             });
@@ -174,24 +168,64 @@ class CommitHistoryFetcherTest {
 
   @Test
   void fallsBackToTheTeamCityClientWhenTheResponseIsNotValidJson() {
-    final CommitHistoryFetcher fetcher =
-        new CommitHistoryFetcher(SERVER_URL, logger, url -> "<html>not json</html>");
+    final CommitHistoryFetcher fetcher = fetcherWith(url -> "<html>not json</html>");
 
     final CommitHistory history = fetcher.fetch(buildWithChange("abc123", "a change"), BUILD_ID);
 
     assertThat(history.getCommits()).extracting(commit -> commit.Id).containsExactly("abc123");
-    verify(logger).warning(anyString());
+    verify(logger, atLeastOnce()).warning(anyString());
+  }
+
+  @Test
+  void retriesAPageThatFailsAndCarriesOnWhenTheRetrySucceeds() {
+    final CommitHistoryFetcher fetcher =
+        fetcherWith(
+            url -> {
+              requestedUrls.add(url);
+              if (requestedUrls.size() == 1) {
+                throw new IOException("TeamCity responded with HTTP 500 for " + url);
+              }
+              return changesJson(0, 3);
+            });
+
+    final CommitHistory history = fetcher.fetch(mock(Build.class), BUILD_ID);
+
+    assertThat(history.getCommits())
+        .extracting(commit -> commit.Id)
+        .containsExactly("commit-0", "commit-1", "commit-2");
+    assertThat(history.getIncompleteDataWarning()).isNull();
+    assertThat(requestedUrls).hasSize(2);
+    assertThat(pauses).containsExactly(1);
+  }
+
+  @Test
+  void givesUpOnAPageAfterTheAttemptLimit() {
+    final CommitHistoryFetcher fetcher =
+        fetcherWith(
+            url -> {
+              requestedUrls.add(url);
+              throw new IOException("connection refused");
+            });
+
+    fetcher.fetch(buildWithChange("abc123", "a change"), BUILD_ID);
+
+    assertThat(requestedUrls).hasSize(CommitHistoryFetcher.ATTEMPTS_PER_PAGE);
+    assertThat(pauses).containsExactly(1, 2);
   }
 
   private CommitHistoryFetcher fetcherReturningPagesOf(final int... pageSizes) {
-    return new CommitHistoryFetcher(
-        SERVER_URL,
-        logger,
+    return fetcherWith(
         url -> {
           final int pageIndex = requestedUrls.size();
           requestedUrls.add(url);
           return changesJson(pageIndex * CommitHistoryFetcher.PAGE_SIZE, pageSizes[pageIndex]);
         });
+  }
+
+  // Records the backoff instead of sleeping, so the retry tests stay fast.
+  private CommitHistoryFetcher fetcherWith(
+      final CommitHistoryFetcher.ChangePageRequester requester) {
+    return new CommitHistoryFetcher(SERVER_URL, logger, requester, pauses::add);
   }
 
   private static String changesJson(final int firstCommitIndex, final int count) {

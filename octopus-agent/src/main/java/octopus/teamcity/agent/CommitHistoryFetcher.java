@@ -37,6 +37,8 @@ public class CommitHistoryFetcher {
   static final int PAGE_SIZE = 1000;
   static final int MAX_COMMITS = 10000;
   static final int TEAMCITY_DEFAULT_PAGE_SIZE = 100;
+  static final int ATTEMPTS_PER_PAGE = 3;
+  static final long RETRY_DELAY_MILLIS = 1000L;
 
   private static final Gson GSON = new GsonBuilder().create();
 
@@ -44,26 +46,37 @@ public class CommitHistoryFetcher {
     String get(String url) throws IOException;
   }
 
+  interface RetryDelay {
+    void pause(int failedAttempts) throws InterruptedException;
+  }
+
   private final String serverUrl;
   private final BuildProgressLogger logger;
   private final ChangePageRequester requester;
+  private final RetryDelay retryDelay;
 
   public CommitHistoryFetcher(
       final String serverUrl,
       final String accessUser,
       final String accessCode,
       final BuildProgressLogger logger) {
-    this(serverUrl, logger, new BasicAuthRequester(accessUser, accessCode));
+    this(
+        serverUrl,
+        logger,
+        new BasicAuthRequester(accessUser, accessCode),
+        failedAttempts -> Thread.sleep(failedAttempts * RETRY_DELAY_MILLIS));
   }
 
   CommitHistoryFetcher(
       final String serverUrl,
       final BuildProgressLogger logger,
-      final ChangePageRequester requester) {
+      final ChangePageRequester requester,
+      final RetryDelay retryDelay) {
     this.serverUrl =
         serverUrl.endsWith("/") ? serverUrl.substring(0, serverUrl.length() - 1) : serverUrl;
     this.logger = logger;
     this.requester = requester;
+    this.retryDelay = retryDelay;
   }
 
   public CommitHistory fetch(final Build build, final long buildId) {
@@ -107,7 +120,7 @@ public class CommitHistoryFetcher {
       throws IOException {
     int start = 0;
     while (true) {
-      final List<Commit> page = parsePage(requester.get(changesUrl(buildId, start)));
+      final List<Commit> page = parsePage(getWithRetries(changesUrl(buildId, start)));
       commits.addAll(page);
 
       if (page.size() < PAGE_SIZE) {
@@ -122,6 +135,40 @@ public class CommitHistoryFetcher {
                 + " commits of this build were included in the build information.");
       }
       start += PAGE_SIZE;
+    }
+  }
+
+  // A page can fail on a transient 500 or a read timeout, so give each one a few attempts before
+  // settling for whatever has been read so far.
+  private String getWithRetries(final String url) throws IOException {
+    IOException lastFailure = null;
+    for (int attempt = 1; attempt <= ATTEMPTS_PER_PAGE; attempt++) {
+      try {
+        return requester.get(url);
+      } catch (IOException ex) {
+        lastFailure = ex;
+        if (attempt < ATTEMPTS_PER_PAGE) {
+          logger.warning(
+              "Reading a page of changes from the TeamCity REST API failed ("
+                  + ex
+                  + "). Retrying, attempt "
+                  + (attempt + 1)
+                  + " of "
+                  + ATTEMPTS_PER_PAGE
+                  + ".");
+          pauseBeforeRetry(attempt);
+        }
+      }
+    }
+    throw lastFailure;
+  }
+
+  private void pauseBeforeRetry(final int failedAttempts) throws IOException {
+    try {
+      retryDelay.pause(failedAttempts);
+    } catch (InterruptedException ex) {
+      Thread.currentThread().interrupt();
+      throw new IOException("Interrupted while waiting to retry the change list request", ex);
     }
   }
 
