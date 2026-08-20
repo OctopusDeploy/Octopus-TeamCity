@@ -24,8 +24,19 @@ import org.apache.commons.lang3.StringUtils;
 
 public class CommandHelper {
 
+  /**
+   * Arguments every command below sets from the step's own fields, so a copy in "Additional command
+   * line arguments" is never additional - it is a second value for a flag that already has one, and
+   * the CLI keeps the last. {@code --output-format} is the dangerous one: these commands are run
+   * for their JSON, which {@link CommandUtils#getReleaseVersion} and {@link
+   * CommandUtils#getServerTaskId} parse, so a user-supplied format silently breaks the step that
+   * consumes the output rather than the step that set it.
+   */
+  private static final Set<String> pluginOwnedArguments =
+      argumentSet("-p", "--project", "-s", "--space", "-f", "--output-format");
+
   static final Set<String> deployReleaseAdditionalArgumentsToBeIgnored =
-      argumentSet(
+      commandArgumentSet(
           "-e",
           "--environment",
           "--tenant",
@@ -47,19 +58,10 @@ public class CommandHelper {
           "--deployment-freeze-name",
           "--deployment-freeze-override-reason");
   static final Set<String> runbookRunAdditionalArgumentsToBeIgnored =
-      argumentSet(
-          "-p",
-          "--project",
-          "-n",
-          "--name",
-          "-e",
-          "--environment",
-          "--tenant",
-          "--tenant-tag",
-          "--snapshot",
-          "--space");
+      commandArgumentSet(
+          "-n", "--name", "-e", "--environment", "--tenant", "--tenant-tag", "--snapshot");
   static final Set<String> createReleaseAdditionalArgumentsToBeIgnored =
-      argumentSet(
+      commandArgumentSet(
           "-c",
           "-r",
           "-x",
@@ -505,6 +507,16 @@ public class CommandHelper {
 
   private static Set<String> argumentSet(final String... args) {
     return Collections.unmodifiableSet(new LinkedHashSet<>(Arrays.asList(args)));
+  }
+
+  /**
+   * The arguments to drop from one command: those belonging to the other command the step runs,
+   * plus the {@link #pluginOwnedArguments} every command sets for itself.
+   */
+  private static Set<String> commandArgumentSet(final String... args) {
+    final Set<String> all = new LinkedHashSet<>(pluginOwnedArguments);
+    all.addAll(Arrays.asList(args));
+    return Collections.unmodifiableSet(all);
   }
 
   private static boolean isIgnored(final String arg, final Set<String> argsToBeIgnored) {
