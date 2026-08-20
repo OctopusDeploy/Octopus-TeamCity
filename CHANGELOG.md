@@ -1,5 +1,19 @@
 # Changelog
 
+## [6.7.0](https://github.com/OctopusDeploy/Octopus-TeamCity/compare/v6.6.0...v6.7.0) (2026-08-20)
+
+
+### Features
+
+* add Run runbook step ([c4a70af](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/c4a70af7257a21ab6e9bb729cee8ab109cd50f40)), closes [#178](https://github.com/OctopusDeploy/Octopus-TeamCity/issues/178)
+
+
+### Bug Fixes
+
+* include every commit in build information ([32e47dc](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/32e47dc9a4b4a7b802d3724b2fced69f49267e34)), closes [#168](https://github.com/OctopusDeploy/Octopus-TeamCity/issues/168)
+* keep the commits already read when a page fails ([a01c22e](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/a01c22e587e1501abf75a3ea51981f2184388c28))
+* retry a page of changes before settling for a partial list ([685382e](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/685382efc657d8e02d90ce7c455b64d04c5f83f9))
+
 ## [6.6.0](https://github.com/OctopusDeploy/Octopus-TeamCity/compare/v6.5.1...v6.6.0) (2026-08-12)
 
 
