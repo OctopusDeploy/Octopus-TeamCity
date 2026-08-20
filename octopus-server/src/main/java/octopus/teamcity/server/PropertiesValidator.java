@@ -30,6 +30,16 @@ public final class PropertiesValidator {
   private static final Pattern VARIABLE_ARGUMENT =
       Pattern.compile("(?:^|\\s)--variable(?:[\\s=]|$)");
 
+  /**
+   * The legacy {@code octo} CLI takes the deploy target as {@code --deployTo} on {@code
+   * create-release}, and its option parser is case insensitive and accepts {@code -}, {@code --}
+   * and {@code /} prefixes. A step that supplies the target that way rather than through the
+   * "Deploy to" field does deploy, so {@code --variable} takes effect and must not be reported as
+   * useless.
+   */
+  private static final Pattern DEPLOY_TO_ARGUMENT =
+      Pattern.compile("(?:^|\\s)(?:--?|/)deployto(?:[\\s=]|$)", Pattern.CASE_INSENSITIVE);
+
   private PropertiesValidator() {}
 
   /**
@@ -67,6 +77,12 @@ public final class PropertiesValidator {
    * a release. Prompted variables are supplied when a release is deployed, so the Octopus CLI
    * accepts the argument on a create-only command and then ignores it, leaving the deployment to
    * fail later with "Please provide a variable for the prompted value".
+   *
+   * <p>A step deploys when "Deploy to" is set, and also when the additional arguments carry the
+   * legacy {@code --deployTo}; only a step that does neither is reported. Which CLI will run is an
+   * agent-side decision, so this cannot be narrowed further here - on the new CLI {@code
+   * --deployTo} is not a {@code release create} argument at all and the step fails with {@code
+   * unknown flag}, which is loud enough to diagnose without help from this check.
    */
   public static void checkPromptedVariablesOnlyWhenDeploying(
       @NotNull final Map<String, String> properties,
@@ -77,6 +93,9 @@ public final class PropertiesValidator {
       return;
     }
     if (!VARIABLE_ARGUMENT.matcher(additionalArguments).find()) {
+      return;
+    }
+    if (DEPLOY_TO_ARGUMENT.matcher(additionalArguments).find()) {
       return;
     }
     if (StringUtil.isEmptyOrSpaces(properties.get(constants.getDeployToKey()))) {

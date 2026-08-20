@@ -87,6 +87,26 @@ class OctopusCreateReleaseRunTypeValidationTest {
   }
 
   @Test
+  void promptedVariableWithLegacyDeployToArgumentIsValid() {
+    // The legacy octo CLI takes the deploy target on create-release, so this step does deploy and
+    // --variable does take effect - verified against octo 9.1.7.
+    assertThat(
+            validate(withAdditionalArguments("--deployTo Development --variable ImageTag:1.5.2")))
+        .doesNotContain(CONSTANTS.getCommandLineArgumentsKey());
+  }
+
+  @Test
+  void promptedVariableWithLegacyDeployToArgumentInAnyFormIsValid() {
+    // octo's option parser is case insensitive and accepts -, -- and / prefixes.
+    for (final String deployTo :
+        new String[] {"--deployto=Development", "-deployTo Development", "/DEPLOYTO Development"}) {
+      assertThat(validate(withAdditionalArguments("--variable ImageTag:1.5.2 " + deployTo)))
+          .as("deploy target supplied as %s", deployTo)
+          .doesNotContain(CONSTANTS.getCommandLineArgumentsKey());
+    }
+  }
+
+  @Test
   void noAdditionalArgumentsIsValid() {
     final Map<String, String> properties = withMandatoryNonCredentialFields(new HashMap<>());
     properties.put(CONSTANTS.getConnectionIdKey(), "PROJECT_EXT_1");
