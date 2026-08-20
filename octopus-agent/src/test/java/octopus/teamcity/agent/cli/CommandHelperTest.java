@@ -8,6 +8,7 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -21,8 +22,47 @@ import octopus.teamcity.agent.OctopusCommandBuilder;
 import octopus.teamcity.common.OctopusConstants;
 import octopus.teamcity.common.connection.ConnectionPropertyNames;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class CommandHelperTest {
+
+  /** Every command sets --project, --space and --output-format from the step's own fields. */
+  private static void assertStepKeepsItsOwnArguments(final String[] command) {
+    final List<String> args = Arrays.asList(command);
+    assertThat(args).containsSequence("--project", "MyProject");
+    assertThat(args).containsSequence("--space", "MySpace");
+    assertThat(args).containsSequence("--output-format", "json");
+    assertThat(Collections.frequency(args, "--project")).isEqualTo(1);
+    assertThat(Collections.frequency(args, "--space")).isEqualTo(1);
+    assertThat(Collections.frequency(args, "--output-format")).isEqualTo(1);
+    assertThat(args).doesNotContain("-p", "-s", "-f", "Other", "table");
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "-f table",
+        "--output-format table",
+        "-p Other",
+        "--project Other",
+        "-s Other",
+        "--space Other"
+      })
+  void commandsDropAdditionalArgumentsTheStepAlreadySetsForItself(
+      final String additionalArguments) {
+    final OctopusConstants constants = OctopusConstants.Instance;
+    final Map<String, String> params = new HashMap<>();
+    params.put(constants.getProjectNameKey(), "MyProject");
+    params.put(constants.getSpaceName(), "MySpace");
+    params.put(constants.getDeployToKey(), "Dev");
+    params.put(constants.getRunbookNameKey(), "MyRunbook");
+    params.put(constants.getCommandLineArgumentsKey(), additionalArguments);
+
+    assertStepKeepsItsOwnArguments(CommandHelper.createRelease(params).buildCommand());
+    assertStepKeepsItsOwnArguments(CommandHelper.deployRelease(params, "1.0.0"));
+    assertStepKeepsItsOwnArguments(CommandHelper.runbookRun(params));
+  }
 
   private void setArtifactsCollections(Object proc, List<ArtifactsCollection> collections)
       throws Exception {
