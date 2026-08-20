@@ -33,6 +33,11 @@ public class CommandHelper {
           "--deploy-at",
           "--deploy-at-expiry",
           "--variable",
+          // -v is --variable on "release deploy" but --version on "release create", so it has to be
+          // stripped from the create command or a prompted variable is silently used as the release
+          // number. The release number has its own field, so losing -v as a create-side alias for
+          // --version is the cheaper side of the ambiguity.
+          "-v",
           "--update-variables",
           "--skip",
           "--guided-failure",
