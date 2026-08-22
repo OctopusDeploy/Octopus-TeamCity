@@ -13,3 +13,7 @@ jobs:
         uses: ytanikin/pr-conventional-commits@639145d78959c53c43112365837e3abd21ed67c1 # 1.5.2
         with:
           task_types: '["feat","fix","docs","test","ci","refactor","perf","chore","revert"]'
+          # Labelling needs a token with write access, which PRs raised by dependabot or from a fork
+          # don't get - the API call fails the job with "Resource not accessible by integration". The
+          # title check itself reads the event payload, so it still runs with labelling switched off.
+          add_label: ${{ github.actor != 'dependabot[bot]' && github.event.pull_request.head.repo.full_name == github.repository }}
