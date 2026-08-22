@@ -137,8 +137,8 @@ messages.
 
 ### Versioning
 The plugin version for a build is computed by [GitVersion](https://gitversion.net) (`GitVersion.yml`,
-`mode: ContinuousDeployment`) and passed to Gradle as `-Pversion=<computed>`: pull-request builds get
-a pre-release version (e.g. `6.3.1-PullRequest0192.31`) and release builds get the tagged version.
+`mode: ContinuousDelivery`) and passed to Gradle as `-Pversion=<computed>`: pull-request builds get
+a pre-release version (e.g. `6.3.1-PullRequest192.31`) and release builds get the tagged version.
 The `version` in `gradle.properties` is the fallback for local builds (`./gradlew distZip` with no
 `-Pversion`).
 
