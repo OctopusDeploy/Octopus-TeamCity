@@ -163,7 +163,7 @@ jobs:
         service_account_id: ${{ vars.OCTOPUS_SERVICE_ACCOUNT }}
 
     - name: Push build information 🐙
-      uses: OctopusDeploy/push-build-information-action@v3
+      uses: OctopusDeploy/push-build-information-action@v4
       with:
         packages: 'Octopus.TeamCity'
         version: ${{ needs.build.outputs.version }}
