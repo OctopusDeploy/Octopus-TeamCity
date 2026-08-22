@@ -48,23 +48,33 @@ jobs:
       uses: gradle/actions/setup-gradle@v4
 
     - name: Install GitVersion
-      uses: gittools/actions/gitversion/setup@v0.9.13
+      uses: gittools/actions/gitversion/setup@v4.7.0
       with:
-        versionSpec: '5.x'
+        # gittools/actions 4.7.x requires GitVersion >=6.2.0 <7.0.0; '5.x' resolves to 5.12.0 and the
+        # setup step rejects it. See https://github.com/GitTools/actions/blob/main/docs/versions.md
+        versionSpec: '6.x'
 
     - name: Call GitVersion
-      uses: gittools/actions/gitversion/execute@v0.9.13
+      uses: gittools/actions/gitversion/execute@v4.7.0
 
     - name: Determine Version
       id: git-version
       run: |
+        # gitversion/execute exports GitVersion_<Property>; v0.9 exported GITVERSION_<PROPERTY>. An
+        # unset name is empty rather than an error, which would build and publish an unversioned
+        # package, so fail here instead if the variables ever move again.
+        if [ -z "${GitVersion_FullSemVer}" ]
+        then
+          echo "::error::GitVersion exported no version - check the variables gitversion/execute sets"
+          exit 1
+        fi
         if [ "${{ github.event_name }}" == "schedule" ]
         then
-          echo "::set-output name=nuGetVersion::${GITVERSION_MAJORMINORPATCH}-nightly-${{ github.run_number }}"
-          echo "Version: ${GITVERSION_MAJORMINORPATCH}-nightly-${{ github.run_number }}"
+          echo "::set-output name=nuGetVersion::${GitVersion_MajorMinorPatch}-nightly-${{ github.run_number }}"
+          echo "Version: ${GitVersion_MajorMinorPatch}-nightly-${{ github.run_number }}"
         else
-          echo "::set-output name=nuGetVersion::${GITVERSION_FULLSEMVER}"
-          echo "Version: ${GITVERSION_FULLSEMVER}"
+          echo "::set-output name=nuGetVersion::${GitVersion_FullSemVer}"
+          echo "Version: ${GitVersion_FullSemVer}"
         fi
 
     - name: Build with gradle
