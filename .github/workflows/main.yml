@@ -50,7 +50,9 @@ jobs:
     - name: Install GitVersion
       uses: gittools/actions/gitversion/setup@v4.7.0
       with:
-        versionSpec: '5.x'
+        # gittools/actions 4.7.x requires GitVersion >=6.2.0 <7.0.0; '5.x' resolves to 5.12.0 and the
+        # setup step rejects it. See https://github.com/GitTools/actions/blob/main/docs/versions.md
+        versionSpec: '6.x'
 
     - name: Call GitVersion
       uses: gittools/actions/gitversion/execute@v4.7.0
@@ -60,9 +62,17 @@ jobs:
       env:
         PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
       run: |
+        # gitversion/execute exports GitVersion_<Property>; v0.9 exported GITVERSION_<PROPERTY>. An
+        # unset name is empty rather than an error, which would build and publish an unversioned
+        # package, so fail here instead if the variables ever move again.
+        if [ -z "${GitVersion_FullSemVer}" ]
+        then
+          echo "::error::GitVersion exported no version - check the variables gitversion/execute sets"
+          exit 1
+        fi
         if [ "${{ github.event_name }}" == "schedule" ]
         then
-          VERSION="${GITVERSION_MAJORMINORPATCH}-nightly-${{ github.run_number }}"
+          VERSION="${GitVersion_MajorMinorPatch}-nightly-${{ github.run_number }}"
         elif [ "${{ github.event_name }}" == "pull_request" ]
         then
           # GitVersion numbers a PR build from the commit count, so amending a commit reuses the
@@ -72,9 +82,9 @@ jobs:
           # numerically, ranking .10 above .5. The `g` prefix, as in `git describe`, keeps the
           # identifier alphanumeric: an all-digit SHA beginning with a zero would be an invalid
           # SemVer numeric identifier.
-          VERSION="${GITVERSION_FULLSEMVER}.g${PR_HEAD_SHA:0:7}"
+          VERSION="${GitVersion_FullSemVer}.g${PR_HEAD_SHA:0:7}"
         else
-          VERSION="${GITVERSION_FULLSEMVER}"
+          VERSION="${GitVersion_FullSemVer}"
         fi
         echo "::set-output name=nuGetVersion::${VERSION}"
         echo "Version: ${VERSION}"
