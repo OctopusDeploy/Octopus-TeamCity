@@ -1,1 +1,8 @@
 mode: ContinuousDelivery
+branches:
+  # Pull-request versions inherit their increment from the source branch, and GitVersion 6
+  # resolves that through the abandoned `develop` branch (Minor) where 5.x resolved it
+  # through `main` (Patch). Pin it so PR versions stay patch pre-releases whatever stale
+  # branches the remote is carrying.
+  pull-request:
+    increment: Patch
