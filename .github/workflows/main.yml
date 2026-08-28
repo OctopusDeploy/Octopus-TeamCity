@@ -207,4 +207,8 @@ jobs:
       with:
         project: 'TeamCity Plugin'
         package_version: ${{ needs.build.outputs.version }}
+        # This step runs on PR builds as well, so a re-run of the same commit reaches it with a
+        # release of that version already created. Overwriting the package is not enough on its
+        # own - without this the job still fails here.
+        ignore_existing: true
         release_notes_file: ${{ steps.fetch-release-notes.outputs.release-note-file }}
