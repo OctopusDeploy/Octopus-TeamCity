@@ -57,15 +57,27 @@ jobs:
 
     - name: Determine Version
       id: git-version
+      env:
+        PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
       run: |
         if [ "${{ github.event_name }}" == "schedule" ]
         then
-          echo "::set-output name=nuGetVersion::${GITVERSION_MAJORMINORPATCH}-nightly-${{ github.run_number }}"
-          echo "Version: ${GITVERSION_MAJORMINORPATCH}-nightly-${{ github.run_number }}"
+          VERSION="${GITVERSION_MAJORMINORPATCH}-nightly-${{ github.run_number }}"
+        elif [ "${{ github.event_name }}" == "pull_request" ]
+        then
+          # GitVersion numbers a PR build from the commit count, so amending a commit reuses the
+          # number and the package collides with the one already in Octopus. Appending the head
+          # SHA gives every commit its own package and records which commit produced it. The
+          # count stays in front so builds still sort in order - Octopus compares that identifier
+          # numerically, ranking .10 above .5. The `g` prefix, as in `git describe`, keeps the
+          # identifier alphanumeric: an all-digit SHA beginning with a zero would be an invalid
+          # SemVer numeric identifier.
+          VERSION="${GITVERSION_FULLSEMVER}.g${PR_HEAD_SHA:0:7}"
         else
-          echo "::set-output name=nuGetVersion::${GITVERSION_FULLSEMVER}"
-          echo "Version: ${GITVERSION_FULLSEMVER}"
+          VERSION="${GITVERSION_FULLSEMVER}"
         fi
+        echo "::set-output name=nuGetVersion::${VERSION}"
+        echo "Version: ${VERSION}"
 
     - name: Build with gradle
       run: ./gradlew build test -Pversion=${{ steps.git-version.outputs.nugetVersion }}
@@ -170,6 +182,9 @@ jobs:
       with:
         packages: 'Octopus.TeamCity'
         version: ${{ needs.build.outputs.version }}
+        # Every version now names the commit it was built from, so the only way to meet an
+        # existing one is to build that same commit again - re-running the workflow, or
+        # re-publishing a release. Replace those artefacts rather than failing the job.
         overwrite_mode: OverwriteExisting
 
     - name: Push a package to Octopus Deploy 🐙
