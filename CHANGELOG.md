@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.7.2](https://github.com/OctopusDeploy/Octopus-TeamCity/compare/v6.7.1...v6.7.2) (2026-08-31)
+
+
+### Bug Fixes
+
+* drop additional command line arguments the step sets for itself ([85831c4](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/85831c4d677af363143076f55bd7596dab58d55d))
+
 ## [6.7.1](https://github.com/OctopusDeploy/Octopus-TeamCity/compare/v6.7.0...v6.7.1) (2026-08-20)
 
 
