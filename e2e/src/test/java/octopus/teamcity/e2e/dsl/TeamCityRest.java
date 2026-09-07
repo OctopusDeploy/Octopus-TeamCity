@@ -398,8 +398,11 @@ public final class TeamCityRest {
         json);
   }
 
-  /** Adds a Create release (octopus.create.release) step referencing a connection. */
-  public void addCreateReleaseStepUsingConnection(
+  /**
+   * Adds a Create release (octopus.create.release) step referencing a connection. Returns the
+   * generated runner id (e.g. {@code RUNNER_1}).
+   */
+  public String addCreateReleaseStepUsingConnection(
       final String buildTypeId,
       final String connectionId,
       final String projectName,
@@ -412,11 +415,13 @@ public final class TeamCityRest {
             createProp("octopus_connection_id", connectionId),
             createProp("octopus_project_name", projectName),
             createProp("octopus_releasenumber", releaseNumber));
-    send(
-        "POST",
-        "/httpAuth/app/rest/buildTypes/" + buildTypeId + "/steps",
-        "application/json",
-        json);
+    final Http.Response resp =
+        send(
+            "POST",
+            "/httpAuth/app/rest/buildTypes/" + buildTypeId + "/steps",
+            "application/json",
+            json);
+    return jsonField(resp.body(), "id");
   }
 
   /**
@@ -535,6 +540,20 @@ public final class TeamCityRest {
       TimeUnit.SECONDS.sleep(5);
     }
     throw new IllegalStateException("Build " + buildId + " did not finish within " + timeout);
+  }
+
+  /** Lists a build's hidden artifacts (those under {@code .teamcity}) at the given path. */
+  public String listHiddenBuildArtifacts(final String buildId, final String path) throws Exception {
+    return send(
+            "GET",
+            "/httpAuth/app/rest/builds/id:"
+                + buildId
+                + "/artifacts/children/"
+                + path
+                + "?locator=hidden:true",
+            null,
+            null)
+        .body();
   }
 
   public String downloadBuildLog(final String buildId) throws Exception {
