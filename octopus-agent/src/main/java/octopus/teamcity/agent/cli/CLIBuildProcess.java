@@ -229,6 +229,14 @@ public abstract class CLIBuildProcess implements BuildProcess {
                     processExitCode, outputBuilder.toString());
               });
 
+      if (command.isOptional() && result.getExitCode() != 0) {
+        logger.warning(
+            "Command exited with code "
+                + result.getExitCode()
+                + ". It only gathers extra detail, so the step carries on without it.");
+        return;
+      }
+
       exitCode = result.getExitCode();
       processOutput(result.getCombinedOutput(), exitCode);
 

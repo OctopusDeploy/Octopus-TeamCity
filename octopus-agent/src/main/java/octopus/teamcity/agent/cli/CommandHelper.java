@@ -225,6 +225,31 @@ public class CommandHelper {
     };
   }
 
+  /**
+   * Looks up the space the step is configured against, whose id the portal address of anything the
+   * step creates is built from. It is only ever run for that detail, so it is optional - a step
+   * that cannot read its space still creates its release.
+   */
+  public static OctopusCommandBuilder spaceView(Map<String, String> params) {
+    final OctopusConstants constants = OctopusConstants.Instance;
+    return new OctopusCommandBuilder() {
+      @Override
+      public boolean isOptional() {
+        return true;
+      }
+
+      @Override
+      protected String[] buildCommand(boolean masked) {
+        String spaceName = params.get(constants.getSpaceName());
+        if (StringUtils.isBlank(spaceName)) {
+          spaceName = defaultSpace;
+        }
+
+        return new String[] {"space", "view", spaceName, "--output-format", "json", "--no-prompt"};
+      }
+    };
+  }
+
   public static OctopusCommandBuilder createRelease(Map<String, String> parameters) {
     final OctopusConstants constants = OctopusConstants.Instance;
     return new OctopusCommandBuilder() {
