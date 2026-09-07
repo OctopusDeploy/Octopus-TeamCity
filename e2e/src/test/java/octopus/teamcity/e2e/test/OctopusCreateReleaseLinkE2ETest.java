@@ -13,6 +13,7 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 
+import octopus.teamcity.common.ReleaseSummary;
 import octopus.teamcity.e2e.dsl.OctopusProvisioning;
 import octopus.teamcity.e2e.dsl.OctopusTeamCityStack;
 import octopus.teamcity.e2e.dsl.SharedStack;
@@ -24,7 +25,9 @@ import org.junit.jupiter.api.Test;
  * to the release, and later steps can read that link out of a build parameter.
  *
  * <p>The link is asserted against the release's own {@code Links.Web} as Octopus reports it, so the
- * test fails if the plugin ever invents an address of its own.
+ * test fails if the plugin ever invents an address of its own. The summary the build overview is
+ * later rendered from has to be published too; {@link OctopusReleaseLinkUiTest} covers the page
+ * itself.
  */
 class OctopusCreateReleaseLinkE2ETest {
 
@@ -59,8 +62,9 @@ class OctopusCreateReleaseLinkE2ETest {
       // Declared empty so a later step can reference them; the step fills them in as it runs.
       tc.setParameter("RelLinkIT_Create", "octopus.release.url", "");
       tc.setParameter("RelLinkIT_Create", "octopus.release.number", "");
-      tc.addCreateReleaseStepUsingConnection(
-          "RelLinkIT_Create", connectionId, OCTOPUS_PROJECT, RELEASE_VERSION);
+      final String createReleaseStepId =
+          tc.addCreateReleaseStepUsingConnection(
+              "RelLinkIT_Create", connectionId, OCTOPUS_PROJECT, RELEASE_VERSION);
       tc.addCommandLineStep(
           "RelLinkIT_Create",
           "Read the release back",
@@ -99,6 +103,13 @@ class OctopusCreateReleaseLinkE2ETest {
           .withFailMessage("Later steps could not read the release back. Log:\n%s", log)
           .contains("READ_BACK_URL=" + expectedLink)
           .contains("READ_BACK_VERSION=" + RELEASE_VERSION);
+
+      // The summary the build overview is rendered from (see OctopusReleaseLinkUiTest).
+      final String hiddenArtifacts =
+          tc.listHiddenBuildArtifacts(buildId, ReleaseSummary.ARTIFACT_DIRECTORY);
+      assertThat(hiddenArtifacts)
+          .withFailMessage("Release summary was not published. Artifacts:\n%s", hiddenArtifacts)
+          .contains(ReleaseSummary.artifactNameFor(createReleaseStepId));
       assertThat(log).doesNotContain(stack.octopusApiKey());
     }
   }
