@@ -71,6 +71,13 @@ Tests build everything programmatically — there's no project export to maintai
 Use **unique** TeamCity ids and Octopus project/environment names per test — the stack is shared, so
 clashing names will collide.
 
+Octopus's free tier caps how many projects may exist at once (five, at the time of writing), and the
+suite is already close to it: creating one project per test fails the *next* test to provision with
+`This would exceed the limits of your current license`. A test that just needs somewhere to make a
+release should therefore share a project with `OctopusProvisioning.ensureProjectWithServerScriptStep`
+(whichever test runs first creates it) and keep its own release **version** unique, rather than
+spending a project slot.
+
 ## OIDC plugin dependency
 
 The OIDC api-key source depends on the separate **teamcity-oidc-plugin** (it provides the

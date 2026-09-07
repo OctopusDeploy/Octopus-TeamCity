@@ -32,8 +32,8 @@ import org.junit.jupiter.api.Test;
  */
 class OctopusReleaseLinkUiTest {
 
-  private static final String OCTOPUS_PROJECT = "ReleaseLinkUiIT";
-  private static final String RELEASE_VERSION = "1.0.0";
+  private static final String OCTOPUS_PROJECT = "ReleaseLinkIT";
+  private static final String RELEASE_VERSION = "2.0.0";
 
   @Test
   void buildOverviewLinksToTheReleaseTheBuildCreated() throws Exception {
@@ -41,7 +41,7 @@ class OctopusReleaseLinkUiTest {
       final OctopusClient client = stack.octopusClient();
       final SpaceHome spaceHome = stack.spaceHome(client);
 
-      OctopusProvisioning.createProjectWithServerScriptStep(
+      OctopusProvisioning.ensureProjectWithServerScriptStep(
           client,
           spaceHome,
           stack.octopusUrlForHost(),
