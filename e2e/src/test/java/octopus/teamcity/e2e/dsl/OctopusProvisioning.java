@@ -42,6 +42,27 @@ public final class OctopusProvisioning {
    * (as the deployment process below also is). Pass an empty list for a project whose releases are
    * only created, never deployed.
    */
+  /**
+   * The same, for a project tests are willing to share. Octopus's free tier caps how many projects
+   * may exist at once, so tests that only need somewhere to make a release should share one rather
+   * than each spending a slot; whichever test runs first creates it.
+   */
+  public static void ensureProjectWithServerScriptStep(
+      final OctopusClient client,
+      final SpaceHome spaceHome,
+      final String octopusBaseUrl,
+      final String apiKey,
+      final String projectName,
+      final List<String> deployableEnvironmentIds)
+      throws Exception {
+    if (ProjectApi.create(client, spaceHome).getByName(projectName).isPresent()) {
+      return;
+    }
+
+    createProjectWithServerScriptStep(
+        client, spaceHome, octopusBaseUrl, apiKey, projectName, deployableEnvironmentIds);
+  }
+
   public static void createProjectWithServerScriptStep(
       final OctopusClient client,
       final SpaceHome spaceHome,

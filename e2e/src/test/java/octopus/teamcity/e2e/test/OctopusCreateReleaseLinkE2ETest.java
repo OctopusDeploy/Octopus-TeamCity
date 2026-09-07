@@ -31,7 +31,7 @@ import org.junit.jupiter.api.Test;
  */
 class OctopusCreateReleaseLinkE2ETest {
 
-  private static final String OCTOPUS_PROJECT = "CreateReleaseLinkIT";
+  private static final String OCTOPUS_PROJECT = "ReleaseLinkIT";
   private static final String RELEASE_VERSION = "1.0.0";
 
   @Test
@@ -40,7 +40,7 @@ class OctopusCreateReleaseLinkE2ETest {
       final OctopusClient client = stack.octopusClient();
       final SpaceHome spaceHome = stack.spaceHome(client);
 
-      OctopusProvisioning.createProjectWithServerScriptStep(
+      OctopusProvisioning.ensureProjectWithServerScriptStep(
           client,
           spaceHome,
           stack.octopusUrlForHost(),
