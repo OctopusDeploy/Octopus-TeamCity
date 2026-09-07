@@ -14,6 +14,50 @@ class CommandUtilsTest {
   }
 
   @Test
+  void parsesReleaseIdFromJson() {
+    String jsonOutput = "{\"ID\": \"Releases-14\", \"Version\": \"1.0.0\"}";
+    assertThat(CommandUtils.getReleaseId(jsonOutput)).isEqualTo("Releases-14");
+  }
+
+  @Test
+  void parsesSpaceIdFromJson() {
+    String jsonOutput = "{\"Id\": \"Spaces-162\", \"Name\": \"Build Platform\"}";
+    assertThat(CommandUtils.getSpaceId(jsonOutput)).isEqualTo("Spaces-162");
+  }
+
+  @Test
+  void isSpaceViewReturnsTrueForASpacesOwnResponse() {
+    String jsonOutput =
+        "{\"Id\": \"Spaces-162\", \"Name\": \"Build Platform\", \"Description\": \"\","
+            + " \"TaskQueue\": \"Running\", \"WebUrl\": \"https://my.octopus.app/app#/configuration/spaces/Spaces-162\"}";
+    assertThat(CommandUtils.isSpaceViewCommand(jsonOutput)).isTrue();
+  }
+
+  @Test
+  void isSpaceViewReturnsFalseForAReleaseWhoseNotesMentionATaskQueue() {
+    String jsonOutput =
+        "{\"ID\": \"Releases-14\", \"Version\": \"1.0.0\","
+            + " \"ReleaseNotes\": \"Id and TaskQueue handling\"}";
+    assertThat(CommandUtils.isSpaceViewCommand(jsonOutput)).isFalse();
+  }
+
+  @Test
+  void isSpaceViewReturnsFalseForOutputThatIsNotAJsonObject() {
+    assertThat(CommandUtils.isSpaceViewCommand("")).isFalse();
+    assertThat(CommandUtils.isSpaceViewCommand("Error: no space found")).isFalse();
+    assertThat(CommandUtils.isSpaceViewCommand("[{\"TaskQueue\": \"Running\"}]")).isFalse();
+  }
+
+  @Test
+  void isSpaceIdRecognisesOnlyAnActualSpaceId() {
+    assertThat(CommandUtils.isSpaceId("Spaces-1")).isTrue();
+    assertThat(CommandUtils.isSpaceId(" Spaces-162 ")).isTrue();
+    assertThat(CommandUtils.isSpaceId("Default")).isFalse();
+    assertThat(CommandUtils.isSpaceId("Spaces-")).isFalse();
+    assertThat(CommandUtils.isSpaceId(null)).isFalse();
+  }
+
+  @Test
   void parsesTaskIdFromJsonArray() {
     String jsonOutput = "[{\"ServerTaskId\": \"task-123\"}]";
     assertThat(CommandUtils.getServerTaskId(jsonOutput)).isEqualTo("task-123");

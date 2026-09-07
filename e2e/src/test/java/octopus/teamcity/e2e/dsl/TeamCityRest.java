@@ -192,6 +192,16 @@ public final class TeamCityRest {
    * Sets a password (secret) configuration parameter on a build type, so a {@code %name%} reference
    * resolves at build time and the value is masked in the build log.
    */
+  /** Sets a plain build parameter, e.g. {@code env.OCTOPUS_NEW_CLI}, on a build configuration. */
+  public void setParameter(final String buildTypeId, final String name, final String value)
+      throws Exception {
+    send(
+        "POST",
+        "/httpAuth/app/rest/buildTypes/" + buildTypeId + "/parameters",
+        "application/json",
+        createProp(name, value));
+  }
+
   public void setPasswordParameter(final String buildTypeId, final String name, final String value)
       throws Exception {
     final String json =
@@ -208,7 +218,18 @@ public final class TeamCityRest {
   }
 
   private static String createProp(final String name, final String value) {
-    return "{\"name\":\"" + name + "\",\"value\":\"" + value.replace("\"", "\\\"") + "\"}";
+    return "{\"name\":\"" + name + "\",\"value\":\"" + escapeJson(value) + "\"}";
+  }
+
+  /**
+   * Multi-line values (a script, say) are rejected by the REST API unless their breaks are escaped.
+   */
+  private static String escapeJson(final String value) {
+    return value
+        .replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+        .replace("\r", "\\r")
+        .replace("\n", "\\n");
   }
 
   /** Wraps name/value properties in an OAuthProvider projectFeature payload. */
