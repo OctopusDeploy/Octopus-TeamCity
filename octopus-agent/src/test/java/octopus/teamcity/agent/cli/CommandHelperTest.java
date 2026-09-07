@@ -507,4 +507,24 @@ class CommandHelperTest {
     assertThat(CommandHelper.deployRelease(params, "1.0.0"))
         .containsSequence("--variable", "ImageTag:1.5.2");
   }
+
+  @Test
+  void spaceViewAsksForTheConfiguredSpaceAsJson() {
+    final Map<String, String> params = new HashMap<>();
+    params.put(OctopusConstants.Instance.getSpaceName(), "Build Platform");
+
+    final OctopusCommandBuilder command = CommandHelper.spaceView(params);
+
+    assertThat(Arrays.asList(command.buildCommand()))
+        .containsExactly(
+            "space", "view", "Build Platform", "--output-format", "json", "--no-prompt");
+    assertThat(command.isOptional()).isTrue();
+  }
+
+  @Test
+  void spaceViewFallsBackToTheDefaultSpace() {
+    final OctopusCommandBuilder command = CommandHelper.spaceView(new HashMap<>());
+
+    assertThat(Arrays.asList(command.buildCommand())).contains("Default");
+  }
 }

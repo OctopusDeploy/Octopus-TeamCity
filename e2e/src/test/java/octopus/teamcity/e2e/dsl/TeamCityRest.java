@@ -192,6 +192,16 @@ public final class TeamCityRest {
    * Sets a password (secret) configuration parameter on a build type, so a {@code %name%} reference
    * resolves at build time and the value is masked in the build log.
    */
+  /** Sets a plain build parameter, e.g. {@code env.OCTOPUS_NEW_CLI}, on a build configuration. */
+  public void setParameter(final String buildTypeId, final String name, final String value)
+      throws Exception {
+    send(
+        "POST",
+        "/httpAuth/app/rest/buildTypes/" + buildTypeId + "/parameters",
+        "application/json",
+        createProp(name, value));
+  }
+
   public void setPasswordParameter(final String buildTypeId, final String name, final String value)
       throws Exception {
     final String json =
@@ -208,7 +218,18 @@ public final class TeamCityRest {
   }
 
   private static String createProp(final String name, final String value) {
-    return "{\"name\":\"" + name + "\",\"value\":\"" + value.replace("\"", "\\\"") + "\"}";
+    return "{\"name\":\"" + name + "\",\"value\":\"" + escapeJson(value) + "\"}";
+  }
+
+  /**
+   * Multi-line values (a script, say) are rejected by the REST API unless their breaks are escaped.
+   */
+  private static String escapeJson(final String value) {
+    return value
+        .replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+        .replace("\r", "\\r")
+        .replace("\n", "\\n");
   }
 
   /** Wraps name/value properties in an OAuthProvider projectFeature payload. */
@@ -377,8 +398,11 @@ public final class TeamCityRest {
         json);
   }
 
-  /** Adds a Create release (octopus.create.release) step referencing a connection. */
-  public void addCreateReleaseStepUsingConnection(
+  /**
+   * Adds a Create release (octopus.create.release) step referencing a connection. Returns the
+   * generated runner id (e.g. {@code RUNNER_1}).
+   */
+  public String addCreateReleaseStepUsingConnection(
       final String buildTypeId,
       final String connectionId,
       final String projectName,
@@ -391,11 +415,13 @@ public final class TeamCityRest {
             createProp("octopus_connection_id", connectionId),
             createProp("octopus_project_name", projectName),
             createProp("octopus_releasenumber", releaseNumber));
-    send(
-        "POST",
-        "/httpAuth/app/rest/buildTypes/" + buildTypeId + "/steps",
-        "application/json",
-        json);
+    final Http.Response resp =
+        send(
+            "POST",
+            "/httpAuth/app/rest/buildTypes/" + buildTypeId + "/steps",
+            "application/json",
+            json);
+    return jsonField(resp.body(), "id");
   }
 
   /**
@@ -514,6 +540,20 @@ public final class TeamCityRest {
       TimeUnit.SECONDS.sleep(5);
     }
     throw new IllegalStateException("Build " + buildId + " did not finish within " + timeout);
+  }
+
+  /** Lists a build's hidden artifacts (those under {@code .teamcity}) at the given path. */
+  public String listHiddenBuildArtifacts(final String buildId, final String path) throws Exception {
+    return send(
+            "GET",
+            "/httpAuth/app/rest/builds/id:"
+                + buildId
+                + "/artifacts/children/"
+                + path
+                + "?locator=hidden:true",
+            null,
+            null)
+        .body();
   }
 
   public String downloadBuildLog(final String buildId) throws Exception {

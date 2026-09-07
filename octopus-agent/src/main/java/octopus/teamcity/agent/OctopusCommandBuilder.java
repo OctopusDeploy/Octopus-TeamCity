@@ -35,6 +35,15 @@ public abstract class OctopusCommandBuilder {
 
   protected abstract String[] buildCommand(boolean masked);
 
+  /**
+   * Whether a non-zero exit from this command is tolerated. Optional commands gather detail the
+   * step can do without - a link to what it created, say - so failing one must not fail a step
+   * whose real work has already succeeded.
+   */
+  public boolean isOptional() {
+    return false;
+  }
+
   protected String Quote(String value) {
     return "\"" + value + "\"";
   }

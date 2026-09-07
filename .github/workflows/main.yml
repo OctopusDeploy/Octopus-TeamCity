@@ -145,6 +145,9 @@ jobs:
         TEAMCITY_PLUGIN_DIST: ${{ github.workspace }}/plugin/${{ needs.build.outputs.package-basename }}
         OCTOPUS_LICENSE: ${{ secrets.OCTOPUS_LICENSE }}
         OCTOPUS_SDK_AT_USE_EXISTING_SERVER: false
+        # OidcPluginFixture asks GitHub for the OIDC plugin's latest release; unauthenticated that
+        # shares a per-IP hourly limit with every other runner and 403s the whole stack's boot.
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish:
     name: "Publish to Octopus"
