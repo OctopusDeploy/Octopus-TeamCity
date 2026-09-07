@@ -8,18 +8,24 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import jetbrains.buildServer.agent.AgentRunningBuild;
 import jetbrains.buildServer.agent.BuildProgressLogger;
 import jetbrains.buildServer.agent.BuildRunnerContext;
 import octopus.teamcity.agent.OctopusCommandBuilder;
 import octopus.teamcity.common.OctopusConstants;
+import octopus.teamcity.common.ReleaseSummary;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 class CreateReleaseBuildProcessTest {
 
@@ -29,6 +35,8 @@ class CreateReleaseBuildProcessTest {
       "{\"Id\": \"Spaces-162\", \"Name\": \"Build Platform\", \"TaskQueue\": \"Running\"}";
 
   private BuildProgressLogger logger;
+
+  @TempDir File buildTempDirectory;
 
   private Object getPrivateField(Object instance, String fieldName) throws Exception {
     Field f = instance.getClass().getDeclaredField(fieldName);
@@ -41,7 +49,10 @@ class CreateReleaseBuildProcessTest {
     logger = mock(BuildProgressLogger.class);
     BuildRunnerContext context = mock(BuildRunnerContext.class);
     when(context.getRunnerParameters()).thenReturn(params);
+    when(context.getId()).thenReturn("RUNNER_1");
+    when(context.getBuild()).thenReturn(runningBuild);
     when(runningBuild.getBuildLogger()).thenReturn(logger);
+    when(runningBuild.getBuildTempDirectory()).thenReturn(buildTempDirectory);
 
     return new CreateReleaseBuildProcess(runningBuild, context);
   }
@@ -111,6 +122,34 @@ class CreateReleaseBuildProcessTest {
                 "setParameter name='"
                     + CreateReleaseBuildProcess.RELEASE_NUMBER_PARAMETER
                     + "' value='1.2.3'"));
+  }
+
+  @Test
+  void recordsTheReleaseForTheBuildOverview() throws Exception {
+    final OctopusConstants constants = OctopusConstants.Instance;
+    CreateReleaseBuildProcess proc =
+        buildProcessFor(params(constants.getServerKey(), "https://my.octopus.app"));
+
+    proc.processOutput(SPACE_VIEW_JSON, 0);
+    proc.processOutput(CREATE_RELEASE_JSON, 0);
+
+    final File summary = new File(buildTempDirectory, ReleaseSummary.artifactNameFor("RUNNER_1"));
+    try (InputStream contents = new FileInputStream(summary)) {
+      final Optional<ReleaseSummary> release = ReleaseSummary.readFrom(contents);
+      assertThat(release).isPresent();
+      assertThat(release.get().getUrl())
+          .isEqualTo("https://my.octopus.app/app#/Spaces-162/releases/Releases-14");
+      assertThat(release.get().getVersion()).isEqualTo("1.2.3");
+    }
+
+    verify(logger)
+        .message(
+            contains(
+                "publishArtifacts '"
+                    + summary.getAbsolutePath()
+                    + " => "
+                    + ReleaseSummary.ARTIFACT_DIRECTORY
+                    + "'"));
   }
 
   @Test
