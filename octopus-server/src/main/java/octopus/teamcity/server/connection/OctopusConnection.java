@@ -66,11 +66,19 @@ public class OctopusConnection extends OAuthProvider {
   public String describeConnection(@NotNull final OAuthConnectionDescriptor connection) {
     final Map<String, String> params = connection.getParameters();
     final String url = params.getOrDefault(ConnectionPropertyNames.SERVER_URL, "(no URL)");
-    final String space = params.getOrDefault(ConnectionPropertyNames.SPACE_NAME, "");
+    final String spaceName = params.getOrDefault(ConnectionPropertyNames.SPACE_NAME, "");
+    final String spaceId = params.getOrDefault(ConnectionPropertyNames.SPACE_ID, "");
     // TeamCity renders newlines in a connection description as line breaks on the Connections tab.
     final StringBuilder description = new StringBuilder("Octopus URL: ").append(url);
-    if (!space.isEmpty()) {
-      description.append("\nSpace Name: ").append(space);
+    if (!spaceName.isEmpty()) {
+      description.append("\nSpace Name: ").append(spaceName);
+      // The id is what is actually sent, so show it too - it is how a stale name becomes visible
+      // after the space has been renamed in Octopus.
+      if (!spaceId.isEmpty()) {
+        description.append(" (").append(spaceId).append(")");
+      }
+    } else if (!spaceId.isEmpty()) {
+      description.append("\nSpace Id: ").append(spaceId);
     }
     return description.toString();
   }

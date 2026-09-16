@@ -73,6 +73,84 @@ class OctopusConnectionBuildStartProcessorTest {
     return descriptor;
   }
 
+  /** As {@link #connectionWith} but also giving the connection a space id. */
+  private OAuthConnectionDescriptor connectionWithSpace(
+      final String spaceId, final String spaceName) {
+    final OAuthConnectionDescriptor descriptor = mock(OAuthConnectionDescriptor.class);
+    final Map<String, String> params = new HashMap<>();
+    params.put(ConnectionPropertyNames.SERVER_URL, "https://octo");
+    params.put(ConnectionPropertyNames.API_KEY, "API-KEY");
+    if (spaceId != null) {
+      params.put(ConnectionPropertyNames.SPACE_ID, spaceId);
+    }
+    if (spaceName != null) {
+      params.put(ConnectionPropertyNames.SPACE_NAME, spaceName);
+    }
+    when(descriptor.getParameters()).thenReturn(params);
+    return descriptor;
+  }
+
+  @Test
+  void inheritsTheConnectionsSpaceIdAndNameTogether() {
+    final Map<String, String> properties = new HashMap<>();
+    properties.put(CONSTANTS.getConnectionIdKey(), "PROJECT_EXT_1");
+    when(runnerContext.getParameters()).thenReturn(properties);
+
+    final OAuthConnectionDescriptor descriptor = connectionWithSpace("Spaces-1795", "Swordfish");
+    when(connectionsManager.resolve(project, "PROJECT_EXT_1")).thenReturn(Optional.of(descriptor));
+
+    processor.updateParameters(buildStartContext);
+
+    verify(runnerContext).addRunnerParameter(CONSTANTS.getSpaceId(), "Spaces-1795");
+    verify(runnerContext).addRunnerParameter(CONSTANTS.getSpaceName(), "Swordfish");
+  }
+
+  @Test
+  void aStepSpaceNameBlocksInheritingTheConnectionsSpaceId() {
+    // The important case: were the id inherited alongside the step's own name, the id would win in
+    // SpaceSelection and silently retarget the step at the connection's space.
+    final Map<String, String> properties = new HashMap<>();
+    properties.put(CONSTANTS.getConnectionIdKey(), "PROJECT_EXT_1");
+    properties.put(CONSTANTS.getSpaceName(), "StepSpace");
+    when(runnerContext.getParameters()).thenReturn(properties);
+
+    final OAuthConnectionDescriptor descriptor = connectionWithSpace("Spaces-1795", "Swordfish");
+    when(connectionsManager.resolve(project, "PROJECT_EXT_1")).thenReturn(Optional.of(descriptor));
+
+    processor.updateParameters(buildStartContext);
+
+    verify(runnerContext, never())
+        .addRunnerParameter(
+            org.mockito.ArgumentMatchers.eq(CONSTANTS.getSpaceId()),
+            org.mockito.ArgumentMatchers.anyString());
+    verify(runnerContext, never())
+        .addRunnerParameter(
+            org.mockito.ArgumentMatchers.eq(CONSTANTS.getSpaceName()),
+            org.mockito.ArgumentMatchers.anyString());
+  }
+
+  @Test
+  void aStepSpaceIdBlocksInheritingTheConnectionsSpace() {
+    final Map<String, String> properties = new HashMap<>();
+    properties.put(CONSTANTS.getConnectionIdKey(), "PROJECT_EXT_1");
+    properties.put(CONSTANTS.getSpaceId(), "Spaces-42");
+    when(runnerContext.getParameters()).thenReturn(properties);
+
+    final OAuthConnectionDescriptor descriptor = connectionWithSpace("Spaces-1795", "Swordfish");
+    when(connectionsManager.resolve(project, "PROJECT_EXT_1")).thenReturn(Optional.of(descriptor));
+
+    processor.updateParameters(buildStartContext);
+
+    verify(runnerContext, never())
+        .addRunnerParameter(
+            org.mockito.ArgumentMatchers.eq(CONSTANTS.getSpaceId()),
+            org.mockito.ArgumentMatchers.anyString());
+    verify(runnerContext, never())
+        .addRunnerParameter(
+            org.mockito.ArgumentMatchers.eq(CONSTANTS.getSpaceName()),
+            org.mockito.ArgumentMatchers.anyString());
+  }
+
   @Test
   void injectsConnectionValuesWhenConnectionSelected() {
     final Map<String, String> properties = new HashMap<>();
