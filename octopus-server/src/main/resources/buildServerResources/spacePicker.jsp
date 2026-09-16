@@ -37,6 +37,8 @@
 <%
   pageContext.setAttribute(
       "spacePickerProjectId", OctopusConnectionUiData.spacePickerProjectId(request));
+  pageContext.setAttribute(
+      "spacePickerConnectionId", OctopusConnectionUiData.spacePickerConnectionId(request));
 %>
 
 <tr class="octopusSpacePickerRow">
@@ -51,7 +53,8 @@
     <span class="octopusSpacePickerMeta" style="display:none;"
           data-project-id="<c:out value='${spacePickerProjectId}'/>"
           data-lookup-url="<c:out value='${pageContext.request.contextPath}'/>/octopus/listSpaces.html"
-          data-space-id-field="<c:out value='${spaceKeys.spaceId}'/>"></span>
+          data-space-id-field="<c:out value='${spaceKeys.spaceId}'/>"
+          data-connection-id="<c:out value='${spacePickerConnectionId}'/>"></span>
 
     <div class="octopusSpacePickerControls" style="margin-top:4px;">
       <button type="button" class="btn btn_mini octopusLoadSpaces">Load spaces</button>
@@ -61,9 +64,10 @@
 
     <span class="smallNote">
       Optional. <strong>Load spaces</strong> lists the spaces on the Octopus server and stores the
-      one you pick by id, so renaming that space in Octopus will not break this configuration. You
-      can type a space name instead, which is required when the API key comes from a build
-      parameter or from OIDC, because those credentials only exist while a build runs.
+      one you pick by id, so renaming that space in Octopus will not break this configuration. It
+      needs a <em>saved</em> connection, so save a new connection once before using it. Typing a
+      space name always works, and is required when the API key comes from a build parameter or
+      from OIDC, because those credentials only exist while a build runs.
     </span>
     <span class="smallNote octopusSpaceIdNote" style="display:none;">
       Stored space id: <code class="octopusSpaceIdValue"></code>
@@ -110,26 +114,24 @@
         status.className = isError ? "smallNote error octopusSpaceStatus" : "smallNote octopusSpaceStatus";
       }
 
+      // The lookup names a saved connection and nothing else - it never sends a URL or key. The
+      // server reads those from the stored connection, so it is never asked to fetch an address
+      // supplied by this page.
       function lookupRequest() {
-        const params = {projectId: meta.getAttribute("data-project-id")};
+        return {
+          projectId: meta.getAttribute("data-project-id"),
+          connectionId: savedConnectionId()
+        };
+      }
+
+      // On a connection form there is no connection selector; the connection being edited is
+      // identified by the page itself once it has been saved.
+      function savedConnectionId() {
         const connectionSelect = document.getElementById("octopusConnectionId");
-        if (connectionSelect && connectionSelect.value) {
-          // A saved connection: the server reads the stored credentials itself, because TeamCity
-          // renders a saved API key as a placeholder and this page never holds the real one.
-          params.connectionId = connectionSelect.value;
-          return params;
+        if (connectionSelect) {
+          return connectionSelect.value || "";
         }
-        const sourceEl = document.getElementById("octopusApiKeySource");
-        if (sourceEl) params.apiKeySource = sourceEl.value;
-        const urlEl =
-          document.querySelector("input[name='prop:octopus_host']")
-          || document.getElementById("octopus_host");
-        const keyEl =
-          document.querySelector("input[name='prop:secure:octopus_apikey']")
-          || document.getElementById("secure:octopus_apikey");
-        if (urlEl) params.serverUrl = urlEl.value;
-        if (keyEl) params.apiKey = keyEl.value;
-        return params;
+        return meta.getAttribute("data-connection-id") || "";
       }
 
       function populate(spaces) {

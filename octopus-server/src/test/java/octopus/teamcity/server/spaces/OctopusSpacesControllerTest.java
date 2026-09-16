@@ -105,14 +105,32 @@ class OctopusSpacesControllerTest {
   }
 
   @Test
-  void returnsSpacesForAnUnsavedConnectionUsingThePostedCredentials() throws Exception {
-    when(request.getParameter("serverUrl")).thenReturn("https://octopus.example.com");
-    when(request.getParameter("apiKey")).thenReturn("API-TYPED");
+  void returnsSpacesForASavedConnection() throws Exception {
+    final Map<String, String> params = new HashMap<>();
+    params.put(ConnectionPropertyNames.SERVER_URL, "https://stored.example.com");
+    params.put(ConnectionPropertyNames.API_KEY, "API-STORED");
+    final OAuthConnectionDescriptor connection = connectionWith(params);
+    when(connectionsManager.resolve(eq(project), eq("octopus-conn-1")))
+        .thenReturn(Optional.of(connection));
+    when(request.getParameter("connectionId")).thenReturn("octopus-conn-1");
 
     final String body = handle();
 
     assertThat(body).contains("Spaces-1795").contains("Swordfish");
-    assertThat(fetchedKeys).containsExactly("API-TYPED");
+    assertThat(fetchedKeys).containsExactly("API-STORED");
+  }
+
+  @Test
+  void refusesToFetchWithoutASavedConnection() throws Exception {
+    // The request must never supply the address to fetch: the only URLs this endpoint will call are
+    // ones an admin already persisted into project configuration.
+    when(request.getParameter("serverUrl")).thenReturn("https://attacker.example.com");
+    when(request.getParameter("apiKey")).thenReturn("API-TYPED");
+
+    final String body = handle();
+
+    assertThat(body).contains("saved Octopus connection");
+    assertThat(fetchedUrls).isEmpty();
   }
 
   @Test
@@ -151,9 +169,9 @@ class OctopusSpacesControllerTest {
   }
 
   @Test
-  void prefersTheSavedConnectionsKeyOverAnythingPosted() throws Exception {
-    // TeamCity renders a saved secret as a placeholder, so a posted key cannot be trusted to be
-    // the real one - and must never override what is stored.
+  void ignoresPostedCredentialsEntirely() throws Exception {
+    // Posted values are not consulted at all, so they can neither redirect the fetch nor replace
+    // the stored key.
     final Map<String, String> params = new HashMap<>();
     params.put(ConnectionPropertyNames.SERVER_URL, "https://stored.example.com");
     params.put(ConnectionPropertyNames.API_KEY, "API-STORED");
@@ -213,34 +231,29 @@ class OctopusSpacesControllerTest {
 
   @Test
   void surfacesALookupFailureAsAnErrorMessage() throws Exception {
-    when(request.getParameter("serverUrl")).thenReturn("https://octopus.example.com");
-    when(request.getParameter("apiKey")).thenReturn("API-TYPED");
+    final Map<String, String> params = new HashMap<>();
+    params.put(ConnectionPropertyNames.SERVER_URL, "https://stored.example.com");
+    params.put(ConnectionPropertyNames.API_KEY, "API-STORED");
+    final OAuthConnectionDescriptor connection = connectionWith(params);
+    when(connectionsManager.resolve(eq(project), any())).thenReturn(Optional.of(connection));
+    when(request.getParameter("connectionId")).thenReturn("octopus-conn-1");
     fetchFailure = new IOException("Octopus rejected the API key (HTTP 401).");
 
     final String body = handle();
 
     assertThat(body).contains("Octopus rejected the API key");
     // The key itself must never be echoed back to the browser.
-    assertThat(body).doesNotContain("API-TYPED");
-  }
-
-  @Test
-  void explainsThatAnInlineParameterReferenceCannotBeResolvedAtEditTime() throws Exception {
-    // A step's inline API key field accepts "%octopus.apikey%"; sending that literally would just
-    // produce a confusing 401 from Octopus.
-    when(request.getParameter("serverUrl")).thenReturn("https://octopus.example.com");
-    when(request.getParameter("apiKey")).thenReturn("%octopus.apikey%");
-
-    final String body = handle();
-
-    assertThat(body).contains("build parameter reference").contains("space name instead");
-    assertThat(fetchedUrls).isEmpty();
+    assertThat(body).doesNotContain("API-STORED");
   }
 
   @Test
   void neverCachesTheLookup() throws Exception {
-    when(request.getParameter("serverUrl")).thenReturn("https://octopus.example.com");
-    when(request.getParameter("apiKey")).thenReturn("API-TYPED");
+    final Map<String, String> params = new HashMap<>();
+    params.put(ConnectionPropertyNames.SERVER_URL, "https://stored.example.com");
+    params.put(ConnectionPropertyNames.API_KEY, "API-STORED");
+    final OAuthConnectionDescriptor connection = connectionWith(params);
+    when(connectionsManager.resolve(eq(project), any())).thenReturn(Optional.of(connection));
+    when(request.getParameter("connectionId")).thenReturn("octopus-conn-1");
 
     handle();
 

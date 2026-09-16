@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 
 import jetbrains.buildServer.serverSide.ProjectManager;
@@ -184,6 +185,41 @@ public class OctopusConnectionUiData {
     }
     final String fromBuildType = currentProjectExternalId(request);
     return fromBuildType == null ? "" : fromBuildType;
+  }
+
+  /**
+   * The Octopus connection this page is editing, or {@code ""} when there is not one yet.
+   *
+   * <p>The space picker needs a <em>saved</em> connection to look spaces up through. On a step form
+   * the connection selector supplies that; on the connection form itself it has to come from the
+   * request. TeamCity's own parameter name for it is not contractual, so each plausible name is
+   * tried and only accepted when it actually resolves to an Octopus connection in this project. An
+   * unknown name simply yields {@code ""}, and the picker then asks the admin to save first rather
+   * than failing.
+   */
+  @NotNull
+  public static String spacePickerConnectionId(final HttpServletRequest request) {
+    if (connectionsManager == null || projectManager == null) {
+      return "";
+    }
+    final SProject project = projectManager.findProjectByExternalId(spacePickerProjectId(request));
+    if (project == null) {
+      return "";
+    }
+    for (final String parameterName :
+        new String[] {"connectionId", "oauthConnectionId", "featureId", "id"}) {
+      final String candidate = request.getParameter(parameterName);
+      if (candidate == null || candidate.trim().isEmpty()) {
+        continue;
+      }
+      final Optional<OAuthConnectionDescriptor> resolved =
+          connectionsManager.resolve(project, candidate.trim());
+      if (resolved.isPresent()
+          && OctopusConnection.TYPE.equals(resolved.get().getParameters().get("providerType"))) {
+        return candidate.trim();
+      }
+    }
+    return "";
   }
 
   private static String currentProjectExternalId(final HttpServletRequest request) {
