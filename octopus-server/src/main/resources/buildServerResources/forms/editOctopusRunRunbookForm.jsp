@@ -26,14 +26,7 @@
       You can also reference a build parameter here, e.g. <code>%octopus.apikey%</code>.</span>
   </td>
 </tr>
-<tr>
-    <th>Space name:</th>
-    <td>
-        <props:textProperty name="${keys.spaceName}" className="longField"/>
-        <span class="error" id="error_${keys.spaceName}"></span>
-        <span class="smallNote">Specify the Octopus Space name to run within. Leave blank to use the default space.</span>
-    </td>
-</tr>
+<jsp:include page="../spacePicker.jsp"/>
 </l:settingsGroup>
 
 <l:settingsGroup title="Runbook Run">

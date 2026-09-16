@@ -17,6 +17,8 @@ dependencies {
   provided 'org.jetbrains.teamcity:oauth'
   implementation project(':octopus-common')
   implementation 'com.google.guava:guava'
+  implementation 'com.google.code.gson:gson'
+  implementation 'commons-io:commons-io'
 
   testImplementation 'org.jetbrains.teamcity:server-api'
   testImplementation 'org.jetbrains.teamcity:oauth'
@@ -26,6 +28,7 @@ dependencies {
   testImplementation 'org.assertj:assertj-core'
   testImplementation 'org.mockito:mockito-core'
   testImplementation 'org.mockito:mockito-junit-jupiter'
+  testImplementation 'com.google.code.gson:gson'
 }
 
 distributions {

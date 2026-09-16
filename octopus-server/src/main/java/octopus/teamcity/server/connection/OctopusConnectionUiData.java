@@ -88,6 +88,7 @@ public class OctopusConnectionUiData {
       view.put("displayName", descriptor.getConnectionDisplayName());
       view.put("url", params.getOrDefault(CONNECTION_KEYS.getServerUrlPropertyName(), ""));
       view.put("space", params.getOrDefault(CONNECTION_KEYS.getSpaceNamePropertyName(), ""));
+      view.put("spaceId", params.getOrDefault(CONNECTION_KEYS.getSpaceIdPropertyName(), ""));
 
       final String apiKeySource =
           params.getOrDefault(CONNECTION_KEYS.getApiKeySourcePropertyName(), "");
@@ -167,6 +168,22 @@ public class OctopusConnectionUiData {
     return request.getContextPath()
         + "/admin/editBuildFeatures.html?id=buildType:"
         + buildType.getExternalId();
+  }
+
+  /**
+   * The project whose form is being edited, for the space picker's permission check.
+   *
+   * <p>A connection page carries {@code projectId} directly; a step page instead carries {@code
+   * id=buildType:...}, so the project is derived from the build type.
+   */
+  @NotNull
+  public static String spacePickerProjectId(final HttpServletRequest request) {
+    final String projectId = request.getParameter("projectId");
+    if (projectId != null && !projectId.trim().isEmpty()) {
+      return projectId.trim();
+    }
+    final String fromBuildType = currentProjectExternalId(request);
+    return fromBuildType == null ? "" : fromBuildType;
   }
 
   private static String currentProjectExternalId(final HttpServletRequest request) {

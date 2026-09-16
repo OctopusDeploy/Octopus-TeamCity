@@ -19,6 +19,7 @@ import jetbrains.buildServer.util.StringUtil;
 import octopus.teamcity.agent.OctopusCommandBuilder;
 import octopus.teamcity.common.OctopusConstants;
 import octopus.teamcity.common.OverwriteMode;
+import octopus.teamcity.common.SpaceSelection;
 import octopus.teamcity.common.connection.ConnectionPropertyNames;
 import org.apache.commons.lang3.StringUtils;
 
@@ -75,13 +76,12 @@ public class CommandHelper {
           "--ignore-existing",
           "--ignore-channel-rules",
           "--custom-field");
-  static final String defaultSpace = "Default";
 
   public static String[] deployRelease(
       Map<String, String> params, String autoCreatedReleaseNumber) {
     final OctopusConstants constants = OctopusConstants.Instance;
     final ArrayList<String> commands = new ArrayList<>();
-    String spaceName = params.get(constants.getSpaceName());
+    final String spaceName = SpaceSelection.resolveOrDefault(params);
     final String commandLineArguments = params.get(constants.getCommandLineArgumentsKey());
     final String releaseNumber = params.get(constants.getReleaseNumberKey());
     final String deployTo = params.get(constants.getDeployToKey());
@@ -92,9 +92,6 @@ public class CommandHelper {
     commands.add("release");
     commands.add("deploy");
 
-    if (StringUtils.isBlank(spaceName)) {
-      spaceName = defaultSpace;
-    }
     commands.add("--space");
     commands.add(spaceName);
 
@@ -139,7 +136,7 @@ public class CommandHelper {
   public static String[] runbookRun(Map<String, String> params) {
     final OctopusConstants constants = OctopusConstants.Instance;
     final ArrayList<String> commands = new ArrayList<>();
-    String spaceName = params.get(constants.getSpaceName());
+    final String spaceName = SpaceSelection.resolveOrDefault(params);
     final String commandLineArguments = params.get(constants.getCommandLineArgumentsKey());
     final String projectName = params.get(constants.getProjectNameKey());
     final String runbookName = params.get(constants.getRunbookNameKey());
@@ -151,9 +148,6 @@ public class CommandHelper {
     commands.add("runbook");
     commands.add("run");
 
-    if (StringUtils.isBlank(spaceName)) {
-      spaceName = defaultSpace;
-    }
     commands.add("--space");
     commands.add(spaceName);
 
@@ -231,7 +225,7 @@ public class CommandHelper {
       @Override
       protected String[] buildCommand(boolean masked) {
         final ArrayList<String> commands = new ArrayList<>();
-        String spaceName = parameters.get(constants.getSpaceName());
+        final String spaceName = SpaceSelection.resolveOrDefault(parameters);
         final String commandLineArguments = parameters.get(constants.getCommandLineArgumentsKey());
         final String releaseNumber = parameters.get(constants.getReleaseNumberKey());
         final String channelName = parameters.get(constants.getChannelNameKey());
@@ -242,9 +236,6 @@ public class CommandHelper {
         commands.add("release");
         commands.add("create");
 
-        if (StringUtils.isBlank(spaceName)) {
-          spaceName = defaultSpace;
-        }
         commands.add("--space");
         commands.add(spaceName);
 
@@ -339,7 +330,7 @@ public class CommandHelper {
       @Override
       protected String[] buildCommand(boolean masked) {
         final ArrayList<String> commands = new ArrayList<String>();
-        String spaceName = parameters.get(constants.getSpaceName());
+        final String spaceName = SpaceSelection.resolveOrDefault(parameters);
         final String commandLineArguments = parameters.get(constants.getCommandLineArgumentsKey());
         final String forcePush = parameters.get(constants.getForcePushKey());
 
@@ -353,9 +344,6 @@ public class CommandHelper {
         commands.add("package");
         commands.add("upload");
 
-        if (StringUtils.isBlank(spaceName)) {
-          spaceName = defaultSpace;
-        }
         commands.add("--space");
         commands.add(spaceName);
 
@@ -391,7 +379,7 @@ public class CommandHelper {
       @Override
       protected String[] buildCommand(boolean masked) {
         final ArrayList<String> commands = new ArrayList<String>();
-        String spaceName = parameters.get(constants.getSpaceName());
+        final String spaceName = SpaceSelection.resolveOrDefault(parameters);
         final String packageIds = parameters.get(constants.getPackageIdKey());
         final String packageVersion = parameters.get(constants.getPackageVersionKey());
         final String commandLineArguments = parameters.get(constants.getCommandLineArgumentsKey());
@@ -412,9 +400,6 @@ public class CommandHelper {
         commands.add("build-information");
         commands.add("upload");
 
-        if (StringUtils.isBlank(spaceName)) {
-          spaceName = defaultSpace;
-        }
         commands.add("--space");
         commands.add(spaceName);
 
@@ -447,14 +432,11 @@ public class CommandHelper {
     final ArrayList<String> commands = new ArrayList<>();
     final String deploymentTimeout = params.get(constants.getDeploymentTimeout());
     final String cancelDeploymentTimeout = params.get(constants.getCancelDeploymentOnTimeout());
-    String spaceName = params.get(constants.getSpaceName());
+    final String spaceName = SpaceSelection.resolveOrDefault(params);
     commands.add("task");
     commands.add("wait");
 
     commands.add(taskId);
-    if (StringUtils.isBlank(spaceName)) {
-      spaceName = defaultSpace;
-    }
     commands.add("--space");
     commands.add(spaceName);
 

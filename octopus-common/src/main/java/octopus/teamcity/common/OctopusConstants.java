@@ -53,6 +53,15 @@ public class OctopusConstants {
     return "octopus_space_name";
   }
 
+  /**
+   * The id of the selected space, e.g. {@code Spaces-1795}. Preferred over {@link #getSpaceName()}
+   * because it survives a space being renamed. Both CLIs resolve a space by name or id, so either
+   * value works on the wire; see {@link SpaceSelection}.
+   */
+  public String getSpaceId() {
+    return "octopus_space_id";
+  }
+
   public String getProjectNameKey() {
     return "octopus_project_name";
   }
