@@ -88,8 +88,13 @@
       if (!meta || !button || !select || button.dataset.octopusBound === "true") return;
       button.dataset.octopusBound = "true";
 
+      // The props taglib renders these fields with name="prop:<property>" and id="<property>".
+      // Look the field up both ways so this does not hinge on that prefix.
       const idFieldName = meta.getAttribute("data-space-id-field");
-      const idField = cell.querySelector("input[name='" + idFieldName + "']");
+      const idField =
+        cell.querySelector("input[name='prop:" + idFieldName + "']")
+        || cell.querySelector("input[name='" + idFieldName + "']")
+        || document.getElementById(idFieldName);
       const nameField = cell.querySelector("input.longField[type='text']");
       if (!nameField) return;
 
@@ -116,8 +121,12 @@
         }
         const sourceEl = document.getElementById("octopusApiKeySource");
         if (sourceEl) params.apiKeySource = sourceEl.value;
-        const urlEl = document.querySelector("input[name='octopus_host']");
-        const keyEl = document.querySelector("input[name='secure:octopus_apikey']");
+        const urlEl =
+          document.querySelector("input[name='prop:octopus_host']")
+          || document.getElementById("octopus_host");
+        const keyEl =
+          document.querySelector("input[name='prop:secure:octopus_apikey']")
+          || document.getElementById("secure:octopus_apikey");
         if (urlEl) params.serverUrl = urlEl.value;
         if (keyEl) params.apiKey = keyEl.value;
         return params;

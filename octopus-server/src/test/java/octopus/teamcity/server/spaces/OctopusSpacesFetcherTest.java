@@ -113,6 +113,60 @@ class OctopusSpacesFetcherTest {
   }
 
   @Test
+  void rejectsSchemesOtherThanHttpAndHttps() {
+    // Without this, URL.openConnection() would happily read a file: or jar: URL.
+    final OctopusSpacesFetcher fetcher = fetcherReturning("{\"Items\":[]}");
+
+    for (final String url :
+        new String[] {
+          "file:///etc/passwd", "jar:file:/tmp/x.jar!/y", "ftp://octopus.example.com", "gopher://x"
+        }) {
+      assertThatThrownBy(() -> fetcher.fetch(url, "API-KEY"))
+          .isInstanceOf(IOException.class)
+          .hasMessageContaining("must start with http:// or https://");
+    }
+    assertThat(requestedUrls).isEmpty();
+  }
+
+  @Test
+  void rejectsAUrlWithNoHost() {
+    // These parse as a URI with the right scheme but no authority, e.g. "http:example.com".
+    final OctopusSpacesFetcher fetcher = fetcherReturning("{\"Items\":[]}");
+
+    for (final String url : new String[] {"http:example.com", "https:/onlypath"}) {
+      assertThatThrownBy(() -> fetcher.fetch(url, "API-KEY"))
+          .isInstanceOf(IOException.class)
+          .hasMessageContaining("missing a host name");
+    }
+    assertThat(requestedUrls).isEmpty();
+  }
+
+  @Test
+  void rejectsAMalformedUrl() {
+    // "https://" and a URL containing a space are not parseable at all.
+    final OctopusSpacesFetcher fetcher = fetcherReturning("{\"Items\":[]}");
+
+    for (final String url : new String[] {"https://", "http://exa mple.com"}) {
+      assertThatThrownBy(() -> fetcher.fetch(url, "API-KEY"))
+          .isInstanceOf(IOException.class)
+          .hasMessageContaining("is not a valid URL");
+    }
+    assertThat(requestedUrls).isEmpty();
+  }
+
+  @Test
+  void acceptsPlainHttpAndHttps() throws Exception {
+    // On-prem Octopus installs are commonly plain http on an internal host, so http must work.
+    fetcherReturning("{\"Items\":[]}").fetch("http://octopus.internal:8065", "API-KEY");
+    fetcherReturning("{\"Items\":[]}").fetch("https://octopus.example.com", "API-KEY");
+
+    assertThat(requestedUrls)
+        .containsExactly(
+            "http://octopus.internal:8065/api/spaces?skip=0&take=1000",
+            "https://octopus.example.com/api/spaces?skip=0&take=1000");
+  }
+
+  @Test
   void failsClearlyWhenTheResponseIsNotASpacesCollection() {
     // e.g. the URL points at something that is not an Octopus server and returns HTML.
     assertThatThrownBy(
