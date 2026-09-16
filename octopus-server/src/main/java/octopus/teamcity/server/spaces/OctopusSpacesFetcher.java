@@ -18,6 +18,8 @@ package octopus.teamcity.server.spaces;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -102,11 +104,34 @@ public class OctopusSpacesFetcher {
     return spaces;
   }
 
-  static String spacesUrl(final String serverUrl) {
+  /**
+   * Builds the spaces URL, rejecting anything that is not a plain http(s) address.
+   *
+   * <p>The caller supplies this URL when configuring a connection, so the scheme is restricted to
+   * http and https - without that, a value such as {@code file:} or {@code jar:} would make {@link
+   * URL#openConnection()} read from somewhere other than a web server. A host is required so a
+   * scheme-only value cannot slip through.
+   */
+  static String spacesUrl(final String serverUrl) throws IOException {
     String base = serverUrl.trim();
     while (base.endsWith("/")) {
       base = base.substring(0, base.length() - 1);
     }
+
+    final URI parsed;
+    try {
+      parsed = new URI(base);
+    } catch (final URISyntaxException e) {
+      throw new IOException("'" + base + "' is not a valid URL.", e);
+    }
+    final String scheme = parsed.getScheme() == null ? "" : parsed.getScheme().toLowerCase();
+    if (!"http".equals(scheme) && !"https".equals(scheme)) {
+      throw new IOException("The Octopus URL must start with http:// or https://.");
+    }
+    if (parsed.getHost() == null || parsed.getHost().isEmpty()) {
+      throw new IOException("The Octopus URL is missing a host name.");
+    }
+
     return base + "/api/spaces?skip=0&take=" + TAKE;
   }
 
@@ -114,6 +139,9 @@ public class OctopusSpacesFetcher {
     final HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
     try {
       connection.setRequestMethod("GET");
+      // A redirect would take the request somewhere other than the address just validated, and
+      // would also replay the API key there.
+      connection.setInstanceFollowRedirects(false);
       connection.setConnectTimeout(CONNECT_TIMEOUT_MILLIS);
       connection.setReadTimeout(READ_TIMEOUT_MILLIS);
       connection.setRequestProperty("X-Octopus-ApiKey", apiKey);
@@ -126,6 +154,12 @@ public class OctopusSpacesFetcher {
             "Octopus rejected the API key (HTTP "
                 + status
                 + "). Check the key and its permissions.");
+      }
+      if (status >= 300 && status <= 399) {
+        throw new IOException(
+            "The Octopus URL redirected (HTTP "
+                + status
+                + "). Point it directly at the Octopus server.");
       }
       if (status < 200 || status > 299) {
         throw new IOException("Octopus returned HTTP " + status + " when listing spaces.");

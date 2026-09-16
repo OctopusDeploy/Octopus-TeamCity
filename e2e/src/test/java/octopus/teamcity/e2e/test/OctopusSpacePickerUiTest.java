@@ -52,7 +52,9 @@ class OctopusSpacePickerUiTest {
             // The picker is rendered by the shared include.
             final Locator loadButton = page.locator("button.octopusLoadSpaces").first();
             loadButton.waitFor(new Locator.WaitForOptions().setTimeout(30000));
-            assertThat(page.locator("input[name='octopus_space_id']").count()).isGreaterThan(0);
+            // The props taglib renders name="prop:<property>", id="<property>".
+            assertThat(page.locator("input[name='prop:octopus_space_id']").count())
+                .isGreaterThan(0);
 
             // Pick the connection so the lookup uses its stored credentials rather than the
             // (empty) inline fields.
@@ -76,7 +78,7 @@ class OctopusSpacePickerUiTest {
                 select.locator("option[value^='Spaces-']").first().getAttribute("value");
             page.selectOption("select.octopusSpaceSelect", new String[] {firstSpaceId});
 
-            assertThat(page.locator("input[name='octopus_space_id']").first().inputValue())
+            assertThat(page.locator("input[name='prop:octopus_space_id']").first().inputValue())
                 .isEqualTo(firstSpaceId);
             assertThat(page.locator("#octopus_space_name").first().inputValue())
                 .isEqualTo("Default");
