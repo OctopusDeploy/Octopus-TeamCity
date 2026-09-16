@@ -155,63 +155,50 @@ public class OctopusSpacesController extends BaseController {
   }
 
   /**
-   * Credentials for the lookup. A saved connection wins over anything posted, so a stored key is
-   * never replaced by a browser-supplied one.
+   * Credentials for the lookup, always read from a saved connection.
+   *
+   * <p>The request names a connection; it never supplies a URL or key of its own. That is
+   * deliberate: it keeps the server from being asked to fetch an arbitrary caller-supplied address,
+   * so the only URLs it will ever call are ones an admin has already persisted into project
+   * configuration. It also sidesteps TeamCity rendering a saved secret as a placeholder, which
+   * means the browser could not supply the real key anyway.
+   *
+   * <p>The cost is that a brand-new connection has to be saved once before its spaces can be
+   * listed, and a step using inline credentials cannot list spaces at all. Both fall back to typing
+   * the space name.
    */
   private Credentials resolveCredentials(final HttpServletRequest request, final SProject project)
       throws CredentialsUnavailableException {
     final String connectionId = request.getParameter("connectionId");
-    if (connectionId != null && !connectionId.trim().isEmpty()) {
-      final Optional<OAuthConnectionDescriptor> connection =
-          connectionsManager.resolve(project, connectionId.trim());
-      if (!connection.isPresent()) {
-        throw new CredentialsUnavailableException("That Octopus connection could not be resolved.");
-      }
-      final Map<String, String> params = connection.get().getParameters();
-      final String source =
-          params.getOrDefault(
-              ConnectionPropertyNames.API_KEY_SOURCE, ConnectionPropertyNames.API_KEY_SOURCE_KEY);
-      if (ConnectionPropertyNames.API_KEY_SOURCE_PARAMETER.equals(source)) {
-        throw new CredentialsUnavailableException(
-            "This connection reads its API key from a build parameter, which is only resolved when"
-                + " a build runs, so spaces cannot be listed here. Enter the space name instead.");
-      }
-      if (ConnectionPropertyNames.API_KEY_SOURCE_OIDC.equals(source)) {
-        throw new CredentialsUnavailableException(
-            "This connection authenticates with OIDC, and its token is only issued while a build"
-                + " runs, so spaces cannot be listed here. Enter the space name instead.");
-      }
-      return new Credentials(
-          params.get(ConnectionPropertyNames.SERVER_URL),
-          params.get(ConnectionPropertyNames.API_KEY));
+    if (connectionId == null || connectionId.trim().isEmpty()) {
+      throw new CredentialsUnavailableException(
+          "Spaces can only be listed for a saved Octopus connection. Save this connection (or"
+              + " select one) and try again, or enter the space name instead.");
     }
 
-    // No saved connection: an unsaved form supplies its own values.
-    final String source = request.getParameter("apiKeySource");
+    final Optional<OAuthConnectionDescriptor> connection =
+        connectionsManager.resolve(project, connectionId.trim());
+    if (!connection.isPresent()) {
+      throw new CredentialsUnavailableException("That Octopus connection could not be resolved.");
+    }
+
+    final Map<String, String> params = connection.get().getParameters();
+    final String source =
+        params.getOrDefault(
+            ConnectionPropertyNames.API_KEY_SOURCE, ConnectionPropertyNames.API_KEY_SOURCE_KEY);
     if (ConnectionPropertyNames.API_KEY_SOURCE_PARAMETER.equals(source)) {
       throw new CredentialsUnavailableException(
-          "An API key held in a build parameter is only resolved when a build runs, so spaces"
-              + " cannot be listed here. Enter the space name instead.");
+          "This connection reads its API key from a build parameter, which is only resolved when"
+              + " a build runs, so spaces cannot be listed here. Enter the space name instead.");
     }
     if (ConnectionPropertyNames.API_KEY_SOURCE_OIDC.equals(source)) {
       throw new CredentialsUnavailableException(
-          "An OIDC token is only issued while a build runs, so spaces cannot be listed here. Enter"
-              + " the space name instead.");
+          "This connection authenticates with OIDC, and its token is only issued while a build"
+              + " runs, so spaces cannot be listed here. Enter the space name instead.");
     }
-    final String apiKey = request.getParameter("apiKey");
-    // A step's inline API key field accepts a parameter reference such as %octopus.apikey%. Sent
-    // literally that just earns a 401, so say what is actually wrong instead.
-    if (isParameterReference(apiKey)) {
-      throw new CredentialsUnavailableException(
-          "That API key is a build parameter reference, which is only resolved when a build runs,"
-              + " so spaces cannot be listed here. Enter the space name instead.");
-    }
-    return new Credentials(request.getParameter("serverUrl"), apiKey);
-  }
-
-  private static boolean isParameterReference(final String value) {
-    final String trimmed = value == null ? "" : value.trim();
-    return trimmed.length() > 2 && trimmed.startsWith("%") && trimmed.endsWith("%");
+    return new Credentials(
+        params.get(ConnectionPropertyNames.SERVER_URL),
+        params.get(ConnectionPropertyNames.API_KEY));
   }
 
   private static void writeSpaces(
