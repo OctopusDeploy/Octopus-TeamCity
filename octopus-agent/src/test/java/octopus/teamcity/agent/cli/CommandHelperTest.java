@@ -59,7 +59,7 @@ class CommandHelperTest {
     params.put(constants.getRunbookNameKey(), "MyRunbook");
     params.put(constants.getCommandLineArgumentsKey(), additionalArguments);
 
-    assertStepKeepsItsOwnArguments(CommandHelper.createRelease(params).buildCommand());
+    assertStepKeepsItsOwnArguments(CommandHelper.createRelease(params));
     assertStepKeepsItsOwnArguments(CommandHelper.deployRelease(params, "1.0.0"));
     assertStepKeepsItsOwnArguments(CommandHelper.runbookRun(params));
   }
@@ -488,8 +488,7 @@ class CommandHelperTest {
     params.put(constants.getDeployToKey(), "Dev");
     params.put(constants.getCommandLineArgumentsKey(), "-v ImageTag:1.5.2");
 
-    assertThat(CommandHelper.createRelease(params).buildCommand())
-        .doesNotContain("-v", "ImageTag:1.5.2");
+    assertThat(CommandHelper.createRelease(params)).doesNotContain("-v", "ImageTag:1.5.2");
     assertThat(CommandHelper.deployRelease(params, "1.0.0"))
         .containsSequence("-v", "ImageTag:1.5.2");
   }
@@ -502,8 +501,7 @@ class CommandHelperTest {
     params.put(constants.getDeployToKey(), "Dev");
     params.put(constants.getCommandLineArgumentsKey(), "--variable ImageTag:1.5.2");
 
-    assertThat(CommandHelper.createRelease(params).buildCommand())
-        .doesNotContain("--variable", "ImageTag:1.5.2");
+    assertThat(CommandHelper.createRelease(params)).doesNotContain("--variable", "ImageTag:1.5.2");
     assertThat(CommandHelper.deployRelease(params, "1.0.0"))
         .containsSequence("--variable", "ImageTag:1.5.2");
   }
@@ -513,18 +511,13 @@ class CommandHelperTest {
     final Map<String, String> params = new HashMap<>();
     params.put(OctopusConstants.Instance.getSpaceName(), "Build Platform");
 
-    final OctopusCommandBuilder command = CommandHelper.spaceView(params);
-
-    assertThat(Arrays.asList(command.buildCommand()))
+    assertThat(Arrays.asList(CommandHelper.spaceView(params)))
         .containsExactly(
             "space", "view", "Build Platform", "--output-format", "json", "--no-prompt");
-    assertThat(command.isOptional()).isTrue();
   }
 
   @Test
   void spaceViewFallsBackToTheDefaultSpace() {
-    final OctopusCommandBuilder command = CommandHelper.spaceView(new HashMap<>());
-
-    assertThat(Arrays.asList(command.buildCommand())).contains("Default");
+    assertThat(Arrays.asList(CommandHelper.spaceView(new HashMap<>()))).contains("Default");
   }
 }

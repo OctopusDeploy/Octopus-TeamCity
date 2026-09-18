@@ -44,6 +44,8 @@ public abstract class OctopusCommandBuilder {
     return false;
   }
 
+  public void readResponse(String output) {}
+
   protected String Quote(String value) {
     return "\"" + value + "\"";
   }

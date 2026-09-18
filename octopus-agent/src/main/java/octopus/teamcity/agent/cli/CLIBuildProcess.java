@@ -62,8 +62,6 @@ public abstract class CLIBuildProcess implements BuildProcess {
     logger = runningBuild.getBuildLogger();
   }
 
-  public abstract void processOutput(String output, int exitCode);
-
   protected abstract List<OctopusCommandBuilder> createCommand();
 
   protected BuildRunnerContext getContext() {
@@ -238,7 +236,10 @@ public abstract class CLIBuildProcess implements BuildProcess {
       }
 
       exitCode = result.getExitCode();
-      processOutput(result.getCombinedOutput(), exitCode);
+      logger.message("Exit code: " + exitCode);
+      if (exitCode == 0) {
+        command.readResponse(result.getCombinedOutput());
+      }
 
     } catch (IOException e) {
       final String message = "Error from octopus: " + e.getMessage();

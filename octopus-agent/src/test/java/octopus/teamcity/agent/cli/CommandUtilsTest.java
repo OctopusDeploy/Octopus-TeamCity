@@ -51,37 +51,6 @@ class CommandUtilsTest {
   }
 
   @Test
-  void isSpaceViewReturnsFalseRatherThanThrowingWhenTheIdIsNotAString() {
-    assertThat(
-            CommandUtils.isSpaceViewCommand(
-                "{\"Id\": {\"Value\": \"Spaces-162\"}, \"TaskQueue\": \"Running\"}"))
-        .isFalse();
-  }
-
-  @Test
-  void isSpaceViewReturnsTrueForASpacesOwnResponse() {
-    String jsonOutput =
-        "{\"Id\": \"Spaces-162\", \"Name\": \"Build Platform\", \"Description\": \"\","
-            + " \"TaskQueue\": \"Running\", \"WebUrl\": \"https://my.octopus.app/app#/configuration/spaces/Spaces-162\"}";
-    assertThat(CommandUtils.isSpaceViewCommand(jsonOutput)).isTrue();
-  }
-
-  @Test
-  void isSpaceViewReturnsFalseForAReleaseWhoseNotesMentionATaskQueue() {
-    String jsonOutput =
-        "{\"ID\": \"Releases-14\", \"Version\": \"1.0.0\","
-            + " \"ReleaseNotes\": \"Id and TaskQueue handling\"}";
-    assertThat(CommandUtils.isSpaceViewCommand(jsonOutput)).isFalse();
-  }
-
-  @Test
-  void isSpaceViewReturnsFalseForOutputThatIsNotAJsonObject() {
-    assertThat(CommandUtils.isSpaceViewCommand("")).isFalse();
-    assertThat(CommandUtils.isSpaceViewCommand("Error: no space found")).isFalse();
-    assertThat(CommandUtils.isSpaceViewCommand("[{\"TaskQueue\": \"Running\"}]")).isFalse();
-  }
-
-  @Test
   void isSpaceIdRecognisesOnlyAnActualSpaceId() {
     assertThat(CommandUtils.isSpaceId("Spaces-1")).isTrue();
     assertThat(CommandUtils.isSpaceId(" Spaces-162 ")).isTrue();
@@ -93,38 +62,35 @@ class CommandUtilsTest {
   @Test
   void parsesTaskIdFromJsonArray() {
     String jsonOutput = "[{\"ServerTaskId\": \"task-123\"}]";
-    assertThat(CommandUtils.getServerTaskId(jsonOutput)).isEqualTo("task-123");
+    assertThat(CommandUtils.getServerTaskId(jsonOutput)).contains("task-123");
   }
 
   @Test
-  void isCreateReleasereturnsTrueWhenOutputContainsVersion() {
-    assertThat(CommandUtils.isCreateReleaseCommand("{\"Version\": \"1.0.0\"}")).isTrue();
+  void readsNoTaskIdRatherThanThrowingWhenTheOutputIsNotTheExpectedJson() {
+    for (String output :
+        new String[] {
+          null,
+          "",
+          "Error: the deployment was not started",
+          "[]",
+          "[\"task-123\"]",
+          "{\"ServerTaskId\": \"task-123\"}",
+          "[{\"State\": \"Success\"}]"
+        }) {
+      assertThat(CommandUtils.getServerTaskId(output)).isEmpty();
+    }
   }
 
   @Test
-  void isCreateRelease_returnsFalseWhenOutputDoesNotContainVersion() {
-    assertThat(CommandUtils.isCreateReleaseCommand("{\"Id\": \"1\", \"Name\": \"Release1\"}"))
-        .isFalse();
-  }
+  void loggableOutputKeepsAResponseShortEnoughToReadInABuildLog() {
+    assertThat(CommandUtils.loggableOutput(null)).isEmpty();
+    assertThat(CommandUtils.loggableOutput("  Error: no space found  "))
+        .isEqualTo("Error: no space found");
 
-  @Test
-  void isCreateRelease_ReturnsFalseWhenOutputIsEmpty() {
-    assertThat(CommandUtils.isCreateReleaseCommand("")).isFalse();
-  }
-
-  @Test
-  void isDeployReleaseReturnsTrueWhenOutputContainsServerTaskId() {
-    assertThat(CommandUtils.isDeployReleaseCommand("[{\"ServerTaskId\": \"task-123\"}]")).isTrue();
-  }
-
-  @Test
-  void isDeployReleaseReturnsFalseWhenNonServerTaskIdInOutput() {
-    assertThat(CommandUtils.isDeployReleaseCommand("[{\"State\": \"Success\"}]")).isFalse();
-  }
-
-  @Test
-  void isDeployReleaseReturnsFalseWhenOutputIsEmpty() {
-    assertThat(CommandUtils.isDeployReleaseCommand("")).isFalse();
+    final String longOutput = new String(new char[600]).replace("\0", "x");
+    assertThat(CommandUtils.loggableOutput(longOutput))
+        .hasSize(500 + "... (truncated)".length())
+        .endsWith("... (truncated)");
   }
 
   @Test

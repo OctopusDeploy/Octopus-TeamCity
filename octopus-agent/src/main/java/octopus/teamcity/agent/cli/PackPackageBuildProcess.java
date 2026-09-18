@@ -88,11 +88,6 @@ public class PackPackageBuildProcess extends CLIBuildProcess {
   }
 
   @Override
-  public void processOutput(String output, int exitCode) {
-    logger.message("Exit code: " + exitCode);
-  }
-
-  @Override
   protected List<OctopusCommandBuilder> createCommand() {
     List<OctopusCommandBuilder> commands = new ArrayList<>();
     final Map<String, String> parameters = getContext().getRunnerParameters();
