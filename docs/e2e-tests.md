@@ -2,7 +2,7 @@
 
 The e2e suite drives the **real plugin** through real containers with
 [Testcontainers](https://testcontainers.com): one shared stack — a TeamCity server (booted from a
-prepared data directory with the built plugin pre-installed), a TeamCity agent, a **free-tier**
+prepared data directory with the built plugin pre-installed), a TeamCity agent, an **unlicensed**
 Octopus Deploy, and its MSSQL database — is started **once** for the whole suite (see `SharedStack`)
 and reaped at JVM exit. Each test provisions its own Octopus project via the `OctopusProvisioning`
 DSL, creates a TeamCity project/build with the relevant Octopus step over the REST client
@@ -10,7 +10,10 @@ DSL, creates a TeamCity project/build with the relevant Octopus step over the RE
 SDK). The `*UiTest` classes additionally drive the connection edit forms in a browser with
 Playwright.
 
-Octopus runs in its free tier, so **no licence is required**.
+Octopus runs unlicensed, which is its Community Edition, so **no licence is required**. That
+edition's limits, as the running container reports them, are 5 projects, 5 targets, 5 tenants and 1
+space. (Octopus's advertised free tier is more generous, 10 projects, but it needs a licence key
+the suite deliberately doesn't use.)
 
 ## Prerequisites
 
