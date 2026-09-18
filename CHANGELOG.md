@@ -1,5 +1,13 @@
 # Changelog
 
+## [6.8.0](https://github.com/OctopusDeploy/Octopus-TeamCity/compare/v6.7.2...v6.8.0) (2026-09-18)
+
+
+### Features
+
+* link to the release a Create release step makes ([#245](https://github.com/OctopusDeploy/Octopus-TeamCity/issues/245)) ([4c7dac4](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/4c7dac41e7600aa24b58d7970b1ce00b971a8212))
+* show the release a build created on the build page ([#246](https://github.com/OctopusDeploy/Octopus-TeamCity/issues/246)) ([731511d](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/731511d5ecc8cb75f0b13e2a3a6e6d8b4cb27b4d))
+
 ## [6.7.2](https://github.com/OctopusDeploy/Octopus-TeamCity/compare/v6.7.1...v6.7.2) (2026-08-31)
 
 
