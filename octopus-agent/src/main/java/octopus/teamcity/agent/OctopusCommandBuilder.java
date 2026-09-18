@@ -44,12 +44,6 @@ public abstract class OctopusCommandBuilder {
     return false;
   }
 
-  /**
-   * What this command's own output means. The step's commands run in the order it built them, so
-   * the output of each is handed back to the command that produced it - a command reads its own
-   * response, and no step has to work out which command it is looking at from the shape of the
-   * text. Commands with nothing worth reading do nothing here.
-   */
   public void readResponse(String output) {}
 
   protected String Quote(String value) {

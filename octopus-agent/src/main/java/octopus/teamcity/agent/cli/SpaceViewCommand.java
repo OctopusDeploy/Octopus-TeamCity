@@ -31,8 +31,6 @@ final class SpaceViewCommand extends OctopusCommandBuilder {
 
   @Override
   public void readResponse(final String output) {
-    // Only an actual space id is worth handing on: an address built out of anything else would
-    // point at nothing.
     CommandUtils.getSpaceId(output).filter(CommandUtils::isSpaceId).ifPresent(spaceIdRead);
   }
 }

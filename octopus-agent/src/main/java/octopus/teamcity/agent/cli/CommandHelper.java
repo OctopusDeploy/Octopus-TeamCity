@@ -227,8 +227,7 @@ public class CommandHelper {
 
   /**
    * Looks up the space the step is configured against, whose id the portal address of anything the
-   * step creates is built from. Run by {@link SpaceViewCommand}, which is where the response it
-   * asks for gets read.
+   * step creates is built from.
    */
   public static String[] spaceView(Map<String, String> params) {
     final OctopusConstants constants = OctopusConstants.Instance;
