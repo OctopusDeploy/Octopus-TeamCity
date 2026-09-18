@@ -29,8 +29,9 @@ import org.testcontainers.utility.MountableFile;
 /**
  * Boots the integration-test stack: a TeamCity server with the built plugin installed and,
  * optionally, a real Octopus Deploy (MSSQL + the {@code octopusdeploy/octopusdeploy} image, in the
- * free tier — no license required) plus a TeamCity agent. All containers share one Docker network
- * and reach each other by network alias ({@code server}, {@code octopus}, {@code mssql}).
+ * unlicensed Community Edition — no license required) plus a TeamCity agent. All containers share
+ * one Docker network and reach each other by network alias ({@code server}, {@code octopus}, {@code
+ * mssql}).
  *
  * <p>TeamCity boots from a prepared data directory ({@code teamcity_config.zip}) that already has
  * an initialised database and an {@code admin}/{@code Password01!} user, so there is no first-start
@@ -107,8 +108,8 @@ public final class OctopusTeamCityStack implements AutoCloseable {
   }
 
   /**
-   * Starts MSSQL + Octopus (free tier, no license) + TeamCity server + an authorised agent, all on
-   * the same Docker network.
+   * Starts MSSQL + Octopus (unlicensed Community Edition) + TeamCity server + an authorised agent,
+   * all on the same Docker network.
    */
   public static OctopusTeamCityStack startWithAgentAndOctopus() throws Exception {
     final OctopusTeamCityStack stack = startTeamCityOnly();
