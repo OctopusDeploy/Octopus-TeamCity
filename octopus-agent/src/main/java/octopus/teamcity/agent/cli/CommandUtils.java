@@ -14,6 +14,7 @@ import org.apache.commons.lang3.StringUtils;
 public class CommandUtils {
   private static final JsonParser JSON_PARSER = new JsonParser();
   private static final Pattern SPACE_ID = Pattern.compile("Spaces-\\d+");
+  private static final int LOGGED_OUTPUT_LIMIT = 500;
 
   /**
    * The readers below answer with what they found and nothing else: a response that is not the JSON
@@ -34,29 +35,25 @@ public class CommandUtils {
     return readString(asJsonObject(output), "Id");
   }
 
-  protected static String getServerTaskId(String output) {
-    JsonArray json = JSON_PARSER.parse(output).getAsJsonArray();
-    return json.get(0).getAsJsonObject().get("ServerTaskId").getAsString();
+  protected static Optional<String> getServerTaskId(String output) {
+    JsonArray json = asJsonArray(output);
+    if (json == null || json.size() == 0 || !json.get(0).isJsonObject()) {
+      return Optional.empty();
+    }
+
+    return readString(json.get(0).getAsJsonObject(), "ServerTaskId");
   }
 
-  protected static boolean isCreateReleaseCommand(String output) {
-    return output != null && output.contains("Version");
-  }
+  /** Enough of a response to tell what the CLI said instead, without flooding a build log. */
+  protected static String loggableOutput(String output) {
+    if (output == null) {
+      return "";
+    }
 
-  protected static boolean isDeployReleaseCommand(String output) {
-    return output != null && output.contains("ServerTaskId");
-  }
-
-  /**
-   * A space's own name and description are whatever its owner typed, so recognising {@code space
-   * view}'s response goes by structure instead: it is the only single object the plugin asks for
-   * that carries both a space id and that space's task queue state.
-   */
-  protected static boolean isSpaceViewCommand(String output) {
-    JsonObject json = asJsonObject(output);
-    return json != null
-        && json.has("TaskQueue")
-        && readString(json, "Id").filter(CommandUtils::isSpaceId).isPresent();
+    String trimmed = output.trim();
+    return trimmed.length() <= LOGGED_OUTPUT_LIMIT
+        ? trimmed
+        : trimmed.substring(0, LOGGED_OUTPUT_LIMIT) + "... (truncated)";
   }
 
   protected static boolean isSpaceId(String space) {
@@ -77,21 +74,26 @@ public class CommandUtils {
     return StringUtils.isBlank(text) ? Optional.empty() : Optional.of(text);
   }
 
+  private static JsonArray asJsonArray(String output) {
+    JsonElement json = asJson(output);
+    return json != null && json.isJsonArray() ? json.getAsJsonArray() : null;
+  }
+
   private static JsonObject asJsonObject(String output) {
+    JsonElement json = asJson(output);
+    return json != null && json.isJsonObject() ? json.getAsJsonObject() : null;
+  }
+
+  private static JsonElement asJson(String output) {
     if (StringUtils.isBlank(output)) {
       return null;
     }
 
     try {
-      JsonElement json = JSON_PARSER.parse(output);
-      return json.isJsonObject() ? json.getAsJsonObject() : null;
+      return JSON_PARSER.parse(output);
     } catch (JsonParseException e) {
       return null;
     }
-  }
-
-  protected static boolean isRunbookRunCommand(String output) {
-    return output != null && output.contains("RunbookRunId");
   }
 
   public static String getOverwriteMode(OverwriteMode overwriteMode) {

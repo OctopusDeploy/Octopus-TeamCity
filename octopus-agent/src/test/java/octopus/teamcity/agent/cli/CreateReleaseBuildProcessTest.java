@@ -9,8 +9,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,18 +22,14 @@ import org.junit.jupiter.api.Test;
 
 class CreateReleaseBuildProcessTest {
 
+  private static final OctopusConstants CONSTANTS = OctopusConstants.Instance;
   private static final String CREATE_RELEASE_JSON =
       "{\"ID\": \"Releases-14\", \"Version\": \"1.2.3\", \"Channel\": \"Default\"}";
   private static final String SPACE_VIEW_JSON =
       "{\"Id\": \"Spaces-162\", \"Name\": \"Build Platform\", \"TaskQueue\": \"Running\"}";
+  private static final String DEPLOY_RELEASE_JSON = "[{\"ServerTaskId\": \"task-xyz\"}]";
 
   private BuildProgressLogger logger;
-
-  private Object getPrivateField(Object instance, String fieldName) throws Exception {
-    Field f = instance.getClass().getDeclaredField(fieldName);
-    f.setAccessible(true);
-    return f.get(instance);
-  }
 
   private CreateReleaseBuildProcess buildProcessFor(Map<String, String> params) {
     AgentRunningBuild runningBuild = mock(AgentRunningBuild.class);
@@ -56,34 +50,12 @@ class CreateReleaseBuildProcessTest {
   }
 
   @Test
-  void processOutput_setsAutoCreatedReleaseNumber_whenCreateReleaseOutput() throws Exception {
-    final OctopusConstants constants = OctopusConstants.Instance;
-    CreateReleaseBuildProcess proc = buildProcessFor(params(constants.getDeployToKey(), "test"));
-
-    proc.processOutput("{\"Version\": \"1.2.3\"}", 0);
-
-    assertThat(getPrivateField(proc, "autoCreatedReleaseNumber")).isEqualTo("1.2.3");
-  }
-
-  @Test
-  void processOutput_setsServerTaskId_whenDeployOutput() throws Exception {
-    final OctopusConstants constants = OctopusConstants.Instance;
-    CreateReleaseBuildProcess proc =
-        buildProcessFor(params(constants.getWaitForDeployments(), "true"));
-
-    proc.processOutput("[{\"ServerTaskId\": \"task-xyz\"}]", 0);
-
-    assertThat(getPrivateField(proc, "serverTaskId")).isEqualTo("task-xyz");
-  }
-
-  @Test
   void logsALinkToTheReleaseItCreated() {
-    final OctopusConstants constants = OctopusConstants.Instance;
-    CreateReleaseBuildProcess proc =
-        buildProcessFor(params(constants.getServerKey(), "https://my.octopus.app"));
+    final List<OctopusCommandBuilder> commands =
+        buildProcessFor(params(CONSTANTS.getServerKey(), "https://my.octopus.app")).createCommand();
 
-    proc.processOutput(SPACE_VIEW_JSON, 0);
-    proc.processOutput(CREATE_RELEASE_JSON, 0);
+    Commands.of(commands, SpaceViewCommand.class).readResponse(SPACE_VIEW_JSON);
+    Commands.of(commands, CreateReleaseCommand.class).readResponse(CREATE_RELEASE_JSON);
 
     verify(logger)
         .message(
@@ -93,12 +65,11 @@ class CreateReleaseBuildProcessTest {
 
   @Test
   void publishesTheReleaseAsParametersForLaterSteps() {
-    final OctopusConstants constants = OctopusConstants.Instance;
-    CreateReleaseBuildProcess proc =
-        buildProcessFor(params(constants.getServerKey(), "https://my.octopus.app"));
+    final List<OctopusCommandBuilder> commands =
+        buildProcessFor(params(CONSTANTS.getServerKey(), "https://my.octopus.app")).createCommand();
 
-    proc.processOutput(SPACE_VIEW_JSON, 0);
-    proc.processOutput(CREATE_RELEASE_JSON, 0);
+    Commands.of(commands, SpaceViewCommand.class).readResponse(SPACE_VIEW_JSON);
+    Commands.of(commands, CreateReleaseCommand.class).readResponse(CREATE_RELEASE_JSON);
 
     verify(logger)
         .message(
@@ -115,42 +86,49 @@ class CreateReleaseBuildProcessTest {
   }
 
   @Test
-  void warnsRatherThanFailingWhenTheSpaceIsUnknown() {
-    final OctopusConstants constants = OctopusConstants.Instance;
-    CreateReleaseBuildProcess proc =
-        buildProcessFor(params(constants.getServerKey(), "https://my.octopus.app"));
+  void namesTheReleaseProjectAndSpaceItCreatedIn() {
+    final List<OctopusCommandBuilder> commands =
+        buildProcessFor(
+                params(
+                    CONSTANTS.getServerKey(),
+                    "https://my.octopus.app",
+                    CONSTANTS.getProjectNameKey(),
+                    "Deploy Web"))
+            .createCommand();
 
-    proc.processOutput(CREATE_RELEASE_JSON, 0);
+    Commands.of(commands, SpaceViewCommand.class).readResponse(SPACE_VIEW_JSON);
+    Commands.of(commands, CreateReleaseCommand.class).readResponse(CREATE_RELEASE_JSON);
+
+    verify(logger).message("Created release 1.2.3 of project Deploy Web in space Spaces-162");
+  }
+
+  @Test
+  void warnsRatherThanFailingWhenTheSpaceIsUnknown() {
+    final List<OctopusCommandBuilder> commands =
+        buildProcessFor(params(CONSTANTS.getServerKey(), "https://my.octopus.app")).createCommand();
+
+    // The space view command failed, so it never answered.
+    Commands.of(commands, CreateReleaseCommand.class).readResponse(CREATE_RELEASE_JSON);
 
     verify(logger, never()).message(startsWith("View this release"));
     verify(logger).warning(contains("will not link to it"));
+    verify(logger).warning(contains("The space was not known"));
+    verify(logger).warning(contains(CREATE_RELEASE_JSON));
   }
 
   @Test
   void warnsRatherThanFailingWhenTheCreatedReleaseCannotBeRead() {
-    final OctopusConstants constants = OctopusConstants.Instance;
-    CreateReleaseBuildProcess proc =
-        buildProcessFor(params(constants.getServerKey(), "https://my.octopus.app"));
+    final List<OctopusCommandBuilder> commands =
+        buildProcessFor(params(CONSTANTS.getServerKey(), "https://my.octopus.app")).createCommand();
 
-    proc.processOutput(SPACE_VIEW_JSON, 0);
-    proc.processOutput("Warning: cannot fetch release details. Version unknown", 0);
+    Commands.of(commands, SpaceViewCommand.class).readResponse(SPACE_VIEW_JSON);
+    Commands.of(commands, CreateReleaseCommand.class)
+        .readResponse("Warning: cannot fetch release details. Version unknown");
 
     verify(logger, never()).message(startsWith("View this release"));
     verify(logger).warning(contains("will not link to it"));
     // Whatever the CLI said instead goes in the warning, or there is nothing to work back from.
     verify(logger).warning(contains("Warning: cannot fetch release details. Version unknown"));
-  }
-
-  @Test
-  void quotesWhatTheCliSaidWhenTheSpaceIsUnknown() {
-    final OctopusConstants constants = OctopusConstants.Instance;
-    CreateReleaseBuildProcess proc =
-        buildProcessFor(params(constants.getServerKey(), "https://my.octopus.app"));
-
-    proc.processOutput(CREATE_RELEASE_JSON, 0);
-
-    verify(logger).warning(contains("The space was not known"));
-    verify(logger).warning(contains(CREATE_RELEASE_JSON));
   }
 
   /**
@@ -160,59 +138,88 @@ class CreateReleaseBuildProcessTest {
    */
   @Test
   void failsWithTheCliResponseWhenADeployingStepCannotReadTheReleaseNumber() {
-    final OctopusConstants constants = OctopusConstants.Instance;
-    CreateReleaseBuildProcess proc =
+    final List<OctopusCommandBuilder> commands =
         buildProcessFor(
-            params(
-                constants.getServerKey(),
-                "https://my.octopus.app",
-                constants.getDeployToKey(),
-                "Development"));
+                params(
+                    CONSTANTS.getServerKey(),
+                    "https://my.octopus.app",
+                    CONSTANTS.getDeployToKey(),
+                    "Development"))
+            .createCommand();
 
     assertThatThrownBy(
-            () -> proc.processOutput("Warning: cannot fetch release details. Version unknown", 0))
+            () ->
+                Commands.of(commands, CreateReleaseCommand.class)
+                    .readResponse("Warning: cannot fetch release details. Version unknown"))
         .isInstanceOf(IllegalStateException.class)
         .hasMessageContaining("no release to deploy")
         .hasMessageContaining("Warning: cannot fetch release details. Version unknown");
   }
 
   @Test
-  void namesTheReleaseProjectAndSpaceItCreatedIn() {
-    final OctopusConstants constants = OctopusConstants.Instance;
-    CreateReleaseBuildProcess proc =
+  void deploysTheReleaseTheCreateCommandSaidItMade() {
+    final List<OctopusCommandBuilder> commands =
         buildProcessFor(
-            params(
-                constants.getServerKey(),
-                "https://my.octopus.app",
-                constants.getProjectNameKey(),
-                "Deploy Web"));
+                params(
+                    CONSTANTS.getServerKey(),
+                    "https://my.octopus.app",
+                    CONSTANTS.getDeployToKey(),
+                    "Development"))
+            .createCommand();
 
-    proc.processOutput(SPACE_VIEW_JSON, 0);
-    proc.processOutput(CREATE_RELEASE_JSON, 0);
+    Commands.of(commands, CreateReleaseCommand.class).readResponse(CREATE_RELEASE_JSON);
 
-    verify(logger).message("Created release 1.2.3 of project Deploy Web in space Spaces-162");
+    assertThat(Commands.of(commands, DeployReleaseCommand.class).buildCommand())
+        .containsSequence("--version", "1.2.3");
   }
 
   @Test
-  void looksUpTheSpaceOnlyWhenTheStepIsNotAlreadyConfiguredWithItsId() throws Exception {
-    final OctopusConstants constants = OctopusConstants.Instance;
+  void waitsForTheTaskTheDeploymentStarted() {
+    final List<OctopusCommandBuilder> commands =
+        buildProcessFor(
+                params(
+                    CONSTANTS.getDeployToKey(),
+                    "Development",
+                    CONSTANTS.getWaitForDeployments(),
+                    "true"))
+            .createCommand();
 
-    CreateReleaseBuildProcess byName =
-        buildProcessFor(params(constants.getSpaceName(), "Build Platform"));
-    assertThat(commandNames(byName.createCommand())).contains("space view");
+    Commands.of(commands, CreateReleaseCommand.class).readResponse(CREATE_RELEASE_JSON);
+    Commands.of(commands, DeployReleaseCommand.class).readResponse(DEPLOY_RELEASE_JSON);
 
-    CreateReleaseBuildProcess byId =
-        buildProcessFor(params(constants.getSpaceName(), "Spaces-162"));
-    assertThat(commandNames(byId.createCommand())).doesNotContain("space view");
-    assertThat(getPrivateField(byId, "spaceId")).isEqualTo("Spaces-162");
+    assertThat(Commands.of(commands, WaitForTaskCommand.class).buildCommand()).contains("task-xyz");
   }
 
-  private static List<String> commandNames(List<OctopusCommandBuilder> commands) {
-    final List<String> names = new ArrayList<>();
-    for (OctopusCommandBuilder command : commands) {
-      final String[] arguments = command.buildCommand();
-      names.add(arguments.length > 1 ? arguments[0] + " " + arguments[1] : arguments[0]);
-    }
-    return names;
+  @Test
+  void looksUpTheSpaceOnlyWhenTheStepIsNotAlreadyConfiguredWithItsId() {
+    final List<OctopusCommandBuilder> byName =
+        buildProcessFor(params(CONSTANTS.getSpaceName(), "Build Platform")).createCommand();
+    assertThat(Commands.ranA(byName, SpaceViewCommand.class)).isTrue();
+
+    final List<OctopusCommandBuilder> byId =
+        buildProcessFor(
+                params(
+                    CONSTANTS.getSpaceName(),
+                    "Spaces-162",
+                    CONSTANTS.getServerKey(),
+                    "https://my.octopus.app"))
+            .createCommand();
+    assertThat(Commands.ranA(byId, SpaceViewCommand.class)).isFalse();
+
+    // Configuration alone is enough to link to the release, with no space view to answer.
+    Commands.of(byId, CreateReleaseCommand.class).readResponse(CREATE_RELEASE_JSON);
+    verify(logger)
+        .message(
+            "View this release in Octopus Deploy: "
+                + "https://my.octopus.app/app#/Spaces-162/releases/Releases-14");
+  }
+
+  @Test
+  void doesNotDeployOrWaitWhenTheStepOnlyCreatesARelease() {
+    final List<OctopusCommandBuilder> commands =
+        buildProcessFor(params(CONSTANTS.getWaitForDeployments(), "true")).createCommand();
+
+    assertThat(Commands.ranA(commands, DeployReleaseCommand.class)).isFalse();
+    assertThat(Commands.ranA(commands, WaitForTaskCommand.class)).isFalse();
   }
 }

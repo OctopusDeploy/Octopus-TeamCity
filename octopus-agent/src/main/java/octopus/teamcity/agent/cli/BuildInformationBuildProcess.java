@@ -55,11 +55,6 @@ public class BuildInformationBuildProcess extends CLIBuildProcess {
   }
 
   @Override
-  public void processOutput(String output, int exitCode) {
-    logger.message("Exit code: " + exitCode);
-  }
-
-  @Override
   protected String getLogMessage() {
     return "Pushing build information to Octopus server";
   }
