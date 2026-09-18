@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 
 import jetbrains.buildServer.serverSide.ProjectManager;
@@ -88,6 +89,7 @@ public class OctopusConnectionUiData {
       view.put("displayName", descriptor.getConnectionDisplayName());
       view.put("url", params.getOrDefault(CONNECTION_KEYS.getServerUrlPropertyName(), ""));
       view.put("space", params.getOrDefault(CONNECTION_KEYS.getSpaceNamePropertyName(), ""));
+      view.put("spaceId", params.getOrDefault(CONNECTION_KEYS.getSpaceIdPropertyName(), ""));
 
       final String apiKeySource =
           params.getOrDefault(CONNECTION_KEYS.getApiKeySourcePropertyName(), "");
@@ -167,6 +169,57 @@ public class OctopusConnectionUiData {
     return request.getContextPath()
         + "/admin/editBuildFeatures.html?id=buildType:"
         + buildType.getExternalId();
+  }
+
+  /**
+   * The project whose form is being edited, for the space picker's permission check.
+   *
+   * <p>A connection page carries {@code projectId} directly; a step page instead carries {@code
+   * id=buildType:...}, so the project is derived from the build type.
+   */
+  @NotNull
+  public static String spacePickerProjectId(final HttpServletRequest request) {
+    final String projectId = request.getParameter("projectId");
+    if (projectId != null && !projectId.trim().isEmpty()) {
+      return projectId.trim();
+    }
+    final String fromBuildType = currentProjectExternalId(request);
+    return fromBuildType == null ? "" : fromBuildType;
+  }
+
+  /**
+   * The Octopus connection this page is editing, or {@code ""} when there is not one yet.
+   *
+   * <p>The space picker needs a <em>saved</em> connection to look spaces up through. On a step form
+   * the connection selector supplies that; on the connection form itself it has to come from the
+   * request. TeamCity's own parameter name for it is not contractual, so each plausible name is
+   * tried and only accepted when it actually resolves to an Octopus connection in this project. An
+   * unknown name simply yields {@code ""}, and the picker then asks the admin to save first rather
+   * than failing.
+   */
+  @NotNull
+  public static String spacePickerConnectionId(final HttpServletRequest request) {
+    if (connectionsManager == null || projectManager == null) {
+      return "";
+    }
+    final SProject project = projectManager.findProjectByExternalId(spacePickerProjectId(request));
+    if (project == null) {
+      return "";
+    }
+    for (final String parameterName :
+        new String[] {"connectionId", "oauthConnectionId", "featureId", "id"}) {
+      final String candidate = request.getParameter(parameterName);
+      if (candidate == null || candidate.trim().isEmpty()) {
+        continue;
+      }
+      final Optional<OAuthConnectionDescriptor> resolved =
+          connectionsManager.resolve(project, candidate.trim());
+      if (resolved.isPresent()
+          && OctopusConnection.TYPE.equals(resolved.get().getParameters().get("providerType"))) {
+        return candidate.trim();
+      }
+    }
+    return "";
   }
 
   private static String currentProjectExternalId(final HttpServletRequest request) {

@@ -108,3 +108,43 @@ form); `OctopusParameterSourcePushE2ETest` covers the `%param%` api-key source e
 To bring the same stack up and click around by hand (rather than asserting in code), use
 `docker-compose.manual.yml` — see the header of that file for the `cp .env.example .env`, build, and
 `docker compose up` steps.
+
+### Driving the space picker
+
+`SpacePickerManualTest` walks the space picker through the real stack in a browser, screenshotting
+each state. It is a driver rather than a test: it asserts almost nothing, and exists to *look* at
+the feature — most usefully to regenerate screenshots after changing the picker's markup.
+
+It is skipped unless `OCTOPUS_PICKER_DEMO` is set, because otherwise it would block forever waiting
+for a checkpoint file.
+
+```bash
+# Unattended: headless, no pauses, just captures the screenshots.
+OCTOPUS_PICKER_DEMO=auto ./gradlew :e2e:e2eTest --tests "*SpacePickerManualTest*"
+
+# Interactive: headed browser, pausing at each checkpoint so you can click around.
+OCTOPUS_PICKER_DEMO=1 ./gradlew :e2e:e2eTest --tests "*SpacePickerManualTest*"
+```
+
+In interactive mode it prints the TeamCity URL and admin login, holds the stack open at each
+checkpoint, and tells you the file to create to continue:
+
+```bash
+touch e2e/build/reports/space-picker/checkpoints/continue-3
+```
+
+Screenshots land in `e2e/build/reports/space-picker`; set `SPACE_PICKER_OUTPUT_DIR` to put them
+somewhere else.
+
+The walkthrough ends by renaming the Octopus space out from under an already-saved build step, which
+is the point of storing a space id rather than a name: the id keeps resolving while the stored name
+goes stale. The free-tier Octopus permits only one space, so the demo renames that one rather than
+creating others.
+
+Two things to know if you extend it:
+
+- **Do not set a viewport on the headed browser.** A viewport override desyncs the rendered page
+  from the real OS window, and native `<select>` popups are positioned by the window — they open
+  detached from the control. Size the window with `--window-size` instead.
+- The picker's fields are addressed as `prop:<property>`, because that is how TeamCity's props
+  taglib renders a property's `name` attribute (the `id` is the bare property name).

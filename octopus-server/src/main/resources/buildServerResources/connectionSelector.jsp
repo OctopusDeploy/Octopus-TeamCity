@@ -28,6 +28,7 @@
         <span class="octopusConnMeta"
               data-conn-id="<c:out value='${conn.id}'/>"
               data-conn-space="<c:out value='${conn.space}'/>"
+              data-conn-space-id="<c:out value='${conn.spaceId}'/>"
               data-conn-oidc-warning="<c:out value='${conn.oidcWarning}'/>"
               data-conn-oidc-expected-var="<c:out value='${conn.oidcExpectedTokenVariable}'/>"></span>
       </c:forEach>
@@ -84,10 +85,13 @@
       const spaceField = document.getElementById("${keys.spaceName}");
       const spaceRow = spaceField ? spaceField.closest("tr") : null;
       if (spaceRow) {
+        // A connection may identify its space by id, by name, or both.
         let connSpace = "";
         if (usingConnection) {
           const meta = getOctopusConnectionMetadataFor(select.value);
-          connSpace = meta ? meta.getAttribute("data-conn-space") : "";
+          connSpace = meta
+            ? (meta.getAttribute("data-conn-space") || meta.getAttribute("data-conn-space-id"))
+            : "";
         }
         spaceRow.style.display = connSpace ? "none" : "table-row";
       }
