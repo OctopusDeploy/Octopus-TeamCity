@@ -1,6 +1,7 @@
 package octopus.teamcity.agent.cli;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.mock;
@@ -175,6 +176,60 @@ class CreateReleaseBuildProcessTest {
 
     verify(logger, never()).message(startsWith("View this release"));
     verify(logger).warning(contains("will not link to it"));
+    // Whatever the CLI said instead goes in the warning, or there is nothing to work back from.
+    verify(logger).warning(contains("Warning: cannot fetch release details. Version unknown"));
+  }
+
+  @Test
+  void quotesWhatTheCliSaidWhenTheSpaceIsUnknown() {
+    final OctopusConstants constants = OctopusConstants.Instance;
+    CreateReleaseBuildProcess proc =
+        buildProcessFor(params(constants.getServerKey(), "https://my.octopus.app"));
+
+    proc.processOutput(CREATE_RELEASE_JSON, 0);
+
+    verify(logger).warning(contains("The space was not known"));
+    verify(logger).warning(contains(CREATE_RELEASE_JSON));
+  }
+
+  /**
+   * A release the step cannot name is a release the deployment it is about to run cannot deploy, so
+   * this one is worth failing over - with the response that could not be read, rather than a parser
+   * error from three frames down.
+   */
+  @Test
+  void failsWithTheCliResponseWhenADeployingStepCannotReadTheReleaseNumber() {
+    final OctopusConstants constants = OctopusConstants.Instance;
+    CreateReleaseBuildProcess proc =
+        buildProcessFor(
+            params(
+                constants.getServerKey(),
+                "https://my.octopus.app",
+                constants.getDeployToKey(),
+                "Development"));
+
+    assertThatThrownBy(
+            () -> proc.processOutput("Warning: cannot fetch release details. Version unknown", 0))
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("no release to deploy")
+        .hasMessageContaining("Warning: cannot fetch release details. Version unknown");
+  }
+
+  @Test
+  void namesTheReleaseProjectAndSpaceItCreatedIn() {
+    final OctopusConstants constants = OctopusConstants.Instance;
+    CreateReleaseBuildProcess proc =
+        buildProcessFor(
+            params(
+                constants.getServerKey(),
+                "https://my.octopus.app",
+                constants.getProjectNameKey(),
+                "Deploy Web"));
+
+    proc.processOutput(SPACE_VIEW_JSON, 0);
+    proc.processOutput(CREATE_RELEASE_JSON, 0);
+
+    verify(logger).message("Created release 1.2.3 of project Deploy Web in space Spaces-162");
   }
 
   @Test

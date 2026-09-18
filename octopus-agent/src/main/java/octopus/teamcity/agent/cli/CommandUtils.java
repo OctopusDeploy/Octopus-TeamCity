@@ -1,5 +1,6 @@
 package octopus.teamcity.agent.cli;
 
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 import com.google.gson.JsonArray;
@@ -14,19 +15,16 @@ public class CommandUtils {
   private static final JsonParser JSON_PARSER = new JsonParser();
   private static final Pattern SPACE_ID = Pattern.compile("Spaces-\\d+");
 
-  protected static String getReleaseVersion(String output) {
-    JsonObject json = JSON_PARSER.parse(output).getAsJsonObject();
-    return json.get("Version").getAsString();
+  protected static Optional<String> getReleaseVersion(String output) {
+    return readString(asJsonObject(output), "Version");
   }
 
-  protected static String getReleaseId(String output) {
-    JsonObject json = JSON_PARSER.parse(output).getAsJsonObject();
-    return json.get("ID").getAsString();
+  protected static Optional<String> getReleaseId(String output) {
+    return readString(asJsonObject(output), "ID");
   }
 
-  protected static String getSpaceId(String output) {
-    JsonObject json = JSON_PARSER.parse(output).getAsJsonObject();
-    return json.get("Id").getAsString();
+  protected static Optional<String> getSpaceId(String output) {
+    return readString(asJsonObject(output), "Id");
   }
 
   protected static String getServerTaskId(String output) {
@@ -51,12 +49,25 @@ public class CommandUtils {
     JsonObject json = asJsonObject(output);
     return json != null
         && json.has("TaskQueue")
-        && json.has("Id")
-        && isSpaceId(json.get("Id").getAsString());
+        && readString(json, "Id").filter(CommandUtils::isSpaceId).isPresent();
   }
 
   protected static boolean isSpaceId(String space) {
     return space != null && SPACE_ID.matcher(space.trim()).matches();
+  }
+
+  private static Optional<String> readString(JsonObject json, String field) {
+    if (json == null) {
+      return Optional.empty();
+    }
+
+    JsonElement value = json.get(field);
+    if (value == null || !value.isJsonPrimitive()) {
+      return Optional.empty();
+    }
+
+    String text = value.getAsString();
+    return StringUtils.isBlank(text) ? Optional.empty() : Optional.of(text);
   }
 
   private static JsonObject asJsonObject(String output) {

@@ -25,6 +25,9 @@ public class CreateReleaseBuildProcess extends CLIBuildProcess {
   static final String RELEASE_URL_PARAMETER = "octopus.release.url";
   static final String RELEASE_NUMBER_PARAMETER = "octopus.release.number";
 
+  /** Enough of an unreadable response to tell what the CLI said instead, without flooding a log. */
+  private static final int LOGGED_OUTPUT_LIMIT = 500;
+
   private String autoCreatedReleaseNumber;
   private String serverTaskId;
   private String spaceId;
@@ -44,12 +47,21 @@ public class CreateReleaseBuildProcess extends CLIBuildProcess {
       final boolean wait = Boolean.parseBoolean(parameters.get(constants.getWaitForDeployments()));
 
       if (CommandUtils.isSpaceViewCommand(output)) {
-        spaceId = CommandUtils.getSpaceId(output);
+        spaceId = CommandUtils.getSpaceId(output).orElse(null);
       } else if (CommandUtils.isCreateReleaseCommand(output)) {
+        final Optional<String> releaseVersion = CommandUtils.getReleaseVersion(output);
         if (StringUtils.isNotBlank(deployTo)) {
-          autoCreatedReleaseNumber = CommandUtils.getReleaseVersion(output);
+          // The deployment about to run has nothing to deploy without this, so say so plainly
+          // rather than leaving the CLI to fail on an empty --version.
+          autoCreatedReleaseNumber =
+              releaseVersion.orElseThrow(
+                  () ->
+                      new IllegalStateException(
+                          "Could not read the created release's number from the CLI's response, "
+                              + "so there is no release to deploy. The response was: "
+                              + loggableOutput(output)));
         }
-        publishReleaseLink(output, parameters.get(constants.getServerKey()));
+        publishReleaseLink(output, releaseVersion, parameters);
       } else if (wait && CommandUtils.isDeployReleaseCommand(output)) {
         serverTaskId = getServerTaskId(output);
       }
@@ -61,29 +73,42 @@ public class CreateReleaseBuildProcess extends CLIBuildProcess {
    * can read. The release exists either way, so nothing here is allowed to fail the step: an
    * unreadable response costs the link and nothing else.
    */
-  private void publishReleaseLink(final String createReleaseOutput, final String serverUrl) {
-    try {
-      final Optional<String> link =
-          ReleaseLink.of(serverUrl, spaceId, CommandUtils.getReleaseId(createReleaseOutput));
-      if (!link.isPresent()) {
-        logger.warning(
-            "Could not work out where the release lives in Octopus Deploy, "
-                + "so this step will not link to it.");
-        return;
-      }
-
-      final String version = CommandUtils.getReleaseVersion(createReleaseOutput);
-
-      logger.message("View this release in Octopus Deploy: " + link.get());
-      logger.message(setParameter(RELEASE_URL_PARAMETER, link.get()));
-      logger.message(setParameter(RELEASE_NUMBER_PARAMETER, version));
-      publishSummaryForTheBuildOverview(new ReleaseSummary(link.get(), version));
-    } catch (final RuntimeException e) {
+  private void publishReleaseLink(
+      final String createReleaseOutput,
+      final Optional<String> releaseVersion,
+      final Map<String, String> parameters) {
+    final OctopusConstants constants = OctopusConstants.Instance;
+    final Optional<String> link =
+        ReleaseLink.of(
+            parameters.get(constants.getServerKey()),
+            spaceId,
+            CommandUtils.getReleaseId(createReleaseOutput).orElse(null));
+    if (!link.isPresent()) {
       logger.warning(
-          "Could not read the created release from the CLI's response, "
-              + "so this step will not link to it: "
-              + e.getMessage());
+          "Could not work out where the release lives in Octopus Deploy, "
+              + "so this step will not link to it. The space was "
+              + (StringUtils.isBlank(spaceId) ? "not known" : spaceId)
+              + " and the release create response was: "
+              + loggableOutput(createReleaseOutput));
+      return;
     }
+
+    if (releaseVersion.isPresent()) {
+      logger.message(
+          "Created release "
+              + releaseVersion.get()
+              + projectDescription(parameters.get(constants.getProjectNameKey()))
+              + " in space "
+              + spaceId);
+    }
+
+    logger.message("View this release in Octopus Deploy: " + link.get());
+    logger.message(setParameter(RELEASE_URL_PARAMETER, link.get()));
+    if (releaseVersion.isPresent()) {
+      logger.message(setParameter(RELEASE_NUMBER_PARAMETER, releaseVersion.get()));
+    }
+
+    publishSummaryForTheBuildOverview(new ReleaseSummary(link.get(), releaseVersion.orElse(null)));
   }
 
   /**
@@ -109,6 +134,21 @@ public class CreateReleaseBuildProcess extends CLIBuildProcess {
         ServiceMessage.asString(
             "publishArtifacts",
             summary.getAbsolutePath() + " => " + ReleaseSummary.ARTIFACT_DIRECTORY));
+  }
+
+  private static String projectDescription(final String projectName) {
+    return StringUtils.isBlank(projectName) ? "" : " of project " + projectName;
+  }
+
+  private static String loggableOutput(final String output) {
+    if (output == null) {
+      return "";
+    }
+
+    final String trimmed = output.trim();
+    return trimmed.length() <= LOGGED_OUTPUT_LIMIT
+        ? trimmed
+        : trimmed.substring(0, LOGGED_OUTPUT_LIMIT) + "... (truncated)";
   }
 
   private static String setParameter(final String name, final String value) {
