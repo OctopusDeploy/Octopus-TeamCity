@@ -72,6 +72,28 @@ public final class OctopusProvisioning {
         octopusBaseUrl, apiKey, spaceHome.getDeploymentProcessesLink() + "/" + deploymentProcessId);
   }
 
+  /**
+   * The same, for a project tests are willing to share. The Octopus in the stack runs unlicensed,
+   * which caps how many projects may exist at once, so tests that only need somewhere to make a
+   * release should share one rather than each spending a slot; whichever test runs first creates
+   * it.
+   */
+  public static void ensureProjectWithServerScriptStep(
+      final OctopusClient client,
+      final SpaceHome spaceHome,
+      final String octopusBaseUrl,
+      final String apiKey,
+      final String projectName,
+      final List<String> deployableEnvironmentIds)
+      throws Exception {
+    if (ProjectApi.create(client, spaceHome).getByName(projectName).isPresent()) {
+      return;
+    }
+
+    createProjectWithServerScriptStep(
+        client, spaceHome, octopusBaseUrl, apiKey, projectName, deployableEnvironmentIds);
+  }
+
   /** Creates an environment; returns its id (e.g. {@code Environments-1}). */
   public static String createEnvironment(
       final OctopusClient client, final SpaceHome spaceHome, final String name) throws Exception {
