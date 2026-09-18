@@ -9,16 +9,22 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import jetbrains.buildServer.agent.AgentRunningBuild;
 import jetbrains.buildServer.agent.BuildProgressLogger;
 import jetbrains.buildServer.agent.BuildRunnerContext;
 import octopus.teamcity.agent.OctopusCommandBuilder;
 import octopus.teamcity.common.OctopusConstants;
+import octopus.teamcity.common.ReleaseSummary;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 class CreateReleaseBuildProcessTest {
 
@@ -31,12 +37,17 @@ class CreateReleaseBuildProcessTest {
 
   private BuildProgressLogger logger;
 
+  @TempDir File buildTempDirectory;
+
   private CreateReleaseBuildProcess buildProcessFor(Map<String, String> params) {
     AgentRunningBuild runningBuild = mock(AgentRunningBuild.class);
     logger = mock(BuildProgressLogger.class);
     BuildRunnerContext context = mock(BuildRunnerContext.class);
     when(context.getRunnerParameters()).thenReturn(params);
+    when(context.getId()).thenReturn("RUNNER_1");
+    when(context.getBuild()).thenReturn(runningBuild);
     when(runningBuild.getBuildLogger()).thenReturn(logger);
+    when(runningBuild.getBuildTempDirectory()).thenReturn(buildTempDirectory);
 
     return new CreateReleaseBuildProcess(runningBuild, context);
   }
@@ -61,6 +72,33 @@ class CreateReleaseBuildProcessTest {
         .message(
             "View this release in Octopus Deploy: "
                 + "https://my.octopus.app/app#/Spaces-162/releases/Releases-14");
+  }
+
+  @Test
+  void recordsTheReleaseForTheBuildOverview() throws Exception {
+    final List<OctopusCommandBuilder> commands =
+        buildProcessFor(params(CONSTANTS.getServerKey(), "https://my.octopus.app")).createCommand();
+
+    Commands.of(commands, SpaceViewCommand.class).readResponse(SPACE_VIEW_JSON);
+    Commands.of(commands, CreateReleaseCommand.class).readResponse(CREATE_RELEASE_JSON);
+
+    final File summary = new File(buildTempDirectory, ReleaseSummary.artifactNameFor("RUNNER_1"));
+    try (InputStream contents = new FileInputStream(summary)) {
+      final Optional<ReleaseSummary> release = ReleaseSummary.readFrom(contents);
+      assertThat(release).isPresent();
+      assertThat(release.get().getUrl())
+          .isEqualTo("https://my.octopus.app/app#/Spaces-162/releases/Releases-14");
+      assertThat(release.get().getVersion()).isEqualTo("1.2.3");
+    }
+
+    verify(logger)
+        .message(
+            contains(
+                "publishArtifacts '"
+                    + summary.getAbsolutePath()
+                    + " => "
+                    + ReleaseSummary.ARTIFACT_DIRECTORY
+                    + "'"));
   }
 
   @Test

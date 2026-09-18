@@ -13,6 +13,7 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 
+import octopus.teamcity.common.ReleaseSummary;
 import octopus.teamcity.e2e.dsl.OctopusProvisioning;
 import octopus.teamcity.e2e.dsl.OctopusTeamCityStack;
 import octopus.teamcity.e2e.dsl.SharedStack;
@@ -24,12 +25,25 @@ import org.junit.jupiter.api.Test;
  * to the release, and later steps can read that link out of a build parameter.
  *
  * <p>The link is asserted against the release's own {@code Links.Web} as Octopus reports it, so the
- * test fails if the plugin ever invents an address of its own.
+ * test fails if the plugin ever invents an address of its own. The summary the build overview is
+ * later rendered from has to be published too; {@link OctopusReleaseLinkUiTest} covers the page
+ * itself.
  */
 class OctopusCreateReleaseLinkE2ETest {
 
   private static final String OCTOPUS_PROJECT = "ReleaseLinkIT";
   private static final String RELEASE_VERSION = "1.0.0";
+
+  private static final String TC_PROJECT_ID = "RelLinkIT";
+  private static final String TC_BUILD_TYPE_ID = "RelLinkIT_Create";
+
+  private static final String RELEASE_URL_PARAMETER = "octopus.release.url";
+  private static final String RELEASE_NUMBER_PARAMETER = "octopus.release.number";
+
+  // Markers the follow-on step echoes the parameters under, so the assertions can find them in a
+  // log that also carries the step's own mention of each value.
+  private static final String READ_BACK_URL_PREFIX = "READ_BACK_URL=";
+  private static final String READ_BACK_VERSION_PREFIX = "READ_BACK_VERSION=";
 
   @Test
   void createReleaseStepLinksToTheReleaseItCreated() throws Exception {
@@ -46,27 +60,33 @@ class OctopusCreateReleaseLinkE2ETest {
           Collections.emptyList());
 
       final TeamCityRest tc = stack.rest();
-      tc.createProject("RelLinkIT", "Release link IT");
+      tc.createProject(TC_PROJECT_ID, "Release link IT");
       final String connectionId =
           tc.createOctopusConnection(
-              "RelLinkIT",
+              TC_PROJECT_ID,
               "IT Octopus",
               stack.octopusUrlForContainers(),
               stack.octopusApiKey(),
               "");
-      tc.createBuildType("RelLinkIT_Create", "Create release", "RelLinkIT");
-      tc.setParameter("RelLinkIT_Create", "env.OCTOPUS_NEW_CLI", "true");
+      tc.createBuildType(TC_BUILD_TYPE_ID, "Create release", TC_PROJECT_ID);
+      tc.setParameter(TC_BUILD_TYPE_ID, "env.OCTOPUS_NEW_CLI", "true");
       // Declared empty so a later step can reference them; the step fills them in as it runs.
-      tc.setParameter("RelLinkIT_Create", "octopus.release.url", "");
-      tc.setParameter("RelLinkIT_Create", "octopus.release.number", "");
-      tc.addCreateReleaseStepUsingConnection(
-          "RelLinkIT_Create", connectionId, OCTOPUS_PROJECT, RELEASE_VERSION);
+      tc.setParameter(TC_BUILD_TYPE_ID, RELEASE_URL_PARAMETER, "");
+      tc.setParameter(TC_BUILD_TYPE_ID, RELEASE_NUMBER_PARAMETER, "");
+      final String createReleaseStepId =
+          tc.addCreateReleaseStepUsingConnection(
+              TC_BUILD_TYPE_ID, connectionId, OCTOPUS_PROJECT, RELEASE_VERSION);
       tc.addCommandLineStep(
-          "RelLinkIT_Create",
+          TC_BUILD_TYPE_ID,
           "Read the release back",
-          "echo READ_BACK_URL=%octopus.release.url%\necho READ_BACK_VERSION=%octopus.release.number%");
+          "echo "
+              + READ_BACK_URL_PREFIX
+              + reference(RELEASE_URL_PARAMETER)
+              + "\necho "
+              + READ_BACK_VERSION_PREFIX
+              + reference(RELEASE_NUMBER_PARAMETER));
 
-      final String buildId = tc.triggerBuild("RelLinkIT_Create");
+      final String buildId = tc.triggerBuild(TC_BUILD_TYPE_ID);
       final String status = tc.waitForBuildFinished(buildId, Duration.ofMinutes(5));
       final String log = tc.downloadBuildLog(buildId);
 
@@ -100,9 +120,22 @@ class OctopusCreateReleaseLinkE2ETest {
           .contains("Created release " + RELEASE_VERSION + " of project " + OCTOPUS_PROJECT);
       assertThat(log)
           .withFailMessage("Later steps could not read the release back. Log:\n%s", log)
-          .contains("READ_BACK_URL=" + expectedLink)
-          .contains("READ_BACK_VERSION=" + RELEASE_VERSION);
+          .contains(READ_BACK_URL_PREFIX + expectedLink)
+          .contains(READ_BACK_VERSION_PREFIX + RELEASE_VERSION);
+
+      // The summary the build overview is rendered from (see OctopusReleaseLinkUiTest).
+      final String hiddenArtifacts =
+          tc.listHiddenBuildArtifacts(buildId, ReleaseSummary.ARTIFACT_DIRECTORY);
+      assertThat(hiddenArtifacts)
+          .withFailMessage("Release summary was not published. Artifacts:\n%s", hiddenArtifacts)
+          .contains(ReleaseSummary.artifactNameFor(createReleaseStepId));
+
       assertThat(log).doesNotContain(stack.octopusApiKey());
     }
+  }
+
+  /** TeamCity's syntax for reading a build parameter from inside a step's script. */
+  private static String reference(final String parameter) {
+    return "%" + parameter + "%";
   }
 }
