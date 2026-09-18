@@ -91,7 +91,6 @@ public class CommandHelper {
 
     commands.add("release");
     commands.add("deploy");
-
     commands.add("--space");
     commands.add(spaceName);
 
@@ -147,7 +146,6 @@ public class CommandHelper {
 
     commands.add("runbook");
     commands.add("run");
-
     commands.add("--space");
     commands.add(spaceName);
 
@@ -219,63 +217,68 @@ public class CommandHelper {
     };
   }
 
-  public static OctopusCommandBuilder createRelease(Map<String, String> parameters) {
+  /**
+   * Looks up the space the step is configured against, whose id the portal address of anything the
+   * step creates is built from.
+   */
+  public static String[] spaceView(Map<String, String> params) {
+    final String spaceName = SpaceSelection.resolveOrDefault(params);
+
+    return new String[] {"space", "view", spaceName, "--output-format", "json", "--no-prompt"};
+  }
+
+  /** Run by {@link CreateReleaseCommand}, which reads the release out of the response. */
+  public static String[] createRelease(Map<String, String> parameters) {
     final OctopusConstants constants = OctopusConstants.Instance;
-    return new OctopusCommandBuilder() {
-      @Override
-      protected String[] buildCommand(boolean masked) {
-        final ArrayList<String> commands = new ArrayList<>();
-        final String spaceName = SpaceSelection.resolveOrDefault(parameters);
-        final String commandLineArguments = parameters.get(constants.getCommandLineArgumentsKey());
-        final String releaseNumber = parameters.get(constants.getReleaseNumberKey());
-        final String channelName = parameters.get(constants.getChannelNameKey());
-        final String projectName = parameters.get(constants.getProjectNameKey());
-        final String gitRef = parameters.get(constants.getGitRefKey());
-        final String gitCommit = parameters.get(constants.getGitCommitKey());
+    final ArrayList<String> commands = new ArrayList<>();
+    final String spaceName = SpaceSelection.resolveOrDefault(parameters);
+    final String commandLineArguments = parameters.get(constants.getCommandLineArgumentsKey());
+    final String releaseNumber = parameters.get(constants.getReleaseNumberKey());
+    final String channelName = parameters.get(constants.getChannelNameKey());
+    final String projectName = parameters.get(constants.getProjectNameKey());
+    final String gitRef = parameters.get(constants.getGitRefKey());
+    final String gitCommit = parameters.get(constants.getGitCommitKey());
 
-        commands.add("release");
-        commands.add("create");
+    commands.add("release");
+    commands.add("create");
+    commands.add("--space");
+    commands.add(spaceName);
 
-        commands.add("--space");
-        commands.add(spaceName);
+    commands.add("--project");
+    commands.add(projectName);
 
-        commands.add("--project");
-        commands.add(projectName);
+    if (StringUtils.isNotBlank(releaseNumber)) {
+      commands.add("--version");
+      commands.add(releaseNumber);
+    }
 
-        if (StringUtils.isNotBlank(releaseNumber)) {
-          commands.add("--version");
-          commands.add(releaseNumber);
-        }
+    if (StringUtils.isNotBlank(channelName)) {
+      commands.add("--channel");
+      commands.add(channelName);
+    }
 
-        if (StringUtils.isNotBlank(channelName)) {
-          commands.add("--channel");
-          commands.add(channelName);
-        }
+    if (StringUtils.isNotBlank(gitRef)) {
+      commands.add("--git-ref");
+      commands.add(gitRef);
+    }
 
-        if (StringUtils.isNotBlank(gitRef)) {
-          commands.add("--git-ref");
-          commands.add(gitRef);
-        }
+    if (StringUtils.isNotBlank(gitCommit)) {
+      commands.add("--git-commit");
+      commands.add(gitCommit);
+    }
 
-        if (StringUtils.isNotBlank(gitCommit)) {
-          commands.add("--git-commit");
-          commands.add(gitCommit);
-        }
+    commands.add("--output-format");
+    commands.add("json");
 
-        commands.add("--output-format");
-        commands.add("json");
+    if (StringUtils.isNotBlank(commandLineArguments)) {
+      List<String> commandArgs = splitSpaceSeparatedValues(commandLineArguments);
+      List<String> updatedCommandArgs =
+          sanitizeCommandArgs(commandArgs, deployReleaseAdditionalArgumentsToBeIgnored);
+      commands.addAll(updatedCommandArgs);
+    }
 
-        if (StringUtils.isNotBlank(commandLineArguments)) {
-          List<String> commandArgs = splitSpaceSeparatedValues(commandLineArguments);
-          List<String> updatedCommandArgs =
-              sanitizeCommandArgs(commandArgs, deployReleaseAdditionalArgumentsToBeIgnored);
-          commands.addAll(updatedCommandArgs);
-        }
-
-        commands.add("--no-prompt");
-        return commands.toArray(new String[0]);
-      }
-    };
+    commands.add("--no-prompt");
+    return commands.toArray(new String[0]);
   }
 
   public static OctopusCommandBuilder packPackage(Map<String, String> parameters) {
@@ -343,7 +346,6 @@ public class CommandHelper {
 
         commands.add("package");
         commands.add("upload");
-
         commands.add("--space");
         commands.add(spaceName);
 
@@ -399,7 +401,6 @@ public class CommandHelper {
 
         commands.add("build-information");
         commands.add("upload");
-
         commands.add("--space");
         commands.add(spaceName);
 

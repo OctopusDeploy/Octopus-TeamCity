@@ -14,6 +14,8 @@
     <bean class="octopus.teamcity.server.OctopusRunRunbookRunType"/>
     <bean class="octopus.teamcity.server.OctopusPushPackageRunType"/>
     <bean class="octopus.teamcity.server.OctopusPackPackageRunType"/>
+    <bean class="octopus.teamcity.server.OctopusReleaseLinkExtension"/>
+    <bean class="octopus.teamcity.server.OctopusReleaseTab"/>
     <bean class="octopus.teamcity.server.connection.OctopusConnection"/>
     <bean class="octopus.teamcity.server.connection.OctopusConnectionsManager"/>
     <bean class="octopus.teamcity.server.connection.OctopusConnectionUiData"/>

@@ -10,44 +10,87 @@ class CommandUtilsTest {
   @Test
   void parsesVersionFromJson() {
     String jsonOutput = "{\"Version\": \"1.0.0\"}";
-    assertThat(CommandUtils.getReleaseVersion(jsonOutput)).isEqualTo("1.0.0");
+    assertThat(CommandUtils.getReleaseVersion(jsonOutput)).contains("1.0.0");
+  }
+
+  @Test
+  void parsesReleaseIdFromJson() {
+    String jsonOutput = "{\"ID\": \"Releases-14\", \"Version\": \"1.0.0\"}";
+    assertThat(CommandUtils.getReleaseId(jsonOutput)).contains("Releases-14");
+  }
+
+  @Test
+  void parsesSpaceIdFromJson() {
+    String jsonOutput = "{\"Id\": \"Spaces-162\", \"Name\": \"Build Platform\"}";
+    assertThat(CommandUtils.getSpaceId(jsonOutput)).contains("Spaces-162");
+  }
+
+  /**
+   * Whatever the CLI printed instead of the JSON that was asked for, reading a value out of it
+   * answers "not there" - the caller decides what to do without it, and never has to handle an
+   * exception to find out.
+   */
+  @Test
+  void readsNothingRatherThanThrowingWhenTheOutputIsNotTheExpectedJson() {
+    for (String output :
+        new String[] {
+          null,
+          "",
+          "   ",
+          "Warning: cannot fetch release details. Version unknown",
+          "Error: project 'Deploy Web' not found",
+          "[{\"Version\": \"1.0.0\"}]",
+          "{\"Version\": {\"Major\": 1}}",
+          "{\"Version\": \"\"}",
+          "{\"Channel\": \"Default\"}"
+        }) {
+      assertThat(CommandUtils.getReleaseVersion(output)).isEmpty();
+      assertThat(CommandUtils.getReleaseId(output)).isEmpty();
+      assertThat(CommandUtils.getSpaceId(output)).isEmpty();
+    }
+  }
+
+  @Test
+  void isSpaceIdRecognisesOnlyAnActualSpaceId() {
+    assertThat(CommandUtils.isSpaceId("Spaces-1")).isTrue();
+    assertThat(CommandUtils.isSpaceId(" Spaces-162 ")).isTrue();
+    assertThat(CommandUtils.isSpaceId("Default")).isFalse();
+    assertThat(CommandUtils.isSpaceId("Spaces-")).isFalse();
+    assertThat(CommandUtils.isSpaceId(null)).isFalse();
   }
 
   @Test
   void parsesTaskIdFromJsonArray() {
     String jsonOutput = "[{\"ServerTaskId\": \"task-123\"}]";
-    assertThat(CommandUtils.getServerTaskId(jsonOutput)).isEqualTo("task-123");
+    assertThat(CommandUtils.getServerTaskId(jsonOutput)).contains("task-123");
   }
 
   @Test
-  void isCreateReleasereturnsTrueWhenOutputContainsVersion() {
-    assertThat(CommandUtils.isCreateReleaseCommand("{\"Version\": \"1.0.0\"}")).isTrue();
+  void readsNoTaskIdRatherThanThrowingWhenTheOutputIsNotTheExpectedJson() {
+    for (String output :
+        new String[] {
+          null,
+          "",
+          "Error: the deployment was not started",
+          "[]",
+          "[\"task-123\"]",
+          "{\"ServerTaskId\": \"task-123\"}",
+          "[{\"State\": \"Success\"}]"
+        }) {
+      assertThat(CommandUtils.getServerTaskId(output)).isEmpty();
+    }
   }
 
   @Test
-  void isCreateRelease_returnsFalseWhenOutputDoesNotContainVersion() {
-    assertThat(CommandUtils.isCreateReleaseCommand("{\"Id\": \"1\", \"Name\": \"Release1\"}"))
-        .isFalse();
-  }
+  void loggableOutputKeepsAResponseShortEnoughToReadInABuildLog() {
+    assertThat(CommandUtils.loggableOutput(null)).isEmpty();
+    assertThat(CommandUtils.loggableOutput("  Error: no space found  "))
+        .isEqualTo("Error: no space found");
 
-  @Test
-  void isCreateRelease_ReturnsFalseWhenOutputIsEmpty() {
-    assertThat(CommandUtils.isCreateReleaseCommand("")).isFalse();
-  }
-
-  @Test
-  void isDeployReleaseReturnsTrueWhenOutputContainsServerTaskId() {
-    assertThat(CommandUtils.isDeployReleaseCommand("[{\"ServerTaskId\": \"task-123\"}]")).isTrue();
-  }
-
-  @Test
-  void isDeployReleaseReturnsFalseWhenNonServerTaskIdInOutput() {
-    assertThat(CommandUtils.isDeployReleaseCommand("[{\"State\": \"Success\"}]")).isFalse();
-  }
-
-  @Test
-  void isDeployReleaseReturnsFalseWhenOutputIsEmpty() {
-    assertThat(CommandUtils.isDeployReleaseCommand("")).isFalse();
+    final String longOutput = new String(new char[600]).replace("\0", "x");
+    assertThat(CommandUtils.loggableOutput(longOutput))
+        .hasSize(500 + "... (truncated)".length())
+        .endsWith("... (truncated)");
   }
 
   @Test

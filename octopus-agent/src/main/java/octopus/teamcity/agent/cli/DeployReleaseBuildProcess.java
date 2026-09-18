@@ -1,7 +1,5 @@
 package octopus.teamcity.agent.cli;
 
-import static octopus.teamcity.agent.cli.CommandUtils.getServerTaskId;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -13,24 +11,10 @@ import octopus.teamcity.common.OctopusConstants;
 import org.jetbrains.annotations.NotNull;
 
 public class DeployReleaseBuildProcess extends CLIBuildProcess {
-  private String serverTaskId;
 
   public DeployReleaseBuildProcess(
       @NotNull AgentRunningBuild runningBuild, @NotNull BuildRunnerContext context) {
     super(runningBuild, context);
-  }
-
-  @Override
-  public void processOutput(String output, int exitCode) {
-    logger.message("Exit code: " + exitCode);
-    if (exitCode == 0) {
-      final OctopusConstants constants = OctopusConstants.Instance;
-      final Map<String, String> parameters = getContext().getRunnerParameters();
-      final boolean wait = Boolean.parseBoolean(parameters.get(constants.getWaitForDeployments()));
-      if (wait && CommandUtils.isDeployReleaseCommand(output)) {
-        serverTaskId = getServerTaskId(output);
-      }
-    }
   }
 
   @Override
@@ -41,22 +25,12 @@ public class DeployReleaseBuildProcess extends CLIBuildProcess {
     final boolean wait = Boolean.parseBoolean(parameters.get(constants.getWaitForDeployments()));
 
     commands.add(CommandHelper.login(parameters));
-    commands.add(
-        new OctopusCommandBuilder() {
-          @Override
-          protected String[] buildCommand(boolean masked) {
-            return CommandHelper.deployRelease(parameters, null);
-          }
-        });
+
+    final DeployReleaseCommand deploy = new DeployReleaseCommand(parameters);
+    commands.add(deploy);
 
     if (wait) {
-      commands.add(
-          new OctopusCommandBuilder() {
-            @Override
-            protected String[] buildCommand(boolean masked) {
-              return CommandHelper.wait(parameters, serverTaskId);
-            }
-          });
+      commands.add(new WaitForTaskCommand(parameters, deploy::requireServerTaskId));
     }
     return commands;
   }
