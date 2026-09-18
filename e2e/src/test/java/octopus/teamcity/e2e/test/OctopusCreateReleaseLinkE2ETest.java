@@ -100,6 +100,9 @@ class OctopusCreateReleaseLinkE2ETest {
           .withFailMessage("Build log did not link to the release. Log:\n%s", log)
           .contains("View this release in Octopus Deploy: " + expectedLink);
       assertThat(log)
+          .withFailMessage("Build log did not name what it created. Log:\n%s", log)
+          .contains("Created release " + RELEASE_VERSION + " of project " + OCTOPUS_PROJECT);
+      assertThat(log)
           .withFailMessage("Later steps could not read the release back. Log:\n%s", log)
           .contains("READ_BACK_URL=" + expectedLink)
           .contains("READ_BACK_VERSION=" + RELEASE_VERSION);
@@ -110,6 +113,7 @@ class OctopusCreateReleaseLinkE2ETest {
       assertThat(hiddenArtifacts)
           .withFailMessage("Release summary was not published. Artifacts:\n%s", hiddenArtifacts)
           .contains(ReleaseSummary.artifactNameFor(createReleaseStepId));
+
       assertThat(log).doesNotContain(stack.octopusApiKey());
     }
   }
