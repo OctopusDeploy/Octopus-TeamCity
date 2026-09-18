@@ -15,13 +15,6 @@ public class CommandUtils {
   private static final JsonParser JSON_PARSER = new JsonParser();
   private static final Pattern SPACE_ID = Pattern.compile("Spaces-\\d+");
 
-  /**
-   * The readers below answer with what they found and nothing else: a response that is not the JSON
-   * the command was asked for costs the caller that one value, never an exception it did not ask to
-   * handle. What to do without the value is the caller's to decide - a missing release id only
-   * costs a link, while a missing release number leaves a following deployment with nothing to
-   * deploy.
-   */
   protected static Optional<String> getReleaseVersion(String output) {
     return readString(asJsonObject(output), "Version");
   }
