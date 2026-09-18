@@ -2,6 +2,10 @@ package octopus.teamcity.agent.cli;
 
 import static octopus.teamcity.agent.cli.CommandUtils.getServerTaskId;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -13,6 +17,7 @@ import jetbrains.buildServer.agent.BuildRunnerContext;
 import jetbrains.buildServer.messages.serviceMessages.ServiceMessage;
 import octopus.teamcity.agent.OctopusCommandBuilder;
 import octopus.teamcity.common.OctopusConstants;
+import octopus.teamcity.common.ReleaseSummary;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -102,6 +107,33 @@ public class CreateReleaseBuildProcess extends CLIBuildProcess {
     if (releaseVersion.isPresent()) {
       logger.message(setParameter(RELEASE_NUMBER_PARAMETER, releaseVersion.get()));
     }
+
+    publishSummaryForTheBuildOverview(new ReleaseSummary(link.get(), releaseVersion.orElse(null)));
+  }
+
+  /**
+   * Hands the release to the server as a hidden artifact, which is what the build overview reads to
+   * link to it once the build is over - the log line above only helps while the log is being read.
+   */
+  private void publishSummaryForTheBuildOverview(final ReleaseSummary release) {
+    final File summary =
+        new File(
+            getContext().getBuild().getBuildTempDirectory(),
+            ReleaseSummary.artifactNameFor(getContext().getId()));
+    try (OutputStream destination = new FileOutputStream(summary)) {
+      release.writeTo(destination);
+    } catch (final IOException e) {
+      logger.warning(
+          "Could not record the release for the build overview, "
+              + "so only this log will link to it: "
+              + e.getMessage());
+      return;
+    }
+
+    logger.message(
+        ServiceMessage.asString(
+            "publishArtifacts",
+            summary.getAbsolutePath() + " => " + ReleaseSummary.ARTIFACT_DIRECTORY));
   }
 
   private static String projectDescription(final String projectName) {
