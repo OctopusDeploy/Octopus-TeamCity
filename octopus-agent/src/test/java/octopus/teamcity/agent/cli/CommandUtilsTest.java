@@ -10,19 +10,52 @@ class CommandUtilsTest {
   @Test
   void parsesVersionFromJson() {
     String jsonOutput = "{\"Version\": \"1.0.0\"}";
-    assertThat(CommandUtils.getReleaseVersion(jsonOutput)).isEqualTo("1.0.0");
+    assertThat(CommandUtils.getReleaseVersion(jsonOutput)).contains("1.0.0");
   }
 
   @Test
   void parsesReleaseIdFromJson() {
     String jsonOutput = "{\"ID\": \"Releases-14\", \"Version\": \"1.0.0\"}";
-    assertThat(CommandUtils.getReleaseId(jsonOutput)).isEqualTo("Releases-14");
+    assertThat(CommandUtils.getReleaseId(jsonOutput)).contains("Releases-14");
   }
 
   @Test
   void parsesSpaceIdFromJson() {
     String jsonOutput = "{\"Id\": \"Spaces-162\", \"Name\": \"Build Platform\"}";
-    assertThat(CommandUtils.getSpaceId(jsonOutput)).isEqualTo("Spaces-162");
+    assertThat(CommandUtils.getSpaceId(jsonOutput)).contains("Spaces-162");
+  }
+
+  /**
+   * Whatever the CLI printed instead of the JSON that was asked for, reading a value out of it
+   * answers "not there" - the caller decides what to do without it, and never has to handle an
+   * exception to find out.
+   */
+  @Test
+  void readsNothingRatherThanThrowingWhenTheOutputIsNotTheExpectedJson() {
+    for (String output :
+        new String[] {
+          null,
+          "",
+          "   ",
+          "Warning: cannot fetch release details. Version unknown",
+          "Error: project 'Deploy Web' not found",
+          "[{\"Version\": \"1.0.0\"}]",
+          "{\"Version\": {\"Major\": 1}}",
+          "{\"Version\": \"\"}",
+          "{\"Channel\": \"Default\"}"
+        }) {
+      assertThat(CommandUtils.getReleaseVersion(output)).isEmpty();
+      assertThat(CommandUtils.getReleaseId(output)).isEmpty();
+      assertThat(CommandUtils.getSpaceId(output)).isEmpty();
+    }
+  }
+
+  @Test
+  void isSpaceViewReturnsFalseRatherThanThrowingWhenTheIdIsNotAString() {
+    assertThat(
+            CommandUtils.isSpaceViewCommand(
+                "{\"Id\": {\"Value\": \"Spaces-162\"}, \"TaskQueue\": \"Running\"}"))
+        .isFalse();
   }
 
   @Test
