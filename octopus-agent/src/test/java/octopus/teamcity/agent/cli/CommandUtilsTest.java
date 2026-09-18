@@ -10,7 +10,84 @@ class CommandUtilsTest {
   @Test
   void parsesVersionFromJson() {
     String jsonOutput = "{\"Version\": \"1.0.0\"}";
-    assertThat(CommandUtils.getReleaseVersion(jsonOutput)).isEqualTo("1.0.0");
+    assertThat(CommandUtils.getReleaseVersion(jsonOutput)).contains("1.0.0");
+  }
+
+  @Test
+  void parsesReleaseIdFromJson() {
+    String jsonOutput = "{\"ID\": \"Releases-14\", \"Version\": \"1.0.0\"}";
+    assertThat(CommandUtils.getReleaseId(jsonOutput)).contains("Releases-14");
+  }
+
+  @Test
+  void parsesSpaceIdFromJson() {
+    String jsonOutput = "{\"Id\": \"Spaces-162\", \"Name\": \"Build Platform\"}";
+    assertThat(CommandUtils.getSpaceId(jsonOutput)).contains("Spaces-162");
+  }
+
+  /**
+   * Whatever the CLI printed instead of the JSON that was asked for, reading a value out of it
+   * answers "not there" - the caller decides what to do without it, and never has to handle an
+   * exception to find out.
+   */
+  @Test
+  void readsNothingRatherThanThrowingWhenTheOutputIsNotTheExpectedJson() {
+    for (String output :
+        new String[] {
+          null,
+          "",
+          "   ",
+          "Warning: cannot fetch release details. Version unknown",
+          "Error: project 'Deploy Web' not found",
+          "[{\"Version\": \"1.0.0\"}]",
+          "{\"Version\": {\"Major\": 1}}",
+          "{\"Version\": \"\"}",
+          "{\"Channel\": \"Default\"}"
+        }) {
+      assertThat(CommandUtils.getReleaseVersion(output)).isEmpty();
+      assertThat(CommandUtils.getReleaseId(output)).isEmpty();
+      assertThat(CommandUtils.getSpaceId(output)).isEmpty();
+    }
+  }
+
+  @Test
+  void isSpaceViewReturnsFalseRatherThanThrowingWhenTheIdIsNotAString() {
+    assertThat(
+            CommandUtils.isSpaceViewCommand(
+                "{\"Id\": {\"Value\": \"Spaces-162\"}, \"TaskQueue\": \"Running\"}"))
+        .isFalse();
+  }
+
+  @Test
+  void isSpaceViewReturnsTrueForASpacesOwnResponse() {
+    String jsonOutput =
+        "{\"Id\": \"Spaces-162\", \"Name\": \"Build Platform\", \"Description\": \"\","
+            + " \"TaskQueue\": \"Running\", \"WebUrl\": \"https://my.octopus.app/app#/configuration/spaces/Spaces-162\"}";
+    assertThat(CommandUtils.isSpaceViewCommand(jsonOutput)).isTrue();
+  }
+
+  @Test
+  void isSpaceViewReturnsFalseForAReleaseWhoseNotesMentionATaskQueue() {
+    String jsonOutput =
+        "{\"ID\": \"Releases-14\", \"Version\": \"1.0.0\","
+            + " \"ReleaseNotes\": \"Id and TaskQueue handling\"}";
+    assertThat(CommandUtils.isSpaceViewCommand(jsonOutput)).isFalse();
+  }
+
+  @Test
+  void isSpaceViewReturnsFalseForOutputThatIsNotAJsonObject() {
+    assertThat(CommandUtils.isSpaceViewCommand("")).isFalse();
+    assertThat(CommandUtils.isSpaceViewCommand("Error: no space found")).isFalse();
+    assertThat(CommandUtils.isSpaceViewCommand("[{\"TaskQueue\": \"Running\"}]")).isFalse();
+  }
+
+  @Test
+  void isSpaceIdRecognisesOnlyAnActualSpaceId() {
+    assertThat(CommandUtils.isSpaceId("Spaces-1")).isTrue();
+    assertThat(CommandUtils.isSpaceId(" Spaces-162 ")).isTrue();
+    assertThat(CommandUtils.isSpaceId("Default")).isFalse();
+    assertThat(CommandUtils.isSpaceId("Spaces-")).isFalse();
+    assertThat(CommandUtils.isSpaceId(null)).isFalse();
   }
 
   @Test
