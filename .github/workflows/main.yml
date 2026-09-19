@@ -211,7 +211,7 @@ jobs:
         overwrite_mode: OverwriteExisting
 
     - name: Push a package to Octopus Deploy 🐙
-      uses: OctopusDeploy/push-package-action@v3
+      uses: OctopusDeploy/push-package-action@v4
       with:
         packages: 'package/${{ needs.build.outputs.package-basename }}'
         overwrite_mode: OverwriteExisting
