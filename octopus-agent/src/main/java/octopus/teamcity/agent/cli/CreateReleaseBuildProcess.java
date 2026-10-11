@@ -16,6 +16,7 @@ import jetbrains.buildServer.messages.serviceMessages.ServiceMessage;
 import octopus.teamcity.agent.OctopusCommandBuilder;
 import octopus.teamcity.common.OctopusConstants;
 import octopus.teamcity.common.ReleaseSummary;
+import octopus.teamcity.common.SpaceSelection;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,7 +39,7 @@ public class CreateReleaseBuildProcess extends CLIBuildProcess {
     final Map<String, String> parameters = getContext().getRunnerParameters();
     final String deployTo = parameters.get(constants.getDeployToKey());
     final boolean wait = Boolean.parseBoolean(parameters.get(constants.getWaitForDeployments()));
-    final String space = parameters.get(constants.getSpaceName());
+    final String space = SpaceSelection.resolve(parameters);
 
     commands.add(CommandHelper.login(parameters));
 

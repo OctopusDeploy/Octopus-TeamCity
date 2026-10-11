@@ -22,6 +22,7 @@ import java.util.Map;
 import jetbrains.buildServer.agent.AgentRunningBuild;
 import jetbrains.buildServer.agent.BuildRunnerContext;
 import octopus.teamcity.common.OctopusConstants;
+import octopus.teamcity.common.SpaceSelection;
 import org.jetbrains.annotations.NotNull;
 
 public class OctopusDeployReleaseBuildProcess extends OctopusBuildProcess {
@@ -46,7 +47,7 @@ public class OctopusDeployReleaseBuildProcess extends OctopusBuildProcess {
         final ArrayList<String> commands = new ArrayList<String>();
         final String serverUrl = parameters.get(constants.getServerKey());
         final String apiKey = parameters.get(constants.getApiKey());
-        final String spaceName = parameters.get(constants.getSpaceName());
+        final String spaceName = SpaceSelection.resolve(parameters);
         final String commandLineArguments = parameters.get(constants.getCommandLineArgumentsKey());
         final String releaseNumber = parameters.get(constants.getReleaseNumberKey());
         final String deployTo = parameters.get(constants.getDeployToKey());
@@ -65,7 +66,7 @@ public class OctopusDeployReleaseBuildProcess extends OctopusBuildProcess {
         commands.add("--apikey");
         commands.add(masked ? "SECRET" : apiKey);
 
-        if (spaceName != null && !spaceName.isEmpty()) {
+        if (!spaceName.isEmpty()) {
           commands.add("--space");
           commands.add(spaceName);
         }

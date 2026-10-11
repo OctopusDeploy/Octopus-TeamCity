@@ -28,6 +28,7 @@ import jetbrains.buildServer.agent.BuildRunnerContext;
 import jetbrains.buildServer.util.StringUtil;
 import octopus.teamcity.common.OctopusConstants;
 import octopus.teamcity.common.OverwriteMode;
+import octopus.teamcity.common.SpaceSelection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.teamcity.rest.Build;
 import org.jetbrains.teamcity.rest.BuildId;
@@ -123,7 +124,7 @@ public class OctopusBuildInformationBuildProcess extends OctopusBuildProcess {
         final ArrayList<String> commands = new ArrayList<String>();
         final String serverUrl = parameters.get(constants.getServerKey());
         final String apiKey = parameters.get(constants.getApiKey());
-        final String spaceName = parameters.get(constants.getSpaceName());
+        final String spaceName = SpaceSelection.resolve(parameters);
         final String packageIds = parameters.get(constants.getPackageIdKey());
         final String packageVersion = parameters.get(constants.getPackageVersionKey());
         final String commandLineArguments = parameters.get(constants.getCommandLineArgumentsKey());
@@ -147,7 +148,7 @@ public class OctopusBuildInformationBuildProcess extends OctopusBuildProcess {
         commands.add("--apikey");
         commands.add(masked ? "SECRET" : apiKey);
 
-        if (spaceName != null && !spaceName.isEmpty()) {
+        if (!spaceName.isEmpty()) {
           commands.add("--space");
           commands.add(spaceName);
         }
