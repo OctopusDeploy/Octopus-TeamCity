@@ -30,7 +30,8 @@
   connections - typing a name stays the fallback, and is what older configurations already use.
 
   The property names are the same on a connection and on a step, so OctopusConstants supplies both
-  regardless of which page is including this.
+  regardless of which page is including this. The including page passes its own help text as the
+  "note" param.
 --%>
 
 <jsp:useBean id="spaceKeys" class="octopus.teamcity.common.OctopusConstants"/>
@@ -62,6 +63,7 @@
       <span class="smallNote octopusSpaceStatus" style="margin-left:4px;"></span>
     </div>
 
+    <span class="smallNote"><c:out value="${param.note}"/></span>
     <span class="smallNote">
       Optional. <strong>Load spaces</strong> lists the spaces on the Octopus server and stores the
       one you pick by id, so renaming that space in Octopus will not break this configuration. It

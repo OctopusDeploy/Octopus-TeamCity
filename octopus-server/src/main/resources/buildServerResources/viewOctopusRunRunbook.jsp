@@ -12,13 +12,7 @@
     <strong><props:displayValue name="${keys.serverKey}" emptyValue="not specified"/></strong>
 </div>
 
-<div class="parameter">
-    Space name:
-    <strong><props:displayValue name="${keys.spaceName}" emptyValue="not specified"/></strong>
-    <c:if test="${not empty propertiesBean.properties[keys.spaceId]}">
-      <span class="smallNote">id: <props:displayValue name="${keys.spaceId}"/></span>
-    </c:if>
-</div>
+<jsp:include page="spaceDisplay.jsp"/>
 
 <div class="parameter">
     Project:

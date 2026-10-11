@@ -26,7 +26,9 @@
       You can also reference a build parameter here, e.g. <code>%octopus.apikey%</code>.</span>
   </td>
 </tr>
-<jsp:include page="../spacePicker.jsp"/>
+<jsp:include page="../spacePicker.jsp">
+  <jsp:param name="note" value="Specify the Octopus Space name to run within. Leave blank to use the default space."/>
+</jsp:include>
 </l:settingsGroup>
 
 <l:settingsGroup title="Runbook Run">

@@ -91,9 +91,9 @@
     </td>
   </tr>
 </c:if>
-<%-- Space picker. Stores the space id so a rename in Octopus does not break this connection;
-     individual build steps can still override it. --%>
-<jsp:include page="spacePicker.jsp"/>
+<jsp:include page="spacePicker.jsp">
+  <jsp:param name="note" value="Space name - optional. If not provided, individual build steps can specify."/>
+</jsp:include>
 
 <script type="text/javascript">
   (function () {

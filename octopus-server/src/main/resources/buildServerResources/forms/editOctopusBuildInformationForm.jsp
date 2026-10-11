@@ -42,7 +42,9 @@
         You can also reference a build parameter here, e.g. <code>%octopus.apikey%</code>.</span>
     </td>
   </tr>
-  <jsp:include page="../spacePicker.jsp"/>
+  <jsp:include page="../spacePicker.jsp">
+    <jsp:param name="note" value="Specify Octopus Space name. Leave blank to use the default space."/>
+  </jsp:include>
 </l:settingsGroup>
 
 <l:settingsGroup title="Package">
