@@ -28,10 +28,7 @@
   <strong><props:displayValue name="${keys.serverKey}" emptyValue="not specified"/></strong>
 </div>
 
-<div class="parameter">
-  Space name:
-  <strong><props:displayValue name="${keys.spaceName}" emptyValue="not specified"/></strong>
-</div>
+<jsp:include page="spaceDisplay.jsp"/>
 
 <div class="parameter">
   Package ID:
