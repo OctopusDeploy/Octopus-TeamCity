@@ -91,14 +91,9 @@
     </td>
   </tr>
 </c:if>
-<tr>
-  <th>Space name:</th>
-  <td>
-    <props:textProperty name="${keys.spaceNamePropertyName}" className="longField"/>
-    <span class="error" id="error_${keys.spaceNamePropertyName}"></span>
-    <span class="smallNote">Space name - optional. If not provided, individual build steps can specify.</span>
-  </td>
-</tr>
+<jsp:include page="spacePicker.jsp">
+  <jsp:param name="note" value="Space name - optional. If not provided, individual build steps can specify."/>
+</jsp:include>
 
 <script type="text/javascript">
   (function () {
