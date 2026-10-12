@@ -20,6 +20,3 @@ docker_data/
 
 # Local credentials for the docker-compose.manual.yml stack (see .env.example)
 .env
-
-# Local JDK pin for jenv/asdf
-.java-version
