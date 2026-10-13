@@ -1,5 +1,6 @@
 <%@ include file="/include-internal.jsp" %>
 <%@ taglib prefix="props" tagdir="/WEB-INF/tags/props" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <%--
   ~ Copyright (c) Octopus Deploy and contributors. All rights reserved.
@@ -23,4 +24,7 @@
 <div class="parameter">
   Space name:
   <strong><props:displayValue name="${spaceKeys.spaceName}" emptyValue="not specified"/></strong>
+  <c:if test="${not empty propertiesBean.properties[spaceKeys.spaceId]}">
+    <span class="smallNote">id: <props:displayValue name="${spaceKeys.spaceId}"/></span>
+  </c:if>
 </div>

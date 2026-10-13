@@ -20,9 +20,16 @@ import java.util.Map;
 /**
  * Works out which space a step should act on.
  *
- * <p>The two CLI paths differ in how they treat "no space set": {@link #resolve} returns an empty
- * string so the legacy path can omit {@code --space} altogether, while {@link #resolveOrDefault}
- * substitutes {@link #DEFAULT_SPACE}, as the Go CLI path has always done.
+ * <p>A step (or the connection it inherits from) can identify a space either by id - {@code
+ * Spaces-1795} - or by name. The id is preferred because it survives the space being renamed, which
+ * a name does not. Both CLIs the agent drives accept either: the legacy {@code octo} CLI resolves
+ * {@code --space} with {@code Spaces.FindByNameOrIdOrFail}, and the Go CLI prefers a name match
+ * then falls back to an id. So whichever value we pick here can be passed through unchanged.
+ *
+ * <p>The two CLI paths differ in how they treat "no space set", so this class deliberately offers
+ * both behaviours rather than imposing one: {@link #resolve} returns an empty string so the legacy
+ * path can omit {@code --space} altogether, while {@link #resolveOrDefault} substitutes {@link
+ * #DEFAULT_SPACE} as the Go CLI path has always done.
  */
 public final class SpaceSelection {
 
@@ -31,15 +38,28 @@ public final class SpaceSelection {
 
   private SpaceSelection() {}
 
-  /** The value to pass to {@code --space}, or an empty string when no space is set. */
+  /**
+   * The value to pass to {@code --space}, preferring the space id over the space name, or an empty
+   * string when neither is set.
+   */
   public static String resolve(final Map<String, String> params) {
-    return trimToEmpty(params.get(OctopusConstants.Instance.getSpaceName()));
+    final OctopusConstants constants = OctopusConstants.Instance;
+    final String spaceId = trimToEmpty(params.get(constants.getSpaceId()));
+    if (!spaceId.isEmpty()) {
+      return spaceId;
+    }
+    return trimToEmpty(params.get(constants.getSpaceName()));
   }
 
   /** As {@link #resolve}, but falls back to {@link #DEFAULT_SPACE} when no space is set. */
   public static String resolveOrDefault(final Map<String, String> params) {
     final String space = resolve(params);
     return space.isEmpty() ? DEFAULT_SPACE : space;
+  }
+
+  /** Whether a space was identified at all, by either id or name. */
+  public static boolean isSet(final Map<String, String> params) {
+    return !resolve(params).isEmpty();
   }
 
   private static String trimToEmpty(final String value) {

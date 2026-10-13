@@ -25,6 +25,8 @@ public class ConnectionPropertyNames {
   // No longer configurable; retained because existing connections may still store it.
   public static final String VERSION = "octopus_version";
   public static final String SPACE_NAME = "octopus_space_name";
+  // The id of the selected space. Preferred over SPACE_NAME as it survives a rename.
+  public static final String SPACE_ID = "octopus_space_id";
 
   // API key source — selects how the connection supplies credentials.
   public static final String API_KEY_SOURCE = "octopus_apikey_source";
@@ -65,6 +67,10 @@ public class ConnectionPropertyNames {
 
   public String getSpaceNamePropertyName() {
     return SPACE_NAME;
+  }
+
+  public String getSpaceIdPropertyName() {
+    return SPACE_ID;
   }
 
   public String getApiKeySourcePropertyName() {

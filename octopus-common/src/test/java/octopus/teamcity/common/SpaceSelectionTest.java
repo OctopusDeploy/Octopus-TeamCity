@@ -24,41 +24,69 @@ import org.junit.jupiter.api.Test;
 
 class SpaceSelectionTest {
 
-  private Map<String, String> params(final String spaceName) {
+  private static final OctopusConstants CONSTANTS = OctopusConstants.Instance;
+
+  private Map<String, String> params(final String spaceId, final String spaceName) {
     final Map<String, String> params = new HashMap<>();
+    if (spaceId != null) {
+      params.put(CONSTANTS.getSpaceId(), spaceId);
+    }
     if (spaceName != null) {
-      params.put(OctopusConstants.Instance.getSpaceName(), spaceName);
+      params.put(CONSTANTS.getSpaceName(), spaceName);
     }
     return params;
   }
 
   @Test
-  void resolvesTheSpaceName() {
-    assertThat(SpaceSelection.resolve(params("Modern Deployments")))
+  void prefersTheSpaceIdOverTheSpaceName() {
+    // The whole point: the id keeps working after the space is renamed in Octopus, so a stale
+    // stored name must not win over it.
+    assertThat(SpaceSelection.resolve(params("Spaces-1795", "Modern Deployments")))
+        .isEqualTo("Spaces-1795");
+  }
+
+  @Test
+  void fallsBackToTheSpaceNameWhenNoIdIsStored() {
+    assertThat(SpaceSelection.resolve(params(null, "Modern Deployments")))
+        .isEqualTo("Modern Deployments");
+  }
+
+  @Test
+  void treatsABlankIdAsAbsent() {
+    assertThat(SpaceSelection.resolve(params("   ", "Modern Deployments")))
         .isEqualTo("Modern Deployments");
   }
 
   @Test
   void trimsSurroundingWhitespace() {
-    assertThat(SpaceSelection.resolve(params("  Modern Deployments  ")))
+    assertThat(SpaceSelection.resolve(params(null, "  Modern Deployments  ")))
         .isEqualTo("Modern Deployments");
   }
 
   @Test
-  void resolvesToEmptyWhenNoSpaceIsSet() {
-    assertThat(SpaceSelection.resolve(params(null))).isEmpty();
-    assertThat(SpaceSelection.resolve(params("  "))).isEmpty();
+  void resolvesToEmptyWhenNeitherIsSet() {
+    assertThat(SpaceSelection.resolve(params(null, null))).isEmpty();
+    assertThat(SpaceSelection.resolve(params("", "  "))).isEmpty();
   }
 
   @Test
   void resolveOrDefaultSubstitutesTheDefaultSpace() {
-    assertThat(SpaceSelection.resolveOrDefault(params(null))).isEqualTo("Default");
-    assertThat(SpaceSelection.resolveOrDefault(params("  "))).isEqualTo("Default");
+    // The Go CLI path has always sent "Default" rather than omitting --space.
+    assertThat(SpaceSelection.resolveOrDefault(params(null, null))).isEqualTo("Default");
+    assertThat(SpaceSelection.DEFAULT_SPACE).isEqualTo("Default");
   }
 
   @Test
-  void resolveOrDefaultKeepsASpaceThatIsSet() {
-    assertThat(SpaceSelection.resolveOrDefault(params("Modern Deployments")))
-        .isEqualTo("Modern Deployments");
+  void resolveOrDefaultStillPrefersAnIdWhenPresent() {
+    assertThat(SpaceSelection.resolveOrDefault(params("Spaces-2", "Whatever")))
+        .isEqualTo("Spaces-2");
+  }
+
+  @Test
+  void isSetReportsWhetherASpaceWasIdentified() {
+    assertThat(SpaceSelection.isSet(params("Spaces-3", null))).isTrue();
+    assertThat(SpaceSelection.isSet(params(null, "Named"))).isTrue();
+    assertThat(SpaceSelection.isSet(params(null, null))).isFalse();
+    assertThat(SpaceSelection.isSet(params(" ", " "))).isFalse();
   }
 }

@@ -58,6 +58,29 @@ class OctopusConnectionTest {
   }
 
   @Test
+  void describeConnectionShowsTheSpaceIdBesideTheName() {
+    // The id is what is actually sent, so surfacing it is how a stale name becomes visible after
+    // the space has been renamed in Octopus.
+    final Map<String, String> params = new HashMap<>();
+    params.put(ConnectionPropertyNames.SERVER_URL, "https://octopus.example.com");
+    params.put(ConnectionPropertyNames.SPACE_NAME, "Swordfish");
+    params.put(ConnectionPropertyNames.SPACE_ID, "Spaces-1795");
+
+    assertThat(provider.describeConnection(descriptorWith(params)))
+        .isEqualTo("Octopus URL: https://octopus.example.com\nSpace Name: Swordfish (Spaces-1795)");
+  }
+
+  @Test
+  void describeConnectionShowsTheSpaceIdAloneWhenNoNameIsStored() {
+    final Map<String, String> params = new HashMap<>();
+    params.put(ConnectionPropertyNames.SERVER_URL, "https://octopus.example.com");
+    params.put(ConnectionPropertyNames.SPACE_ID, "Spaces-1795");
+
+    assertThat(provider.describeConnection(descriptorWith(params)))
+        .isEqualTo("Octopus URL: https://octopus.example.com\nSpace Id: Spaces-1795");
+  }
+
+  @Test
   void describeConnectionFallsBackWhenUrlMissing() {
     assertThat(provider.describeConnection(descriptorWith(new HashMap<>())))
         .isEqualTo("Octopus URL: (no URL)");
