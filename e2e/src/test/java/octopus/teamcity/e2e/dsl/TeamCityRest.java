@@ -287,6 +287,20 @@ public final class TeamCityRest {
         json);
   }
 
+  /** Sets one property on an existing build step, as saving the step's form would. */
+  public void setStepProperty(
+      final String buildTypeId, final String stepId, final String name, final String value)
+      throws Exception {
+    final String path =
+        "/httpAuth/app/rest/buildTypes/" + buildTypeId + "/steps/" + stepId + "/parameters/" + name;
+    // This endpoint answers in plain text, so it refuses the JSON Accept header send() uses.
+    final Http.Response resp = request("PUT", baseUrl + path, "text/plain", "text/plain", value);
+    if (resp.statusCode() < 200 || resp.statusCode() >= 300) {
+      throw new IllegalStateException(
+          "PUT " + path + " -> " + resp.statusCode() + ": " + resp.body());
+    }
+  }
+
   /**
    * Adds an empty Create release (octopus.create.release) step; enough for the edit page to render.
    * Returns the generated runner id (e.g. {@code RUNNER_1}).

@@ -1,6 +1,7 @@
 package octopus.teamcity.server.connection;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -9,6 +10,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 
 import jetbrains.buildServer.serverSide.ProjectManager;
@@ -246,5 +248,84 @@ class OctopusConnectionUiDataTest {
     when(request.getParameter("id")).thenReturn(null);
 
     assertThat(OctopusConnectionUiData.buildFeaturesUrl(request)).isEqualTo("");
+  }
+
+  private static HttpServletRequest requestWith(final Map<String, String> parameters) {
+    final HttpServletRequest request = mock(HttpServletRequest.class);
+    when(request.getParameter(anyString()))
+        .thenAnswer(invocation -> parameters.get(invocation.<String>getArgument(0)));
+    return request;
+  }
+
+  private SProject projectNamed(final String externalId) {
+    final SProject project = mock(SProject.class);
+    when(projectManager.findProjectByExternalId(externalId)).thenReturn(project);
+    return project;
+  }
+
+  private static OAuthConnectionDescriptor connectionOfType(final String providerType) {
+    final OAuthConnectionDescriptor descriptor = mock(OAuthConnectionDescriptor.class);
+    when(descriptor.getParameters())
+        .thenReturn(Collections.singletonMap("providerType", providerType));
+    return descriptor;
+  }
+
+  @Test
+  void spacePickerProjectIdIsTheConnectionFormsProject() {
+    final Map<String, String> parameters = new HashMap<>();
+    parameters.put("projectId", " Rtest ");
+
+    assertThat(OctopusConnectionUiData.spacePickerProjectId(requestWith(parameters)))
+        .isEqualTo("Rtest");
+  }
+
+  @Test
+  void spacePickerProjectIdIsTheStepFormsBuildConfigurationsProject() {
+    final SBuildType buildType = mock(SBuildType.class);
+    final SProject project = mock(SProject.class);
+    when(projectManager.findBuildTypeByExternalId("Rtest_Build")).thenReturn(buildType);
+    when(buildType.getProject()).thenReturn(project);
+    when(project.getExternalId()).thenReturn("Rtest");
+    final Map<String, String> parameters = new HashMap<>();
+    parameters.put("id", "buildType:Rtest_Build");
+
+    assertThat(OctopusConnectionUiData.spacePickerProjectId(requestWith(parameters)))
+        .isEqualTo("Rtest");
+  }
+
+  @Test
+  void spacePickerConnectionIdIsTheOctopusConnectionBeingEdited() {
+    final SProject project = projectNamed("Rtest");
+    final OAuthConnectionDescriptor octopus = connectionOfType(OctopusConnection.TYPE);
+    when(connectionsManager.resolve(project, "PROJECT_EXT_7")).thenReturn(Optional.of(octopus));
+    final Map<String, String> parameters = new HashMap<>();
+    parameters.put("projectId", "Rtest");
+    parameters.put("featureId", "PROJECT_EXT_7");
+
+    assertThat(OctopusConnectionUiData.spacePickerConnectionId(requestWith(parameters)))
+        .isEqualTo("PROJECT_EXT_7");
+  }
+
+  @Test
+  void spacePickerConnectionIdIgnoresAConnectionOfAnotherType() {
+    final SProject project = projectNamed("Rtest");
+    final OAuthConnectionDescriptor github = connectionOfType("GitHubApp");
+    when(connectionsManager.resolve(project, "PROJECT_EXT_8")).thenReturn(Optional.of(github));
+    final Map<String, String> parameters = new HashMap<>();
+    parameters.put("projectId", "Rtest");
+    parameters.put("connectionId", "PROJECT_EXT_8");
+
+    assertThat(OctopusConnectionUiData.spacePickerConnectionId(requestWith(parameters))).isEmpty();
+  }
+
+  @Test
+  void spacePickerConnectionIdIsEmptyForAnUnsavedConnection() {
+    final SProject project = projectNamed("Rtest");
+    when(connectionsManager.resolve(project, "unsaved")).thenReturn(Optional.empty());
+    final Map<String, String> parameters = new HashMap<>();
+    parameters.put("projectId", "Rtest");
+    parameters.put("connectionId", "unsaved");
+
+    assertThat(OctopusConnectionUiData.spacePickerConnectionId(requestWith(parameters))).isEmpty();
   }
 }
