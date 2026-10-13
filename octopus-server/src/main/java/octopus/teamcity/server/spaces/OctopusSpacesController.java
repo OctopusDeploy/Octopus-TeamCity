@@ -28,7 +28,10 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import jetbrains.buildServer.controllers.BaseController;
+import jetbrains.buildServer.parameters.ProcessingResult;
+import jetbrains.buildServer.serverSide.ParametersSupport;
 import jetbrains.buildServer.serverSide.ProjectManager;
+import jetbrains.buildServer.serverSide.SBuildType;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.auth.Permission;
 import jetbrains.buildServer.serverSide.oauth.OAuthConnectionDescriptor;
@@ -39,6 +42,7 @@ import octopus.teamcity.common.connection.ConnectionPropertyNames;
 import octopus.teamcity.server.connection.OctopusConnectionsManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.context.ApplicationContext;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
@@ -54,7 +58,10 @@ import org.springframework.web.servlet.ModelAndView;
  *   <li>when a saved connection is named, its credentials are read server-side and the request's
  *       own {@code apiKey} is ignored, because TeamCity renders a stored secret as a placeholder
  *       and the browser therefore does not hold the real key;
- *   <li>the API key is never echoed back, in an error message or otherwise.
+ *   <li>a build configuration named by the request is used only when the caller holds {@link
+ *       Permission#EDIT_PROJECT} on its project too, since its parameters can hold the API key;
+ *   <li>no credential - API key, ID token or access token - is echoed back, in an error message or
+ *       otherwise.
  * </ul>
  */
 public class OctopusSpacesController extends BaseController {
@@ -71,17 +78,22 @@ public class OctopusSpacesController extends BaseController {
   private final OctopusConnectionsManager connectionsManager;
   private final ProjectManager projectManager;
   private final OctopusSpacesFetcher fetcher;
+  private final OidcIdTokens oidcIdTokens;
+  private final OctopusTokenExchange tokenExchange;
   private final UserResolver userResolver;
 
   public OctopusSpacesController(
       final WebControllerManager webControllerManager,
       final OctopusConnectionsManager connectionsManager,
-      final ProjectManager projectManager) {
+      final ProjectManager projectManager,
+      final ApplicationContext applicationContext) {
     this(
         webControllerManager,
         connectionsManager,
         projectManager,
         new OctopusSpacesFetcher(),
+        oidcIdTokensFor(applicationContext),
+        new OctopusTokenExchange(),
         SessionUser::getUser);
   }
 
@@ -90,10 +102,14 @@ public class OctopusSpacesController extends BaseController {
       final OctopusConnectionsManager connectionsManager,
       final ProjectManager projectManager,
       final OctopusSpacesFetcher fetcher,
+      final OidcIdTokens oidcIdTokens,
+      final OctopusTokenExchange tokenExchange,
       final UserResolver userResolver) {
     this.connectionsManager = connectionsManager;
     this.projectManager = projectManager;
     this.fetcher = fetcher;
+    this.oidcIdTokens = oidcIdTokens;
+    this.tokenExchange = tokenExchange;
     this.userResolver = userResolver;
     if (webControllerManager != null) {
       webControllerManager.registerController(PATH, this);
@@ -130,17 +146,17 @@ public class OctopusSpacesController extends BaseController {
 
     final Credentials credentials;
     try {
-      credentials = resolveCredentials(request, project);
+      credentials = resolveCredentials(request, project, user);
     } catch (final CredentialsUnavailableException e) {
       writeError(response, HttpServletResponse.SC_OK, e.getMessage());
       return null;
     }
 
     try {
-      final List<OctopusSpace> spaces = fetcher.fetch(credentials.serverUrl, credentials.apiKey);
+      final List<OctopusSpace> spaces = fetcher.fetch(credentials.serverUrl, credentials.auth);
       writeSpaces(response, spaces);
     } catch (final IOException e) {
-      // The fetcher's messages describe the failure without quoting the key back.
+      // The fetcher's messages describe the failure without quoting the credential back.
       writeError(response, HttpServletResponse.SC_OK, e.getMessage());
     }
     return null;
@@ -167,7 +183,8 @@ public class OctopusSpacesController extends BaseController {
    * listed, and a step using inline credentials cannot list spaces at all. Both fall back to typing
    * the space name.
    */
-  private Credentials resolveCredentials(final HttpServletRequest request, final SProject project)
+  private Credentials resolveCredentials(
+      final HttpServletRequest request, final SProject project, final SUser user)
       throws CredentialsUnavailableException {
     final String connectionId = request.getParameter("connectionId");
     if (connectionId == null || connectionId.trim().isEmpty()) {
@@ -183,22 +200,115 @@ public class OctopusSpacesController extends BaseController {
     }
 
     final Map<String, String> params = connection.get().getParameters();
+    final String serverUrl = params.get(ConnectionPropertyNames.SERVER_URL);
     final String source =
         params.getOrDefault(
             ConnectionPropertyNames.API_KEY_SOURCE, ConnectionPropertyNames.API_KEY_SOURCE_KEY);
     if (ConnectionPropertyNames.API_KEY_SOURCE_PARAMETER.equals(source)) {
-      throw new CredentialsUnavailableException(
-          "This connection reads its API key from a build parameter, which is only resolved when"
-              + " a build runs, so spaces cannot be listed here. Enter the space name instead.");
+      final SBuildType buildType = editableBuildType(request, user);
+      return new Credentials(
+          serverUrl,
+          OctopusAuth.apiKey(
+              resolveApiKeyParameter(params, buildType == null ? project : buildType)));
     }
     if (ConnectionPropertyNames.API_KEY_SOURCE_OIDC.equals(source)) {
-      throw new CredentialsUnavailableException(
-          "This connection authenticates with OIDC, and its token is only issued while a build"
-              + " runs, so spaces cannot be listed here. Enter the space name instead.");
+      final SBuildType buildType = editableBuildType(request, user);
+      return new Credentials(
+          serverUrl,
+          OctopusAuth.accessToken(oidcAccessToken(params, project, buildType, serverUrl)));
     }
     return new Credentials(
-        params.get(ConnectionPropertyNames.SERVER_URL),
-        params.get(ConnectionPropertyNames.API_KEY));
+        serverUrl, OctopusAuth.apiKey(params.get(ConnectionPropertyNames.API_KEY)));
+  }
+
+  /**
+   * The step form's build configuration, or {@code null} on a form that has none. A missing one and
+   * one whose project the caller cannot edit get the same message, so the request cannot be used to
+   * find out which build configurations exist.
+   */
+  @Nullable
+  private SBuildType editableBuildType(final HttpServletRequest request, final SUser user)
+      throws CredentialsUnavailableException {
+    final String buildTypeId = request.getParameter("buildTypeId");
+    if (buildTypeId == null || buildTypeId.trim().isEmpty()) {
+      return null;
+    }
+    final SBuildType buildType = projectManager.findBuildTypeByExternalId(buildTypeId.trim());
+    if (buildType == null
+        || !user.isPermissionGrantedForProject(buildType.getProjectId(), Permission.EDIT_PROJECT)) {
+      throw new CredentialsUnavailableException(
+          "Build configuration '"
+              + buildTypeId.trim()
+              + "' was not found, or you do not have permission to edit its project.");
+    }
+    return buildType;
+  }
+
+  /** Resolves the connection's {@code %parameter%} reference as a build of {@code scope} would. */
+  private static String resolveApiKeyParameter(
+      final Map<String, String> params, final ParametersSupport scope)
+      throws CredentialsUnavailableException {
+    final String reference = params.get(ConnectionPropertyNames.API_KEY_PARAMETER);
+    if (reference == null || reference.trim().isEmpty()) {
+      throw new CredentialsUnavailableException(
+          "This connection does not name an API key parameter.");
+    }
+    final ProcessingResult resolved = scope.getValueResolver().resolve(reference.trim());
+    if (!resolved.isFullyResolved()
+        || resolved.getResult() == null
+        || resolved.getResult().trim().isEmpty()) {
+      throw new CredentialsUnavailableException(
+          "The API key parameter "
+              + reference.trim()
+              + " can't be resolved here - it may only be set when a build runs. Enter the space"
+              + " name instead.");
+    }
+    return resolved.getResult();
+  }
+
+  private String oidcAccessToken(
+      final Map<String, String> params,
+      final SProject project,
+      @Nullable final SBuildType buildType,
+      final String serverUrl)
+      throws CredentialsUnavailableException {
+    final String oidcConnectionId = params.get(ConnectionPropertyNames.OIDC_CONNECTION_ID);
+    if (oidcConnectionId == null || oidcConnectionId.trim().isEmpty()) {
+      throw new CredentialsUnavailableException(
+          "This connection does not name an OIDC connection.");
+    }
+    final Optional<OAuthConnectionDescriptor> oidcConnector =
+        connectionsManager.resolve(project, oidcConnectionId.trim());
+    if (!oidcConnector.isPresent()) {
+      throw new CredentialsUnavailableException(
+          "The OIDC connection '" + oidcConnectionId.trim() + "' could not be resolved.");
+    }
+    // The connector's audience is the Octopus service account id, as at build time.
+    final String audience =
+        oidcConnector.get().getParameters().get(ConnectionPropertyNames.OIDC_CONNECTOR_AUDIENCE);
+    if (audience == null || audience.trim().isEmpty()) {
+      throw new CredentialsUnavailableException(
+          "The OIDC connection '" + oidcConnectionId.trim() + "' has no audience.");
+    }
+    try {
+      final String idToken =
+          oidcIdTokens.request(
+              project,
+              oidcConnectionId.trim(),
+              buildType == null ? null : buildType.getExternalId());
+      return tokenExchange.exchange(serverUrl, audience.trim(), idToken);
+    } catch (final IOException e) {
+      throw new CredentialsUnavailableException(e.getMessage());
+    }
+  }
+
+  private static OidcIdTokens oidcIdTokensFor(final ApplicationContext applicationContext) {
+    if (OidcIdTokenRequester.isSupported()) {
+      return new OidcIdTokenRequester(applicationContext);
+    }
+    return (project, oidcConnectionId, buildTypeExternalId) -> {
+      throw new IOException(OidcIdTokenRequester.UNSUPPORTED_MESSAGE);
+    };
   }
 
   private static void writeSpaces(
@@ -233,11 +343,11 @@ public class OctopusSpacesController extends BaseController {
 
   private static final class Credentials {
     private final String serverUrl;
-    private final String apiKey;
+    private final OctopusAuth auth;
 
-    private Credentials(final String serverUrl, final String apiKey) {
+    private Credentials(final String serverUrl, final OctopusAuth auth) {
       this.serverUrl = serverUrl;
-      this.apiKey = apiKey;
+      this.auth = auth;
     }
   }
 

@@ -50,7 +50,7 @@ public class OctopusSpacesFetcher {
 
   /** Performs the GET. Separated out so tests need no server. */
   public interface Requester {
-    String get(String url, String apiKey) throws IOException;
+    String get(String url, OctopusAuth auth) throws IOException;
   }
 
   private final Requester requester;
@@ -63,21 +63,27 @@ public class OctopusSpacesFetcher {
     this.requester = requester;
   }
 
-  /**
-   * The spaces visible to the supplied API key, ordered by name.
-   *
-   * @throws IOException if the server cannot be reached, rejects the key, or returns something that
-   *     is not a spaces collection.
-   */
+  /** The spaces visible to the supplied API key, ordered by name. */
   public List<OctopusSpace> fetch(final String serverUrl, final String apiKey) throws IOException {
+    return fetch(serverUrl, OctopusAuth.apiKey(apiKey));
+  }
+
+  /**
+   * The spaces visible to the supplied credential, ordered by name.
+   *
+   * @throws IOException if the server cannot be reached, rejects the credential, or returns
+   *     something that is not a spaces collection.
+   */
+  public List<OctopusSpace> fetch(final String serverUrl, final OctopusAuth auth)
+      throws IOException {
     if (serverUrl == null || serverUrl.trim().isEmpty()) {
       throw new IOException("An Octopus URL is required to list spaces.");
     }
-    if (apiKey == null || apiKey.trim().isEmpty()) {
-      throw new IOException("An Octopus API key is required to list spaces.");
+    if (auth.isEmpty()) {
+      throw new IOException("An Octopus " + auth.description() + " is required to list spaces.");
     }
 
-    final String body = requester.get(spacesUrl(serverUrl), apiKey.trim());
+    final String body = requester.get(spacesUrl(serverUrl), auth);
 
     final SpacesCollection collection;
     try {
@@ -113,6 +119,11 @@ public class OctopusSpacesFetcher {
    * scheme-only value cannot slip through.
    */
   static String spacesUrl(final String serverUrl) throws IOException {
+    return baseUrl(serverUrl) + "/api/spaces?skip=0&take=" + TAKE;
+  }
+
+  /** The server URL without trailing slashes, after the checks {@link #spacesUrl} describes. */
+  static String baseUrl(final String serverUrl) throws IOException {
     String base = serverUrl.trim();
     while (base.endsWith("/")) {
       base = base.substring(0, base.length() - 1);
@@ -132,28 +143,30 @@ public class OctopusSpacesFetcher {
       throw new IOException("The Octopus URL is missing a host name.");
     }
 
-    return base + "/api/spaces?skip=0&take=" + TAKE;
+    return base;
   }
 
-  private static String httpGet(final String url, final String apiKey) throws IOException {
+  private static String httpGet(final String url, final OctopusAuth auth) throws IOException {
     final HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
     try {
       connection.setRequestMethod("GET");
       // A redirect would take the request somewhere other than the address just validated, and
-      // would also replay the API key there.
+      // would also replay the credential there.
       connection.setInstanceFollowRedirects(false);
       connection.setConnectTimeout(CONNECT_TIMEOUT_MILLIS);
       connection.setReadTimeout(READ_TIMEOUT_MILLIS);
-      connection.setRequestProperty("X-Octopus-ApiKey", apiKey);
+      connection.setRequestProperty(auth.header(), auth.value());
       connection.setRequestProperty("Accept", "application/json");
 
       final int status = connection.getResponseCode();
       if (status == HttpURLConnection.HTTP_UNAUTHORIZED
           || status == HttpURLConnection.HTTP_FORBIDDEN) {
         throw new IOException(
-            "Octopus rejected the API key (HTTP "
+            "Octopus rejected the "
+                + auth.description()
+                + " (HTTP "
                 + status
-                + "). Check the key and its permissions.");
+                + "). Check its permissions.");
       }
       if (status >= 300 && status <= 399) {
         throw new IOException(

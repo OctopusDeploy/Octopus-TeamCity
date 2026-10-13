@@ -28,12 +28,14 @@ class OctopusSpacesFetcherTest {
 
   private final List<String> requestedUrls = new ArrayList<>();
   private final List<String> sentApiKeys = new ArrayList<>();
+  private final List<String> sentHeaders = new ArrayList<>();
 
   private OctopusSpacesFetcher fetcherReturning(final String body) {
     return new OctopusSpacesFetcher(
-        (url, apiKey) -> {
+        (url, auth) -> {
           requestedUrls.add(url);
-          sentApiKeys.add(apiKey);
+          sentHeaders.add(auth.header());
+          sentApiKeys.add(auth.value());
           return body;
         });
   }
@@ -97,6 +99,32 @@ class OctopusSpacesFetcherTest {
     fetcherReturning("{\"Items\":[]}").fetch("https://octopus.example.com", "  API-KEY  ");
 
     assertThat(sentApiKeys).containsExactly("API-KEY");
+  }
+
+  @Test
+  void sendsAnApiKeyInTheOctopusApiKeyHeader() throws Exception {
+    fetcherReturning("{\"Items\":[]}").fetch("https://octopus.example.com", "API-KEY");
+
+    assertThat(sentHeaders).containsExactly("X-Octopus-ApiKey");
+    assertThat(sentApiKeys).containsExactly("API-KEY");
+  }
+
+  @Test
+  void sendsAnAccessTokenAsABearerToken() throws Exception {
+    fetcherReturning("{\"Items\":[]}")
+        .fetch("https://octopus.example.com", OctopusAuth.accessToken("  access-token  "));
+
+    assertThat(sentHeaders).containsExactly("Authorization");
+    assertThat(sentApiKeys).containsExactly("Bearer access-token");
+  }
+
+  @Test
+  void rejectsAMissingAccessTokenWithoutCallingOut() {
+    assertThatThrownBy(
+            () -> fetcherReturning("{}").fetch("https://o", OctopusAuth.accessToken(" ")))
+        .isInstanceOf(IOException.class)
+        .hasMessageContaining("access token");
+    assertThat(requestedUrls).isEmpty();
   }
 
   @Test
@@ -186,7 +214,7 @@ class OctopusSpacesFetcherTest {
   void propagatesTransportFailures() {
     final OctopusSpacesFetcher fetcher =
         new OctopusSpacesFetcher(
-            (url, apiKey) -> {
+            (url, auth) -> {
               throw new IOException("connection refused");
             });
 

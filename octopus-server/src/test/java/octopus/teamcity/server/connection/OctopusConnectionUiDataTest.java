@@ -101,6 +101,25 @@ class OctopusConnectionUiDataTest {
   }
 
   @Test
+  void spacePickerBuildTypeIdIsTheStepFormsBuildConfiguration() {
+    final SBuildType buildType = mock(SBuildType.class);
+    when(projectManager.findBuildTypeByExternalId("Rtest_Build")).thenReturn(buildType);
+    when(buildType.getExternalId()).thenReturn("Rtest_Build");
+    final HttpServletRequest request = mock(HttpServletRequest.class);
+    when(request.getParameter("id")).thenReturn("buildType:Rtest_Build");
+
+    assertThat(OctopusConnectionUiData.spacePickerBuildTypeId(request)).isEqualTo("Rtest_Build");
+  }
+
+  @Test
+  void spacePickerBuildTypeIdIsEmptyOnATemplateForm() {
+    final HttpServletRequest request = mock(HttpServletRequest.class);
+    when(request.getParameter("id")).thenReturn("template:Rtest_Template");
+
+    assertThat(OctopusConnectionUiData.spacePickerBuildTypeId(request)).isEmpty();
+  }
+
+  @Test
   void editConnectionUrlFallsBackWhenProjectCannotBeResolved() {
     final HttpServletRequest request = mock(HttpServletRequest.class);
     when(request.getContextPath()).thenReturn("");
