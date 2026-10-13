@@ -16,13 +16,16 @@ import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.util.Base64;
 
+import com.google.common.io.ByteStreams;
 import com.google.common.io.Resources;
 import net.lingala.zip4j.ZipFile;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.testcontainers.containers.Container;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.wait.strategy.Wait;
+import org.testcontainers.images.builder.Transferable;
 import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
 
@@ -37,6 +40,10 @@ import org.testcontainers.utility.MountableFile;
  * an initialised database and an {@code admin}/{@code Password01!} user, so there is no first-start
  * wizard and REST is authenticated with that account.
  *
+ * <p>TeamCity's root URL is {@link #ROOT_URL}, an HTTPS address served by a Caddy proxy on the full
+ * stack, which Octopus trusts. The OIDC plugin only issues tokens for an HTTPS issuer, and Octopus
+ * fetches the issuer's signing keys from it, so this is what lets an OIDC connection authenticate.
+ *
  * <p>The UI test only needs TeamCity, so use {@link #startTeamCityOnly()}. The full end-to-end test
  * needs Octopus + an agent, so use {@link #startWithAgentAndOctopus()}.
  */
@@ -50,6 +57,19 @@ public final class OctopusTeamCityStack implements AutoCloseable {
   private static final String OCTOPUS_IMAGE = "octopusdeploy/octopusdeploy:2025.4";
   private static final String MSSQL_IMAGE = "mcr.microsoft.com/mssql/server:2022-latest";
   private static final int TC_PORT = 8111;
+  private static final String CADDY_IMAGE = "caddy:2.8.4";
+  private static final String TLS_ALIAS = "teamcity-tls";
+
+  /** TeamCity's root URL, and so the issuer of the OIDC plugin's tokens. */
+  public static final String ROOT_URL = "https://" + TLS_ALIAS;
+
+  private static final String CADDY_ROOT_CERT = "/data/caddy/pki/authorities/local/root.crt";
+  private static final String CADDYFILE =
+      "{\n  skip_install_trust\n}\n"
+          + ROOT_URL
+          + " {\n  tls internal\n  reverse_proxy server:"
+          + TC_PORT
+          + "\n}\n";
   private static final int OCTOPUS_PORT = 8080;
   private static final String USERNAME = "admin";
   private static final String PASSWORD = "Password01!";
@@ -70,6 +90,7 @@ public final class OctopusTeamCityStack implements AutoCloseable {
   private GenericContainer<?> mssql;
   private GenericContainer<?> octopus;
   private GenericContainer<?> agent;
+  private GenericContainer<?> tlsProxy;
   private boolean shared;
 
   private OctopusTeamCityStack(final GenericContainer<?> server, final Network network) {
@@ -141,8 +162,34 @@ public final class OctopusTeamCityStack implements AutoCloseable {
     stack.octopus.start();
     LOG.info("Octopus ready at {}", stack.octopusUrlForHost());
 
+    stack.startTlsProxy();
     stack.startAgent();
     return stack;
+  }
+
+  /**
+   * Serves TeamCity at {@link #ROOT_URL} with a certificate from Caddy's own CA, and makes Octopus
+   * trust that CA.
+   */
+  private void startTlsProxy() throws Exception {
+    tlsProxy =
+        new GenericContainer<>(DockerImageName.parse(CADDY_IMAGE))
+            .withNetwork(network)
+            .withNetworkAliases(TLS_ALIAS)
+            .withCopyToContainer(Transferable.of(CADDYFILE), "/etc/caddy/Caddyfile")
+            .waitingFor(
+                Wait.forLogMessage(".*certificate obtained successfully.*", 1)
+                    .withStartupTimeout(Duration.ofMinutes(2)));
+    tlsProxy.start();
+
+    final byte[] rootCertificate =
+        tlsProxy.copyFileFromContainer(CADDY_ROOT_CERT, ByteStreams::toByteArray);
+    octopus.copyFileToContainer(
+        Transferable.of(rootCertificate), "/usr/local/share/ca-certificates/teamcity-tls.crt");
+    final Container.ExecResult update = octopus.execInContainer("update-ca-certificates");
+    if (update.getExitCode() != 0) {
+      throw new IllegalStateException("update-ca-certificates failed: " + update.getStderr());
+    }
   }
 
   /** Starts an agent on the stack's network, authorises it, and waits for it to go idle. */
@@ -172,6 +219,14 @@ public final class OctopusTeamCityStack implements AutoCloseable {
     }
     final Path pluginsDir = dataDir.resolve("plugins");
     Files.createDirectories(pluginsDir);
+    final Path mainConfig = dataDir.resolve("config/main-config.xml");
+    final String mainConfigXml = new String(Files.readAllBytes(mainConfig), StandardCharsets.UTF_8);
+    Files.write(
+        mainConfig,
+        mainConfigXml
+            .replaceFirst("rootURL=\"[^\"]*\"", "rootURL=\"" + ROOT_URL + "\"")
+            .getBytes(StandardCharsets.UTF_8));
+
     Files.copy(
         Paths.get(pluginDist),
         pluginsDir.resolve("Octopus.Teamcity.zip"),
@@ -285,7 +340,8 @@ public final class OctopusTeamCityStack implements AutoCloseable {
     if (shared) {
       return;
     }
-    for (final GenericContainer<?> c : new GenericContainer<?>[] {agent, octopus, mssql, server}) {
+    for (final GenericContainer<?> c :
+        new GenericContainer<?>[] {agent, tlsProxy, octopus, mssql, server}) {
       if (c != null) {
         try {
           c.stop();

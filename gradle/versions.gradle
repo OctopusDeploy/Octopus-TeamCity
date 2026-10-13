@@ -29,6 +29,8 @@ dependencyManagement {
             entry 'oauth'
         }
         dependency 'org.jetbrains.teamcity:teamcity-rest-client:1.15.9999-SNAPSHOT'
+        // 2025.11 is compiled for Java 8 (2026.x needs Java 21); the API exists from TeamCity 2023.05.
+        dependency 'org.jetbrains.teamcity:connections-api-core:2025.11'
 
         dependency 'com.google.guava:guava:30.1.1-jre'
 
