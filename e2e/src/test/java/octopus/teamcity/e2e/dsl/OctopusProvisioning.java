@@ -231,6 +231,63 @@ public final class OctopusProvisioning {
     return false;
   }
 
+  /**
+   * Creates an Octopus service account that accepts OIDC tokens from {@code issuer} carrying
+   * exactly {@code subject}, and adds it to Octopus Administrators so it can see every space.
+   * Returns the account's external id, which is the audience its tokens must be issued for.
+   */
+  public static String createOidcServiceAccount(
+      final String octopusBaseUrl,
+      final String apiKey,
+      final String username,
+      final String issuer,
+      final String subject)
+      throws Exception {
+    final JsonObject user = new JsonObject();
+    user.addProperty("Username", username);
+    user.addProperty("DisplayName", username);
+    user.addProperty("IsActive", true);
+    user.addProperty("IsService", true);
+    user.add("Identities", new JsonArray());
+    final String userId =
+        readJson(
+                octopusRequest("POST", octopusBaseUrl + "/api/users", apiKey, user.toString()),
+                "POST /api/users")
+            .get("Id")
+            .getAsString();
+
+    final JsonObject identity = new JsonObject();
+    identity.addProperty("ServiceAccountId", userId);
+    identity.addProperty("Name", "TeamCity");
+    identity.addProperty("Issuer", issuer);
+    identity.addProperty("Subject", subject);
+    readJson(
+        octopusRequest(
+            "POST",
+            octopusBaseUrl + "/api/serviceaccounts/" + userId + "/oidcidentities/create/v1",
+            apiKey,
+            identity.toString()),
+        "POST oidcidentities/create");
+
+    final String teamUrl = octopusBaseUrl + "/api/teams/teams-administrators";
+    final JsonObject team = readJson(octopusRequest("GET", teamUrl, apiKey, null), "GET team");
+    team.getAsJsonArray("MemberUserIds").add(userId);
+    readJson(octopusRequest("PUT", teamUrl, apiKey, team.toString()), "PUT team");
+
+    return readJson(
+            octopusRequest(
+                "GET",
+                octopusBaseUrl
+                    + "/api/serviceaccounts/"
+                    + userId
+                    + "/oidcidentities/v1?skip=0&take=1",
+                apiKey,
+                null),
+            "GET oidcidentities")
+        .get("ExternalId")
+        .getAsString();
+  }
+
   private static void addInlineScriptStep(
       final String octopusBaseUrl, final String apiKey, final String deploymentProcessLink)
       throws Exception {

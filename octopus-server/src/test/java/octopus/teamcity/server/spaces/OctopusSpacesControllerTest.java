@@ -26,6 +26,7 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -65,6 +66,10 @@ class OctopusSpacesControllerTest {
 
   private SUser currentUser = null;
   private IOException fetchFailure = null;
+  private final List<String> idTokenRequests = new java.util.ArrayList<>();
+  private IOException idTokenFailure = null;
+  private final List<String> exchangeUrls = new java.util.ArrayList<>();
+  private final List<String> exchangeBodies = new java.util.ArrayList<>();
 
   @BeforeEach
   void setUp() throws Exception {
@@ -92,8 +97,26 @@ class OctopusSpacesControllerTest {
               }
               return "{\"Items\":[{\"Id\":\"Spaces-1795\",\"Name\":\"Swordfish\"}]}";
             });
+    final OidcIdTokens idTokens =
+        (tokenProject, oidcConnectionId, buildTypeId) -> {
+          idTokenRequests.add(
+              oidcConnectionId
+                  + " for "
+                  + (buildTypeId == null ? "no build configuration" : buildTypeId));
+          if (idTokenFailure != null) {
+            throw idTokenFailure;
+          }
+          return "id.token.value";
+        };
+    final OctopusTokenExchange exchange =
+        new OctopusTokenExchange(
+            (url, json) -> {
+              exchangeUrls.add(url);
+              exchangeBodies.add(json);
+              return "{\"access_token\":\"octopus-access\"}";
+            });
     return new OctopusSpacesController(
-        null, connectionsManager, projectManager, fetcher, req -> currentUser);
+        null, connectionsManager, projectManager, fetcher, idTokens, exchange, req -> currentUser);
   }
 
   private String handle() throws Exception {
@@ -282,17 +305,59 @@ class OctopusSpacesControllerTest {
     assertThat(fetchedUrls).isEmpty();
   }
 
-  @Test
-  void explainsThatAnOidcConnectionCannotListSpaces() throws Exception {
+  private void oidcSourcedConnection() {
     final Map<String, String> params = new HashMap<>();
     params.put(ConnectionPropertyNames.SERVER_URL, "https://stored.example.com");
     params.put(ConnectionPropertyNames.API_KEY_SOURCE, ConnectionPropertyNames.API_KEY_SOURCE_OIDC);
+    params.put(ConnectionPropertyNames.OIDC_CONNECTION_ID, "oidc-1");
     final OAuthConnectionDescriptor connection = connectionWith(params);
     when(connectionsManager.resolve(eq(project), eq("octopus-conn-1")))
         .thenReturn(Optional.of(connection));
+    final OAuthConnectionDescriptor oidcConnector =
+        connectionWith(
+            Collections.singletonMap(
+                ConnectionPropertyNames.OIDC_CONNECTOR_AUDIENCE, "service-account-guid"));
+    when(connectionsManager.resolve(eq(project), eq("oidc-1")))
+        .thenReturn(Optional.of(oidcConnector));
     when(request.getParameter("connectionId")).thenReturn("octopus-conn-1");
+  }
 
-    assertThat(handle()).contains("authenticates with OIDC").contains("space name instead");
+  @Test
+  void listsSpacesForAnOidcConnectionWithAnExchangedAccessToken() throws Exception {
+    oidcSourcedConnection();
+    buildTypeInProject(PROJECT_INTERNAL_ID);
+
+    final String body = handle();
+
+    assertThat(body).contains("Spaces-1795");
+    assertThat(idTokenRequests).containsExactly("oidc-1 for MyProject_Deploy");
+    assertThat(exchangeUrls).containsExactly("https://stored.example.com/token/v1");
+    assertThat(exchangeBodies.get(0)).contains("service-account-guid").contains("id.token.value");
+    assertThat(fetchedKeys).containsExactly("Bearer octopus-access");
+    assertThat(body).doesNotContain("id.token.value").doesNotContain("octopus-access");
+  }
+
+  @Test
+  void requestsAProjectScopedOidcTokenWithoutABuildConfiguration() throws Exception {
+    oidcSourcedConnection();
+
+    handle();
+
+    assertThat(idTokenRequests).containsExactly("oidc-1 for no build configuration");
+  }
+
+  @Test
+  void surfacesTheOidcPluginsRefusal() throws Exception {
+    oidcSourcedConnection();
+    idTokenFailure =
+        new IOException(
+            "Enable the connection subject dimension on this OIDC connection to use it outside a"
+                + " build.");
+
+    final String body = handle();
+
+    assertThat(body).contains("Enable the connection subject dimension");
+    assertThat(exchangeUrls).isEmpty();
     assertThat(fetchedUrls).isEmpty();
   }
 

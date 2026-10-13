@@ -1,6 +1,7 @@
 package octopus.teamcity.e2e.test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 import java.util.List;
 
@@ -9,6 +10,7 @@ import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.LoadState;
 import com.microsoft.playwright.options.WaitForSelectorState;
 import com.microsoft.playwright.options.WaitUntilState;
+import octopus.teamcity.e2e.dsl.OctopusProvisioning;
 import octopus.teamcity.e2e.dsl.OctopusTeamCityStack;
 import octopus.teamcity.e2e.dsl.PlaywrightUi;
 import octopus.teamcity.e2e.dsl.SharedStack;
@@ -273,6 +275,57 @@ class OctopusSpacePickerUiTest {
             final Locator tooltip = page.locator("div[id^='messagePopup_']:visible").first();
             tooltip.waitFor(new Locator.WaitForOptions().setTimeout(10000));
             assertThat(tooltip.innerText()).contains("%octopus.apikey.unset%");
+          });
+    }
+  }
+
+  /**
+   * The spaces are listed with an OIDC token Octopus exchanges for an access token. Octopus trusts
+   * tokens for one build configuration only, so the step in the other one is refused, and the
+   * picker says why.
+   */
+  @Test
+  void listsSpacesWhenOctopusTrustsTheOidcTokenAndExplainsWhenItDoesNot() throws Exception {
+    try (final OctopusTeamCityStack stack = SharedStack.full()) {
+      final TeamCityRest tc = stack.rest();
+      tc.createProject("SpacePickerOidcIT", "Space picker OIDC IT");
+      tc.createBuildType("SpacePickerOidcIT_Trusted", "Trusted", "SpacePickerOidcIT");
+      tc.createBuildType("SpacePickerOidcIT_Untrusted", "Untrusted", "SpacePickerOidcIT");
+      final String trustedRunnerId = tc.addCreateReleaseStep("SpacePickerOidcIT_Trusted");
+      final String untrustedRunnerId = tc.addCreateReleaseStep("SpacePickerOidcIT_Untrusted");
+
+      final String audience =
+          OctopusProvisioning.createOidcServiceAccount(
+              stack.octopusUrlForHost(),
+              stack.octopusApiKey(),
+              "space-picker-oidc-it",
+              OctopusTeamCityStack.ROOT_URL,
+              tc.oidcSubject("SpacePickerOidcIT", "SpacePickerOidcIT_Trusted"));
+      final String connectorId =
+          tc.createOidcConnector("SpacePickerOidcIT", "IT OIDC Connector", audience, "jwt.token");
+      tc.createOctopusConnectionWithOidc(
+          "SpacePickerOidcIT", "OIDC Octopus", stack.octopusUrlForContainers(), connectorId, "");
+
+      PlaywrightUi.withLoggedInPage(
+          stack,
+          page -> {
+            openStep(page, stack, "SpacePickerOidcIT_Trusted", trustedRunnerId);
+            selectConnection(page, "OIDC Octopus");
+            final Locator status = status(page);
+            page.waitForCondition(() -> !status.innerText().startsWith("Loading"));
+            assumeFalse(
+                reason(page).contains("Update the OIDC Identity Token plugin"),
+                "the installed OIDC plugin cannot issue tokens outside a build; set"
+                    + " OIDC_PLUGIN_ZIP to one that can");
+            waitForSpaces(page);
+            assertThat(suggestions(page)).anyMatch(label -> label.endsWith("(Spaces-1)"));
+
+            openStep(page, stack, "SpacePickerOidcIT_Untrusted", untrustedRunnerId);
+            selectConnection(page, "OIDC Octopus");
+            page.waitForCondition(() -> reason(page).contains("did not accept"));
+            assertThat(status.innerText()).contains(CANNOT_LIST);
+            assertThat(reason(page)).contains("Octopus did not accept the OIDC token");
+            assertNoSpacesListed(page);
           });
     }
   }

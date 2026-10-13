@@ -42,6 +42,7 @@ import octopus.teamcity.common.connection.ConnectionPropertyNames;
 import octopus.teamcity.server.connection.OctopusConnectionsManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.context.ApplicationContext;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
@@ -59,7 +60,8 @@ import org.springframework.web.servlet.ModelAndView;
  *       and the browser therefore does not hold the real key;
  *   <li>a build configuration named by the request is used only when the caller holds {@link
  *       Permission#EDIT_PROJECT} on its project too, since its parameters can hold the API key;
- *   <li>the API key is never echoed back, in an error message or otherwise.
+ *   <li>no credential - API key, ID token or access token - is echoed back, in an error message or
+ *       otherwise.
  * </ul>
  */
 public class OctopusSpacesController extends BaseController {
@@ -76,17 +78,22 @@ public class OctopusSpacesController extends BaseController {
   private final OctopusConnectionsManager connectionsManager;
   private final ProjectManager projectManager;
   private final OctopusSpacesFetcher fetcher;
+  private final OidcIdTokens oidcIdTokens;
+  private final OctopusTokenExchange tokenExchange;
   private final UserResolver userResolver;
 
   public OctopusSpacesController(
       final WebControllerManager webControllerManager,
       final OctopusConnectionsManager connectionsManager,
-      final ProjectManager projectManager) {
+      final ProjectManager projectManager,
+      final ApplicationContext applicationContext) {
     this(
         webControllerManager,
         connectionsManager,
         projectManager,
         new OctopusSpacesFetcher(),
+        oidcIdTokensFor(applicationContext),
+        new OctopusTokenExchange(),
         SessionUser::getUser);
   }
 
@@ -95,10 +102,14 @@ public class OctopusSpacesController extends BaseController {
       final OctopusConnectionsManager connectionsManager,
       final ProjectManager projectManager,
       final OctopusSpacesFetcher fetcher,
+      final OidcIdTokens oidcIdTokens,
+      final OctopusTokenExchange tokenExchange,
       final UserResolver userResolver) {
     this.connectionsManager = connectionsManager;
     this.projectManager = projectManager;
     this.fetcher = fetcher;
+    this.oidcIdTokens = oidcIdTokens;
+    this.tokenExchange = tokenExchange;
     this.userResolver = userResolver;
     if (webControllerManager != null) {
       webControllerManager.registerController(PATH, this);
@@ -170,7 +181,7 @@ public class OctopusSpacesController extends BaseController {
    *
    * <p>The cost is that a brand-new connection has to be saved once before its spaces can be
    * listed, and a step using inline credentials cannot list spaces at all. Both fall back to typing
-   * the space name, as does a connection that authenticates with OIDC.
+   * the space name.
    */
   private Credentials resolveCredentials(
       final HttpServletRequest request, final SProject project, final SUser user)
@@ -200,10 +211,11 @@ public class OctopusSpacesController extends BaseController {
           OctopusAuth.apiKey(
               resolveApiKeyParameter(params, buildType == null ? project : buildType)));
     }
-    if (!ConnectionPropertyNames.API_KEY_SOURCE_KEY.equals(source)) {
-      throw new CredentialsUnavailableException(
-          "Spaces can't be listed for a connection that authenticates with OIDC. Enter the space"
-              + " name instead.");
+    if (ConnectionPropertyNames.API_KEY_SOURCE_OIDC.equals(source)) {
+      final SBuildType buildType = editableBuildType(request, user);
+      return new Credentials(
+          serverUrl,
+          OctopusAuth.accessToken(oidcAccessToken(params, project, buildType, serverUrl)));
     }
     return new Credentials(
         serverUrl, OctopusAuth.apiKey(params.get(ConnectionPropertyNames.API_KEY)));
@@ -252,6 +264,51 @@ public class OctopusSpacesController extends BaseController {
               + " name instead.");
     }
     return resolved.getResult();
+  }
+
+  private String oidcAccessToken(
+      final Map<String, String> params,
+      final SProject project,
+      @Nullable final SBuildType buildType,
+      final String serverUrl)
+      throws CredentialsUnavailableException {
+    final String oidcConnectionId = params.get(ConnectionPropertyNames.OIDC_CONNECTION_ID);
+    if (oidcConnectionId == null || oidcConnectionId.trim().isEmpty()) {
+      throw new CredentialsUnavailableException(
+          "This connection does not name an OIDC connection.");
+    }
+    final Optional<OAuthConnectionDescriptor> oidcConnector =
+        connectionsManager.resolve(project, oidcConnectionId.trim());
+    if (!oidcConnector.isPresent()) {
+      throw new CredentialsUnavailableException(
+          "The OIDC connection '" + oidcConnectionId.trim() + "' could not be resolved.");
+    }
+    // The connector's audience is the Octopus service account id, as at build time.
+    final String audience =
+        oidcConnector.get().getParameters().get(ConnectionPropertyNames.OIDC_CONNECTOR_AUDIENCE);
+    if (audience == null || audience.trim().isEmpty()) {
+      throw new CredentialsUnavailableException(
+          "The OIDC connection '" + oidcConnectionId.trim() + "' has no audience.");
+    }
+    try {
+      final String idToken =
+          oidcIdTokens.request(
+              project,
+              oidcConnectionId.trim(),
+              buildType == null ? null : buildType.getExternalId());
+      return tokenExchange.exchange(serverUrl, audience.trim(), idToken);
+    } catch (final IOException e) {
+      throw new CredentialsUnavailableException(e.getMessage());
+    }
+  }
+
+  private static OidcIdTokens oidcIdTokensFor(final ApplicationContext applicationContext) {
+    if (OidcIdTokenRequester.isSupported()) {
+      return new OidcIdTokenRequester(applicationContext);
+    }
+    return (project, oidcConnectionId, buildTypeExternalId) -> {
+      throw new IOException(OidcIdTokenRequester.UNSUPPORTED_MESSAGE);
+    };
   }
 
   private static void writeSpaces(
