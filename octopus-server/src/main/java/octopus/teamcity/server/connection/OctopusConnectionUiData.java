@@ -188,6 +188,16 @@ public class OctopusConnectionUiData {
   }
 
   /**
+   * The step form's build configuration, so the space picker can resolve credentials as a build of
+   * it would. {@code ""} on the connection form and on templates, which have none.
+   */
+  @NotNull
+  public static String spacePickerBuildTypeId(final HttpServletRequest request) {
+    final SBuildType buildType = currentBuildType(request);
+    return buildType == null ? "" : buildType.getExternalId();
+  }
+
+  /**
    * The Octopus connection this page is editing, or {@code ""} when there is not one yet.
    *
    * <p>The space picker needs a <em>saved</em> connection to look spaces up through. On a step form

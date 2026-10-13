@@ -28,7 +28,10 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import jetbrains.buildServer.controllers.BaseController;
+import jetbrains.buildServer.parameters.ProcessingResult;
+import jetbrains.buildServer.serverSide.ParametersSupport;
 import jetbrains.buildServer.serverSide.ProjectManager;
+import jetbrains.buildServer.serverSide.SBuildType;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.auth.Permission;
 import jetbrains.buildServer.serverSide.oauth.OAuthConnectionDescriptor;
@@ -54,6 +57,8 @@ import org.springframework.web.servlet.ModelAndView;
  *   <li>when a saved connection is named, its credentials are read server-side and the request's
  *       own {@code apiKey} is ignored, because TeamCity renders a stored secret as a placeholder
  *       and the browser therefore does not hold the real key;
+ *   <li>a build configuration named by the request is used only when the caller holds {@link
+ *       Permission#EDIT_PROJECT} on its project too, since its parameters can hold the API key;
  *   <li>the API key is never echoed back, in an error message or otherwise.
  * </ul>
  */
@@ -130,7 +135,7 @@ public class OctopusSpacesController extends BaseController {
 
     final Credentials credentials;
     try {
-      credentials = resolveCredentials(request, project);
+      credentials = resolveCredentials(request, project, user);
     } catch (final CredentialsUnavailableException e) {
       writeError(response, HttpServletResponse.SC_OK, e.getMessage());
       return null;
@@ -165,9 +170,10 @@ public class OctopusSpacesController extends BaseController {
    *
    * <p>The cost is that a brand-new connection has to be saved once before its spaces can be
    * listed, and a step using inline credentials cannot list spaces at all. Both fall back to typing
-   * the space name, as does a connection whose API key is not stored on it.
+   * the space name, as does a connection that authenticates with OIDC.
    */
-  private Credentials resolveCredentials(final HttpServletRequest request, final SProject project)
+  private Credentials resolveCredentials(
+      final HttpServletRequest request, final SProject project, final SUser user)
       throws CredentialsUnavailableException {
     final String connectionId = request.getParameter("connectionId");
     if (connectionId == null || connectionId.trim().isEmpty()) {
@@ -187,13 +193,65 @@ public class OctopusSpacesController extends BaseController {
     final String source =
         params.getOrDefault(
             ConnectionPropertyNames.API_KEY_SOURCE, ConnectionPropertyNames.API_KEY_SOURCE_KEY);
+    if (ConnectionPropertyNames.API_KEY_SOURCE_PARAMETER.equals(source)) {
+      final SBuildType buildType = editableBuildType(request, user);
+      return new Credentials(
+          serverUrl,
+          OctopusAuth.apiKey(
+              resolveApiKeyParameter(params, buildType == null ? project : buildType)));
+    }
     if (!ConnectionPropertyNames.API_KEY_SOURCE_KEY.equals(source)) {
       throw new CredentialsUnavailableException(
-          "Spaces can only be listed for a connection that stores its API key. Enter the space"
+          "Spaces can't be listed for a connection that authenticates with OIDC. Enter the space"
               + " name instead.");
     }
     return new Credentials(
         serverUrl, OctopusAuth.apiKey(params.get(ConnectionPropertyNames.API_KEY)));
+  }
+
+  /**
+   * The step form's build configuration, or {@code null} on a form that has none. A missing one and
+   * one whose project the caller cannot edit get the same message, so the request cannot be used to
+   * find out which build configurations exist.
+   */
+  @Nullable
+  private SBuildType editableBuildType(final HttpServletRequest request, final SUser user)
+      throws CredentialsUnavailableException {
+    final String buildTypeId = request.getParameter("buildTypeId");
+    if (buildTypeId == null || buildTypeId.trim().isEmpty()) {
+      return null;
+    }
+    final SBuildType buildType = projectManager.findBuildTypeByExternalId(buildTypeId.trim());
+    if (buildType == null
+        || !user.isPermissionGrantedForProject(buildType.getProjectId(), Permission.EDIT_PROJECT)) {
+      throw new CredentialsUnavailableException(
+          "Build configuration '"
+              + buildTypeId.trim()
+              + "' was not found, or you do not have permission to edit its project.");
+    }
+    return buildType;
+  }
+
+  /** Resolves the connection's {@code %parameter%} reference as a build of {@code scope} would. */
+  private static String resolveApiKeyParameter(
+      final Map<String, String> params, final ParametersSupport scope)
+      throws CredentialsUnavailableException {
+    final String reference = params.get(ConnectionPropertyNames.API_KEY_PARAMETER);
+    if (reference == null || reference.trim().isEmpty()) {
+      throw new CredentialsUnavailableException(
+          "This connection does not name an API key parameter.");
+    }
+    final ProcessingResult resolved = scope.getValueResolver().resolve(reference.trim());
+    if (!resolved.isFullyResolved()
+        || resolved.getResult() == null
+        || resolved.getResult().trim().isEmpty()) {
+      throw new CredentialsUnavailableException(
+          "The API key parameter "
+              + reference.trim()
+              + " can't be resolved here - it may only be set when a build runs. Enter the space"
+              + " name instead.");
+    }
+    return resolved.getResult();
   }
 
   private static void writeSpaces(

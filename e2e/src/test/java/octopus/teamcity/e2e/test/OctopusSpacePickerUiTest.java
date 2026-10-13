@@ -25,6 +25,9 @@ import org.junit.jupiter.api.Test;
  */
 class OctopusSpacePickerUiTest {
 
+  private static final String CANNOT_LIST =
+      "Unable to retrieve spaces, please enter space name manually";
+
   @Test
   void suggestsTheConnectionsSpacesAndStoresTheChosenId() throws Exception {
     try (final OctopusTeamCityStack stack = SharedStack.full()) {
@@ -209,6 +212,71 @@ class OctopusSpacePickerUiTest {
     }
   }
 
+  @Test
+  void listsSpacesWithAnApiKeyHeldInAPasswordParameter() throws Exception {
+    try (final OctopusTeamCityStack stack = SharedStack.full()) {
+      final TeamCityRest tc = stack.rest();
+      tc.createProject("SpacePickerParamIT", "Space picker parameter IT");
+      tc.createOctopusConnectionWithApiKeyParameter(
+          "SpacePickerParamIT",
+          "Parameter Octopus",
+          stack.octopusUrlForContainers(),
+          "%octopus.apikey%",
+          "");
+      tc.createBuildType("SpacePickerParamIT_Release", "Create release", "SpacePickerParamIT");
+      // A password parameter, so this also shows the value is resolved, not its masked form.
+      tc.setPasswordParameter(
+          "SpacePickerParamIT_Release", "octopus.apikey", stack.octopusApiKey());
+      final String runnerId = tc.addCreateReleaseStep("SpacePickerParamIT_Release");
+
+      PlaywrightUi.withLoggedInPage(
+          stack,
+          page -> {
+            openStep(page, stack, "SpacePickerParamIT_Release", runnerId);
+            selectConnection(page, "Parameter Octopus");
+            waitForSpaces(page);
+
+            assertThat(suggestions(page)).contains("Default (Spaces-1)");
+          });
+    }
+  }
+
+  @Test
+  void explainsAnApiKeyParameterThatOnlyResolvesDuringABuild() throws Exception {
+    try (final OctopusTeamCityStack stack = SharedStack.full()) {
+      final TeamCityRest tc = stack.rest();
+      tc.createProject("SpacePickerUnsetIT", "Space picker unset parameter IT");
+      tc.createOctopusConnectionWithApiKeyParameter(
+          "SpacePickerUnsetIT",
+          "Unset parameter Octopus",
+          stack.octopusUrlForContainers(),
+          "%octopus.apikey.unset%",
+          "");
+      tc.createBuildType("SpacePickerUnsetIT_Release", "Create release", "SpacePickerUnsetIT");
+      final String runnerId = tc.addCreateReleaseStep("SpacePickerUnsetIT_Release");
+
+      PlaywrightUi.withLoggedInPage(
+          stack,
+          page -> {
+            openStep(page, stack, "SpacePickerUnsetIT_Release", runnerId);
+            selectConnection(page, "Unset parameter Octopus");
+
+            page.waitForCondition(() -> reason(page).contains("can't be resolved here"));
+            assertThat(status(page).innerText()).contains(CANNOT_LIST);
+            assertThat(reason(page))
+                .contains("%octopus.apikey.unset%")
+                .contains("space name instead");
+            assertNoSpacesListed(page);
+
+            // The reason is shown in a tooltip from the help icon.
+            page.locator("span.octopusSpaceDetails").first().hover();
+            final Locator tooltip = page.locator("div[id^='messagePopup_']:visible").first();
+            tooltip.waitFor(new Locator.WaitForOptions().setTimeout(10000));
+            assertThat(tooltip.innerText()).contains("%octopus.apikey.unset%");
+          });
+    }
+  }
+
   private static void openStep(
       final Page page,
       final OctopusTeamCityStack stack,
@@ -222,6 +290,19 @@ class OctopusSpacePickerUiTest {
             + runnerId,
         new Page.NavigateOptions().setWaitUntil(WaitUntilState.DOMCONTENTLOADED));
     page.waitForLoadState(LoadState.NETWORKIDLE);
+  }
+
+  private static void selectConnection(final Page page, final String connectionName) {
+    page.selectOption(
+        "#octopusConnectionId",
+        new com.microsoft.playwright.options.SelectOption().setLabel(connectionName));
+  }
+
+  /** Why the spaces could not be listed, as the help icon's tooltip shows it. */
+  private static String reason(final Page page) {
+    final String reason =
+        page.locator("span.octopusSpaceDetails").first().getAttribute("data-reason");
+    return reason == null ? "" : reason;
   }
 
   private static Locator status(final Page page) {

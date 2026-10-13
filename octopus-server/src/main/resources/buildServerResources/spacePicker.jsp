@@ -39,6 +39,8 @@
       "spacePickerProjectId", OctopusConnectionUiData.spacePickerProjectId(request));
   pageContext.setAttribute(
       "spacePickerConnectionId", OctopusConnectionUiData.spacePickerConnectionId(request));
+  pageContext.setAttribute(
+      "spacePickerBuildTypeId", OctopusConnectionUiData.spacePickerBuildTypeId(request));
 %>
 
 <tr class="octopusSpacePickerRow">
@@ -61,7 +63,8 @@
           data-project-id="<c:out value='${spacePickerProjectId}'/>"
           data-lookup-url="<c:out value='${pageContext.request.contextPath}'/>/octopus/listSpaces.html"
           data-space-id-field="<c:out value='${spaceKeys.spaceId}'/>"
-          data-connection-id="<c:out value='${spacePickerConnectionId}'/>"></span>
+          data-connection-id="<c:out value='${spacePickerConnectionId}'/>"
+          data-build-type-id="<c:out value='${spacePickerBuildTypeId}'/>"></span>
 
     <span class="smallNote"><c:out value="${param.note}"/></span>
     <span class="smallNote octopusSpaceByIdNote" style="display:none;">
@@ -270,7 +273,8 @@
           type: "POST",
           data: {
             projectId: meta.getAttribute("data-project-id"),
-            connectionId: connectionId
+            connectionId: connectionId,
+            buildTypeId: meta.getAttribute("data-build-type-id") || ""
           },
           dataType: "json",
           // TeamCity's own scripts add this header to jQuery requests only once the page has
