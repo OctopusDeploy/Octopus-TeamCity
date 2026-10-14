@@ -87,7 +87,7 @@ class OctopusSpacesControllerTest {
               if (fetchFailure != null) {
                 throw fetchFailure;
               }
-              return "{\"Items\":[{\"Id\":\"Spaces-1795\",\"Name\":\"Swordfish\"}]}";
+              return "{\"Items\":[{\"Id\":\"Spaces-123\",\"Name\":\"Example Space\"}]}";
             });
     return new OctopusSpacesController(
         null, connectionsManager, projectManager, fetcher, req -> currentUser);
@@ -116,7 +116,7 @@ class OctopusSpacesControllerTest {
 
     final String body = handle();
 
-    assertThat(body).contains("Spaces-1795").contains("Swordfish");
+    assertThat(body).contains("Spaces-123").contains("Example Space");
     assertThat(fetchedKeys).containsExactly("API-STORED");
   }
 
