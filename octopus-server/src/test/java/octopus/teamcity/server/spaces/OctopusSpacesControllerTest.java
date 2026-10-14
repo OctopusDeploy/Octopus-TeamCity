@@ -189,7 +189,7 @@ class OctopusSpacesControllerTest {
 
     assertThat(fetchedKeys).containsExactly("API-STORED");
     assertThat(fetchedUrls)
-        .containsExactly("https://stored.example.com/api/spaces?skip=0&take=1000");
+        .containsExactly("https://stored.example.com/api/spaces?skip=0&take=" + Integer.MAX_VALUE);
   }
 
   private Map<String, String> parameterSourcedConnection() {

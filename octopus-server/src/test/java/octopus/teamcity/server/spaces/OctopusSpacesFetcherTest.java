@@ -92,7 +92,7 @@ class OctopusSpacesFetcherTest {
     fetcher.fetch("https://octopus.example.com///  ", "API-KEY");
 
     assertThat(requestedUrls)
-        .containsExactly("https://octopus.example.com/api/spaces?skip=0&take=1000");
+        .containsExactly("https://octopus.example.com/api/spaces?skip=0&take=" + Integer.MAX_VALUE);
   }
 
   @Test
@@ -136,8 +136,8 @@ class OctopusSpacesFetcherTest {
 
     assertThat(requestedUrls)
         .containsExactly(
-            "http://octopus.internal:8065/api/spaces?skip=0&take=1000",
-            "https://octopus.example.com/api/spaces?skip=0&take=1000");
+            "http://octopus.internal:8065/api/spaces?skip=0&take=" + Integer.MAX_VALUE,
+            "https://octopus.example.com/api/spaces?skip=0&take=" + Integer.MAX_VALUE);
   }
 
   @Test
@@ -146,14 +146,14 @@ class OctopusSpacesFetcherTest {
     assertThatThrownBy(
             () -> fetcherReturning("<html>not octopus</html>").fetch("https://x", "API-KEY"))
         .isInstanceOf(IOException.class)
-        .hasMessageContaining("did not return a spaces list");
+        .hasMessageContaining("Unable to retrieve spaces from the Octopus Server.");
   }
 
   @Test
   void failsClearlyWhenTheResponseHasNoItems() {
     assertThatThrownBy(() -> fetcherReturning("{\"Links\":{}}").fetch("https://x", "API-KEY"))
         .isInstanceOf(IOException.class)
-        .hasMessageContaining("did not return a spaces list");
+        .hasMessageContaining("Unable to retrieve spaces from the Octopus Server.");
   }
 
   @Test
