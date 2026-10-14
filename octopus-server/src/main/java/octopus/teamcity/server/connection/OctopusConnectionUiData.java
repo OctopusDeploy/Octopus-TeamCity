@@ -29,6 +29,7 @@ import jetbrains.buildServer.serverSide.SBuildType;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.oauth.OAuthConnectionDescriptor;
 import jetbrains.buildServer.users.SUser;
+import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import jetbrains.buildServer.web.util.SessionUser;
 import octopus.teamcity.common.connection.ConnectionPropertyNames;
 import org.jetbrains.annotations.NotNull;
@@ -47,13 +48,17 @@ public class OctopusConnectionUiData {
 
   private static volatile OctopusConnectionsManager connectionsManager;
   private static volatile ProjectManager projectManager;
+  private static volatile PluginDescriptor pluginDescriptor;
 
   @SuppressWarnings(
       "StaticAssignmentInConstructor") // JSPs have no Spring context; capture statically.
   public OctopusConnectionUiData(
-      final OctopusConnectionsManager connectionsManager, final ProjectManager projectManager) {
+      final OctopusConnectionsManager connectionsManager,
+      final ProjectManager projectManager,
+      final PluginDescriptor pluginDescriptor) {
     OctopusConnectionUiData.connectionsManager = connectionsManager;
     OctopusConnectionUiData.projectManager = projectManager;
+    OctopusConnectionUiData.pluginDescriptor = pluginDescriptor;
   }
 
   /**
@@ -195,6 +200,21 @@ public class OctopusConnectionUiData {
   public static String spacePickerBuildTypeId(final HttpServletRequest request) {
     final SBuildType buildType = currentBuildType(request);
     return buildType == null ? "" : buildType.getExternalId();
+  }
+
+  /**
+   * Context-relative URL of the space picker's script. The plugin version is appended so a browser
+   * does not keep running a cached copy after the plugin is upgraded.
+   */
+  @NotNull
+  public static String spacePickerScriptUrl(final HttpServletRequest request) {
+    if (pluginDescriptor == null) {
+      return "";
+    }
+    final String version = pluginDescriptor.getPluginVersion();
+    return request.getContextPath()
+        + pluginDescriptor.getPluginResourcesPath("js/spacePicker.js")
+        + (version == null ? "" : "?v=" + version);
   }
 
   /**
