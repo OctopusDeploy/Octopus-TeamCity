@@ -115,8 +115,17 @@ public class OctopusConnectionBuildStartProcessor implements BuildStartContextPr
             runner, CONSTANTS.getApiKey(), connParams.get(CONNECTION_KEYS.getApiKeyPropertyName()));
       }
 
-      // Space precedence: keep the step's value if it set one; otherwise use the connection's.
-      if (StringUtil.isEmptyOrSpaces(stepParams.get(CONSTANTS.getSpaceName()))) {
+      // Space precedence: a step that identified a space - by id or by name - keeps its own
+      // selection. The id and name move together as one unit, because inheriting the connection's
+      // id alongside a name the step set deliberately would silently retarget the step.
+      final boolean stepChoseSpace =
+          !StringUtil.isEmptyOrSpaces(stepParams.get(CONSTANTS.getSpaceId()))
+              || !StringUtil.isEmptyOrSpaces(stepParams.get(CONSTANTS.getSpaceName()));
+      if (!stepChoseSpace) {
+        setIfPresent(
+            runner,
+            CONSTANTS.getSpaceId(),
+            connParams.get(CONNECTION_KEYS.getSpaceIdPropertyName()));
         setIfPresent(
             runner,
             CONSTANTS.getSpaceName(),

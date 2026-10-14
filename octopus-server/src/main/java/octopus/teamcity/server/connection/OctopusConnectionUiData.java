@@ -88,6 +88,7 @@ public class OctopusConnectionUiData {
       view.put("displayName", descriptor.getConnectionDisplayName());
       view.put("url", params.getOrDefault(CONNECTION_KEYS.getServerUrlPropertyName(), ""));
       view.put("space", params.getOrDefault(CONNECTION_KEYS.getSpaceNamePropertyName(), ""));
+      view.put("spaceId", params.getOrDefault(CONNECTION_KEYS.getSpaceIdPropertyName(), ""));
 
       final String apiKeySource =
           params.getOrDefault(CONNECTION_KEYS.getApiKeySourcePropertyName(), "");
