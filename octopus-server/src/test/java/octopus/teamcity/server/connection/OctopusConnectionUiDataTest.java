@@ -19,6 +19,7 @@ import jetbrains.buildServer.serverSide.SBuildType;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.oauth.OAuthConnectionDescriptor;
 import jetbrains.buildServer.users.SUser;
+import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import octopus.teamcity.common.connection.ConnectionPropertyNames;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,12 +32,13 @@ class OctopusConnectionUiDataTest {
 
   @Mock private OctopusConnectionsManager connectionsManager;
   @Mock private ProjectManager projectManager;
+  @Mock private PluginDescriptor pluginDescriptor;
   @Mock private SUser user;
 
   @BeforeEach
   void setUp() {
     // Constructing the bean captures the collaborators into the class's static fields.
-    new OctopusConnectionUiData(connectionsManager, projectManager);
+    new OctopusConnectionUiData(connectionsManager, projectManager, pluginDescriptor);
   }
 
   private OAuthConnectionDescriptor connection(
@@ -287,6 +289,18 @@ class OctopusConnectionUiDataTest {
     when(descriptor.getParameters())
         .thenReturn(Collections.singletonMap("providerType", providerType));
     return descriptor;
+  }
+
+  @Test
+  void spacePickerScriptUrlIsContextRelativeAndVersioned() {
+    final HttpServletRequest request = mock(HttpServletRequest.class);
+    when(request.getContextPath()).thenReturn("/tc");
+    when(pluginDescriptor.getPluginResourcesPath("js/spacePicker.js"))
+        .thenReturn("/plugins/Octopus.TeamCity/js/spacePicker.js");
+    when(pluginDescriptor.getPluginVersion()).thenReturn("6.2.0");
+
+    assertThat(OctopusConnectionUiData.spacePickerScriptUrl(request))
+        .isEqualTo("/tc/plugins/Octopus.TeamCity/js/spacePicker.js?v=6.2.0");
   }
 
   @Test
