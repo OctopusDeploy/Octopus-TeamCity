@@ -28,6 +28,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import jetbrains.buildServer.controllers.BaseController;
+import jetbrains.buildServer.log.Loggers;
 import jetbrains.buildServer.parameters.ProcessingResult;
 import jetbrains.buildServer.serverSide.ParametersSupport;
 import jetbrains.buildServer.serverSide.ProjectManager;
@@ -300,6 +301,14 @@ public class OctopusSpacesController extends BaseController {
               buildType == null ? null : buildType.getExternalId());
       return tokenExchange.exchange(serverUrl, audience.trim(), idToken);
     } catch (final IOException e) {
+      Loggers.SERVER.warn(
+          "Could not get an Octopus access token from "
+              + serverUrl
+              + " through OIDC connection "
+              + oidcConnectionId.trim()
+              + " for project "
+              + project.getExternalId(),
+          e);
       throw new CredentialsUnavailableException(e.getMessage());
     }
   }
