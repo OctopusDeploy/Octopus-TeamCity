@@ -13,20 +13,14 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package octopus.teamcity.server.spaces;
+package octopus.teamcity.server.client;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
-import org.apache.commons.io.IOUtils;
 
 /**
  * Exchanges an OIDC ID token for an Octopus access token, through Octopus's token-exchange
@@ -34,11 +28,9 @@ import org.apache.commons.io.IOUtils;
  */
 public class OctopusTokenExchange {
 
-  private static final int CONNECT_TIMEOUT_MILLIS = 10_000;
-  private static final int READ_TIMEOUT_MILLIS = 20_000;
   private static final Gson GSON = new GsonBuilder().create();
 
-  /** Performs the POST. Separated out so tests need no server. */
+  /** Performs the POST, so tests need no server. */
   public interface Requester {
     String post(String url, String json) throws IOException;
   }
@@ -46,10 +38,10 @@ public class OctopusTokenExchange {
   private final Requester requester;
 
   public OctopusTokenExchange() {
-    this(OctopusTokenExchange::httpPost);
+    this(new OctopusHttpClient()::postJson);
   }
 
-  OctopusTokenExchange(final Requester requester) {
+  public OctopusTokenExchange(final Requester requester) {
     this.requester = requester;
   }
 
@@ -67,8 +59,21 @@ public class OctopusTokenExchange {
     request.addProperty("subject_token", idToken);
     request.addProperty("subject_token_type", "urn:ietf:params:oauth:token-type:jwt");
 
-    final String body =
-        requester.post(OctopusSpacesFetcher.baseUrl(serverUrl) + "/token/v1", GSON.toJson(request));
+    final String url = OctopusHttpClient.baseUrl(serverUrl) + "/token/v1";
+    final String body;
+    try {
+      body = requester.post(url, GSON.toJson(request));
+    } catch (final OctopusHttpStatusException e) {
+      if (e.getStatus() >= 400 && e.getStatus() <= 499) {
+        throw new IOException(
+            "Octopus did not accept the OIDC token (HTTP "
+                + e.getStatus()
+                + "). Check the service account has an OIDC identity whose subject matches this"
+                + " build configuration.",
+            e);
+      }
+      throw e;
+    }
 
     final TokenResponse response;
     try {
@@ -84,41 +89,6 @@ public class OctopusTokenExchange {
 
   private static IOException noAccessToken() {
     return new IOException("Octopus did not return an access token for the OIDC token.");
-  }
-
-  private static String httpPost(final String url, final String json) throws IOException {
-    final HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-    try {
-      connection.setRequestMethod("POST");
-      // A redirect would send the ID token somewhere other than the address just validated.
-      connection.setInstanceFollowRedirects(false);
-      connection.setConnectTimeout(CONNECT_TIMEOUT_MILLIS);
-      connection.setReadTimeout(READ_TIMEOUT_MILLIS);
-      connection.setDoOutput(true);
-      connection.setRequestProperty("Content-Type", "application/json");
-      connection.setRequestProperty("Accept", "application/json");
-      try (OutputStream out = connection.getOutputStream()) {
-        out.write(json.getBytes(StandardCharsets.UTF_8));
-      }
-
-      final int status = connection.getResponseCode();
-      if (status >= 400 && status <= 499) {
-        throw new IOException(
-            "Octopus did not accept the OIDC token (HTTP "
-                + status
-                + "). Check the service account has an OIDC identity whose subject matches this"
-                + " build configuration.");
-      }
-      if (status < 200 || status > 299) {
-        throw new IOException(
-            "Octopus returned HTTP " + status + " when exchanging the OIDC token.");
-      }
-      try (InputStream in = connection.getInputStream()) {
-        return IOUtils.toString(in, StandardCharsets.UTF_8);
-      }
-    } finally {
-      connection.disconnect();
-    }
   }
 
   /** Shape of the subset of the token-exchange response we read. Field names match the JSON. */

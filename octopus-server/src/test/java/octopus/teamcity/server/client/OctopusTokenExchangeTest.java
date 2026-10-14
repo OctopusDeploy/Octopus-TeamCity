@@ -13,7 +13,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package octopus.teamcity.server.spaces;
+package octopus.teamcity.server.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -73,6 +73,32 @@ class OctopusTokenExchangeTest {
             () -> exchangeReturning("<html/>").exchange("https://octopus.example.com", "a", "t"))
         .isInstanceOf(IOException.class)
         .hasMessageContaining("did not return an access token");
+  }
+
+  @Test
+  void explainsARejectedToken() {
+    final OctopusTokenExchange exchange =
+        new OctopusTokenExchange(
+            (url, json) -> {
+              throw new OctopusHttpStatusException(400, "Octopus returned HTTP 400.");
+            });
+
+    assertThatThrownBy(() -> exchange.exchange("https://octopus.example.com", "a", "t"))
+        .isInstanceOf(IOException.class)
+        .hasMessageContaining("did not accept the OIDC token (HTTP 400)");
+  }
+
+  @Test
+  void passesOnOtherFailures() {
+    final OctopusTokenExchange exchange =
+        new OctopusTokenExchange(
+            (url, json) -> {
+              throw new OctopusHttpStatusException(503, "Octopus returned HTTP 503.");
+            });
+
+    assertThatThrownBy(() -> exchange.exchange("https://octopus.example.com", "a", "t"))
+        .isInstanceOf(OctopusHttpStatusException.class)
+        .hasMessage("Octopus returned HTTP 503.");
   }
 
   @Test

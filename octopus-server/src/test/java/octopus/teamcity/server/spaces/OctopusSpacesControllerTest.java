@@ -43,6 +43,7 @@ import jetbrains.buildServer.serverSide.auth.Permission;
 import jetbrains.buildServer.serverSide.oauth.OAuthConnectionDescriptor;
 import jetbrains.buildServer.users.SUser;
 import octopus.teamcity.common.connection.ConnectionPropertyNames;
+import octopus.teamcity.server.client.OctopusTokenExchange;
 import octopus.teamcity.server.connection.OctopusConnectionsManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

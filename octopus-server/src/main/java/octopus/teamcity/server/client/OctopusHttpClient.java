@@ -17,6 +17,7 @@ package octopus.teamcity.server.client;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -69,8 +70,9 @@ public class OctopusHttpClient {
   /**
    * The body of a successful GET.
    *
-   * @throws IOException if the server cannot be reached, rejects the credential, redirects, or
-   *     returns a non-2xx status.
+   * @throws OctopusHttpStatusException if Octopus rejects the credential, redirects, or returns any
+   *     other non-2xx status.
+   * @throws IOException if the server cannot be reached.
    */
   public String get(final String url, final OctopusAuth auth) throws IOException {
     final HttpURLConnection connection = open(url);
@@ -81,7 +83,8 @@ public class OctopusHttpClient {
       final int status = connection.getResponseCode();
       if (status == HttpURLConnection.HTTP_UNAUTHORIZED
           || status == HttpURLConnection.HTTP_FORBIDDEN) {
-        throw new IOException(
+        throw new OctopusHttpStatusException(
+            status,
             "Octopus rejected the "
                 + auth.description()
                 + " (HTTP "
@@ -89,6 +92,27 @@ public class OctopusHttpClient {
                 + "). Check its permissions.");
       }
       return readSuccessfulBody(connection, status);
+    } finally {
+      connection.disconnect();
+    }
+  }
+
+  /**
+   * The body of a successful, unauthenticated POST of a JSON document.
+   *
+   * @throws OctopusHttpStatusException if Octopus redirects or returns a non-2xx status.
+   * @throws IOException if the server cannot be reached.
+   */
+  public String postJson(final String url, final String json) throws IOException {
+    final HttpURLConnection connection = open(url);
+    try {
+      connection.setRequestMethod("POST");
+      connection.setDoOutput(true);
+      connection.setRequestProperty("Content-Type", "application/json");
+      try (OutputStream out = connection.getOutputStream()) {
+        out.write(json.getBytes(StandardCharsets.UTF_8));
+      }
+      return readSuccessfulBody(connection, connection.getResponseCode());
     } finally {
       connection.disconnect();
     }
@@ -108,13 +132,15 @@ public class OctopusHttpClient {
   private static String readSuccessfulBody(final HttpURLConnection connection, final int status)
       throws IOException {
     if (status >= 300 && status <= 399) {
-      throw new IOException(
+      throw new OctopusHttpStatusException(
+          status,
           "The Octopus URL redirected (HTTP "
               + status
               + "). Point it directly at the Octopus server.");
     }
     if (status < 200 || status > 299) {
-      throw new IOException(
+      throw new OctopusHttpStatusException(
+          status,
           "Octopus returned HTTP " + status + " for " + connection.getURL().getPath() + ".");
     }
     try (InputStream in = connection.getInputStream()) {

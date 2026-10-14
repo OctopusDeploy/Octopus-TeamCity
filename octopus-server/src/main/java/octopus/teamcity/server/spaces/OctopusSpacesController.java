@@ -40,6 +40,7 @@ import jetbrains.buildServer.web.openapi.WebControllerManager;
 import jetbrains.buildServer.web.util.SessionUser;
 import octopus.teamcity.common.connection.ConnectionPropertyNames;
 import octopus.teamcity.server.client.OctopusAuth;
+import octopus.teamcity.server.client.OctopusTokenExchange;
 import octopus.teamcity.server.connection.OctopusConnectionsManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
