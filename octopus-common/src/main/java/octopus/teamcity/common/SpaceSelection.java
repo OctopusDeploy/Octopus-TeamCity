@@ -21,7 +21,7 @@ import java.util.Map;
  * Works out which space a step should act on.
  *
  * <p>A step (or the connection it inherits from) can identify a space either by id - {@code
- * Spaces-1795} - or by name. The id is preferred because it survives the space being renamed, which
+ * Spaces-123} - or by name. The id is preferred because it survives the space being renamed, which
  * a name does not. Both CLIs the agent drives accept either: the legacy {@code octo} CLI resolves
  * {@code --space} with {@code Spaces.FindByNameOrIdOrFail}, and the Go CLI prefers a name match
  * then falls back to an id. So whichever value we pick here can be passed through unchanged.
