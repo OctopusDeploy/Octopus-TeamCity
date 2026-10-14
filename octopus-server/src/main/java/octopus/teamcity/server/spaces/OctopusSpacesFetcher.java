@@ -24,6 +24,7 @@ import java.util.List;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
+import jetbrains.buildServer.log.Loggers;
 import octopus.teamcity.server.client.OctopusAuth;
 import octopus.teamcity.server.client.OctopusHttpClient;
 
@@ -33,9 +34,10 @@ import octopus.teamcity.server.client.OctopusHttpClient;
  */
 public class OctopusSpacesFetcher {
 
-  /** How many spaces we ask for. Far above any realistic instance. */
-  static final int TAKE = 1000;
+  /** Asks for every space in one page. */
+  static final int TAKE = Integer.MAX_VALUE;
 
+  private static final int LOGGED_BODY_LENGTH = 1000;
   private static final Gson GSON = new GsonBuilder().create();
 
   /** Performs the GET, so tests need no server. */
@@ -77,15 +79,10 @@ public class OctopusSpacesFetcher {
     try {
       collection = GSON.fromJson(body, SpacesCollection.class);
     } catch (final JsonSyntaxException e) {
-      throw new IOException(
-          "The Octopus server did not return a spaces list. Check the URL points at an Octopus"
-              + " server.",
-          e);
+      throw notASpacesList(url, body, e);
     }
     if (collection == null || collection.Items == null) {
-      throw new IOException(
-          "The Octopus server did not return a spaces list. Check the URL points at an Octopus"
-              + " server.");
+      throw notASpacesList(url, body, null);
     }
 
     final List<OctopusSpace> spaces = new ArrayList<>();
@@ -96,6 +93,21 @@ public class OctopusSpacesFetcher {
     }
     Collections.sort(spaces, Comparator.comparing(space -> space.getName().toLowerCase()));
     return spaces;
+  }
+
+  private static IOException notASpacesList(
+      final String url, final String body, final JsonSyntaxException cause) {
+    Loggers.SERVER.warn(
+        "The response from "
+            + url
+            + " was not an Octopus spaces list. Response body (first "
+            + LOGGED_BODY_LENGTH
+            + " characters): "
+            + (body == null || body.length() <= LOGGED_BODY_LENGTH
+                ? body
+                : body.substring(0, LOGGED_BODY_LENGTH)),
+        cause);
+    return new IOException("Unable to retrieve spaces from the Octopus Server.");
   }
 
   static String spacesUrl(final String serverUrl) throws IOException {
