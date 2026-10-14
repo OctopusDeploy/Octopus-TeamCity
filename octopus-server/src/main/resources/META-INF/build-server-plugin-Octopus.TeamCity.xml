@@ -21,4 +21,5 @@
     <bean class="octopus.teamcity.server.connection.OctopusConnectionUiData"/>
     <bean class="octopus.teamcity.server.connection.OctopusOidcConnectorsUiData"/>
     <bean class="octopus.teamcity.server.connection.OctopusConnectionBuildStartProcessor"/>
+    <bean class="octopus.teamcity.server.spaces.OctopusSpacesController"/>
 </beans>
