@@ -63,21 +63,22 @@ class OctopusConnectionTest {
     // the space has been renamed in Octopus.
     final Map<String, String> params = new HashMap<>();
     params.put(ConnectionPropertyNames.SERVER_URL, "https://octopus.example.com");
-    params.put(ConnectionPropertyNames.SPACE_NAME, "Swordfish");
-    params.put(ConnectionPropertyNames.SPACE_ID, "Spaces-1795");
+    params.put(ConnectionPropertyNames.SPACE_NAME, "Example Space");
+    params.put(ConnectionPropertyNames.SPACE_ID, "Spaces-123");
 
     assertThat(provider.describeConnection(descriptorWith(params)))
-        .isEqualTo("Octopus URL: https://octopus.example.com\nSpace Name: Swordfish (Spaces-1795)");
+        .isEqualTo(
+            "Octopus URL: https://octopus.example.com\nSpace Name: Example Space (Spaces-123)");
   }
 
   @Test
   void describeConnectionShowsTheSpaceIdAloneWhenNoNameIsStored() {
     final Map<String, String> params = new HashMap<>();
     params.put(ConnectionPropertyNames.SERVER_URL, "https://octopus.example.com");
-    params.put(ConnectionPropertyNames.SPACE_ID, "Spaces-1795");
+    params.put(ConnectionPropertyNames.SPACE_ID, "Spaces-123");
 
     assertThat(provider.describeConnection(descriptorWith(params)))
-        .isEqualTo("Octopus URL: https://octopus.example.com\nSpace Id: Spaces-1795");
+        .isEqualTo("Octopus URL: https://octopus.example.com\nSpace Id: Spaces-123");
   }
 
   @Test
