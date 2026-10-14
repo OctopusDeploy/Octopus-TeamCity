@@ -232,7 +232,7 @@ class OctopusSpacesControllerTest {
 
     final String body = handle();
 
-    assertThat(body).contains("Spaces-1795");
+    assertThat(body).contains("Spaces-123");
     assertThat(fetchedKeys).containsExactly("API-FROM-PARAMETER");
     assertThat(body).doesNotContain("API-FROM-PARAMETER");
   }
