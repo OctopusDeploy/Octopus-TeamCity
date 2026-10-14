@@ -329,7 +329,7 @@ class OctopusSpacesControllerTest {
 
     final String body = handle();
 
-    assertThat(body).contains("Spaces-1795");
+    assertThat(body).contains("Spaces-123");
     assertThat(idTokenRequests).containsExactly("oidc-1 for MyProject_Deploy");
     assertThat(exchangeUrls).containsExactly("https://stored.example.com/token/v1");
     assertThat(exchangeBodies.get(0)).contains("service-account-guid").contains("id.token.value");
