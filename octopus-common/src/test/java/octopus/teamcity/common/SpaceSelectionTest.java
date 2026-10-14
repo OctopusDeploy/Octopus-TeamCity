@@ -41,26 +41,24 @@ class SpaceSelectionTest {
   void prefersTheSpaceIdOverTheSpaceName() {
     // The whole point: the id keeps working after the space is renamed in Octopus, so a stale
     // stored name must not win over it.
-    assertThat(SpaceSelection.resolve(params("Spaces-1795", "Modern Deployments")))
-        .isEqualTo("Spaces-1795");
+    assertThat(SpaceSelection.resolve(params("Spaces-123", "Example Space")))
+        .isEqualTo("Spaces-123");
   }
 
   @Test
   void fallsBackToTheSpaceNameWhenNoIdIsStored() {
-    assertThat(SpaceSelection.resolve(params(null, "Modern Deployments")))
-        .isEqualTo("Modern Deployments");
+    assertThat(SpaceSelection.resolve(params(null, "Example Space"))).isEqualTo("Example Space");
   }
 
   @Test
   void treatsABlankIdAsAbsent() {
-    assertThat(SpaceSelection.resolve(params("   ", "Modern Deployments")))
-        .isEqualTo("Modern Deployments");
+    assertThat(SpaceSelection.resolve(params("   ", "Example Space"))).isEqualTo("Example Space");
   }
 
   @Test
   void trimsSurroundingWhitespace() {
-    assertThat(SpaceSelection.resolve(params(null, "  Modern Deployments  ")))
-        .isEqualTo("Modern Deployments");
+    assertThat(SpaceSelection.resolve(params(null, "  Example Space  ")))
+        .isEqualTo("Example Space");
   }
 
   @Test

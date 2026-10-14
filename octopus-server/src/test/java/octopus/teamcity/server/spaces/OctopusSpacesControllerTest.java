@@ -95,7 +95,7 @@ class OctopusSpacesControllerTest {
               if (fetchFailure != null) {
                 throw fetchFailure;
               }
-              return "{\"Items\":[{\"Id\":\"Spaces-1795\",\"Name\":\"Swordfish\"}]}";
+              return "{\"Items\":[{\"Id\":\"Spaces-123\",\"Name\":\"Example Space\"}]}";
             });
     final OidcIdTokens idTokens =
         (tokenProject, oidcConnectionId, buildTypeId) -> {
@@ -142,7 +142,7 @@ class OctopusSpacesControllerTest {
 
     final String body = handle();
 
-    assertThat(body).contains("Spaces-1795").contains("Swordfish");
+    assertThat(body).contains("Spaces-123").contains("Example Space");
     assertThat(fetchedKeys).containsExactly("API-STORED");
   }
 
@@ -255,7 +255,7 @@ class OctopusSpacesControllerTest {
 
     final String body = handle();
 
-    assertThat(body).contains("Spaces-1795");
+    assertThat(body).contains("Spaces-123");
     assertThat(fetchedKeys).containsExactly("API-FROM-PARAMETER");
     assertThat(body).doesNotContain("API-FROM-PARAMETER");
   }
