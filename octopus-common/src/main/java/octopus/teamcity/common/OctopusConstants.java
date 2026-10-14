@@ -54,7 +54,7 @@ public class OctopusConstants {
   }
 
   /**
-   * The id of the selected space, e.g. {@code Spaces-1795}. Preferred over {@link #getSpaceName()}
+   * The id of the selected space, e.g. {@code Spaces-123}. Preferred over {@link #getSpaceName()}
    * because it survives a space being renamed. Both CLIs resolve a space by name or id, so either
    * value works on the wire; see {@link SpaceSelection}.
    */

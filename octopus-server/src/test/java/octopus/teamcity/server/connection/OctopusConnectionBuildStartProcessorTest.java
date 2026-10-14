@@ -96,13 +96,13 @@ class OctopusConnectionBuildStartProcessorTest {
     properties.put(CONSTANTS.getConnectionIdKey(), "PROJECT_EXT_1");
     when(runnerContext.getParameters()).thenReturn(properties);
 
-    final OAuthConnectionDescriptor descriptor = connectionWithSpace("Spaces-1795", "Swordfish");
+    final OAuthConnectionDescriptor descriptor = connectionWithSpace("Spaces-123", "Example Space");
     when(connectionsManager.resolve(project, "PROJECT_EXT_1")).thenReturn(Optional.of(descriptor));
 
     processor.updateParameters(buildStartContext);
 
-    verify(runnerContext).addRunnerParameter(CONSTANTS.getSpaceId(), "Spaces-1795");
-    verify(runnerContext).addRunnerParameter(CONSTANTS.getSpaceName(), "Swordfish");
+    verify(runnerContext).addRunnerParameter(CONSTANTS.getSpaceId(), "Spaces-123");
+    verify(runnerContext).addRunnerParameter(CONSTANTS.getSpaceName(), "Example Space");
   }
 
   @Test
@@ -114,7 +114,7 @@ class OctopusConnectionBuildStartProcessorTest {
     properties.put(CONSTANTS.getSpaceName(), "StepSpace");
     when(runnerContext.getParameters()).thenReturn(properties);
 
-    final OAuthConnectionDescriptor descriptor = connectionWithSpace("Spaces-1795", "Swordfish");
+    final OAuthConnectionDescriptor descriptor = connectionWithSpace("Spaces-123", "Example Space");
     when(connectionsManager.resolve(project, "PROJECT_EXT_1")).thenReturn(Optional.of(descriptor));
 
     processor.updateParameters(buildStartContext);
@@ -136,7 +136,7 @@ class OctopusConnectionBuildStartProcessorTest {
     properties.put(CONSTANTS.getSpaceId(), "Spaces-42");
     when(runnerContext.getParameters()).thenReturn(properties);
 
-    final OAuthConnectionDescriptor descriptor = connectionWithSpace("Spaces-1795", "Swordfish");
+    final OAuthConnectionDescriptor descriptor = connectionWithSpace("Spaces-123", "Example Space");
     when(connectionsManager.resolve(project, "PROJECT_EXT_1")).thenReturn(Optional.of(descriptor));
 
     processor.updateParameters(buildStartContext);

@@ -46,12 +46,14 @@ class OctopusSpacesFetcherTest {
         fetcherReturning(
             "{\"TotalResults\":2,\"Items\":["
                 + "{\"Id\":\"Spaces-1\",\"Name\":\"Default\",\"Slug\":\"default\"},"
-                + "{\"Id\":\"Spaces-1795\",\"Name\":\"Swordfish\"}]}");
+                + "{\"Id\":\"Spaces-123\",\"Name\":\"Example Space\"}]}");
 
     final List<OctopusSpace> spaces = fetcher.fetch("https://octopus.example.com", "API-KEY");
 
-    assertThat(spaces).extracting(OctopusSpace::getId).containsExactly("Spaces-1", "Spaces-1795");
-    assertThat(spaces).extracting(OctopusSpace::getName).containsExactly("Default", "Swordfish");
+    assertThat(spaces).extracting(OctopusSpace::getId).containsExactly("Spaces-1", "Spaces-123");
+    assertThat(spaces)
+        .extracting(OctopusSpace::getName)
+        .containsExactly("Default", "Example Space");
   }
 
   @Test
