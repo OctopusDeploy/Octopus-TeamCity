@@ -13,7 +13,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package octopus.teamcity.server.spaces;
+package octopus.teamcity.server.client;
 
 /** The header a request to Octopus authenticates with: an API key, or an OIDC access token. */
 public final class OctopusAuth {
@@ -51,7 +51,7 @@ public final class OctopusAuth {
     return description;
   }
 
-  boolean isEmpty() {
+  public boolean isEmpty() {
     return value.isEmpty();
   }
 
