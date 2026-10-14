@@ -16,12 +16,6 @@
 package octopus.teamcity.server.spaces;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -30,25 +24,21 @@ import java.util.List;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
-import org.apache.commons.io.IOUtils;
+import octopus.teamcity.server.client.OctopusAuth;
+import octopus.teamcity.server.client.OctopusHttpClient;
 
 /**
  * Lists the spaces on an Octopus server, so the UI can offer them as a dropdown rather than asking
  * an admin to type a space name by hand.
- *
- * <p>Follows {@code CommitHistoryFetcher}'s shape: the HTTP call sits behind {@link Requester} so
- * the parsing and URL construction can be tested without a server.
  */
 public class OctopusSpacesFetcher {
 
   /** How many spaces we ask for. Far above any realistic instance. */
   static final int TAKE = 1000;
 
-  private static final int CONNECT_TIMEOUT_MILLIS = 10_000;
-  private static final int READ_TIMEOUT_MILLIS = 20_000;
   private static final Gson GSON = new GsonBuilder().create();
 
-  /** Performs the GET. Separated out so tests need no server. */
+  /** Performs the GET, so tests need no server. */
   public interface Requester {
     String get(String url, OctopusAuth auth) throws IOException;
   }
@@ -56,7 +46,7 @@ public class OctopusSpacesFetcher {
   private final Requester requester;
 
   public OctopusSpacesFetcher() {
-    this(OctopusSpacesFetcher::httpGet);
+    this(new OctopusHttpClient()::get);
   }
 
   OctopusSpacesFetcher(final Requester requester) {
@@ -76,14 +66,12 @@ public class OctopusSpacesFetcher {
    */
   public List<OctopusSpace> fetch(final String serverUrl, final OctopusAuth auth)
       throws IOException {
-    if (serverUrl == null || serverUrl.trim().isEmpty()) {
-      throw new IOException("An Octopus URL is required to list spaces.");
-    }
+    final String url = spacesUrl(serverUrl);
     if (auth.isEmpty()) {
       throw new IOException("An Octopus " + auth.description() + " is required to list spaces.");
     }
 
-    final String body = requester.get(spacesUrl(serverUrl), auth);
+    final String body = requester.get(url, auth);
 
     final SpacesCollection collection;
     try {
@@ -110,79 +98,8 @@ public class OctopusSpacesFetcher {
     return spaces;
   }
 
-  /**
-   * Builds the spaces URL, rejecting anything that is not a plain http(s) address.
-   *
-   * <p>The caller supplies this URL when configuring a connection, so the scheme is restricted to
-   * http and https - without that, a value such as {@code file:} or {@code jar:} would make {@link
-   * URL#openConnection()} read from somewhere other than a web server. A host is required so a
-   * scheme-only value cannot slip through.
-   */
   static String spacesUrl(final String serverUrl) throws IOException {
-    return baseUrl(serverUrl) + "/api/spaces?skip=0&take=" + TAKE;
-  }
-
-  /** The server URL without trailing slashes, after the checks {@link #spacesUrl} describes. */
-  static String baseUrl(final String serverUrl) throws IOException {
-    String base = serverUrl.trim();
-    while (base.endsWith("/")) {
-      base = base.substring(0, base.length() - 1);
-    }
-
-    final URI parsed;
-    try {
-      parsed = new URI(base);
-    } catch (final URISyntaxException e) {
-      throw new IOException("'" + base + "' is not a valid URL.", e);
-    }
-    final String scheme = parsed.getScheme() == null ? "" : parsed.getScheme().toLowerCase();
-    if (!"http".equals(scheme) && !"https".equals(scheme)) {
-      throw new IOException("The Octopus URL must start with http:// or https://.");
-    }
-    if (parsed.getHost() == null || parsed.getHost().isEmpty()) {
-      throw new IOException("The Octopus URL is missing a host name.");
-    }
-
-    return base;
-  }
-
-  private static String httpGet(final String url, final OctopusAuth auth) throws IOException {
-    final HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-    try {
-      connection.setRequestMethod("GET");
-      // A redirect would take the request somewhere other than the address just validated, and
-      // would also replay the credential there.
-      connection.setInstanceFollowRedirects(false);
-      connection.setConnectTimeout(CONNECT_TIMEOUT_MILLIS);
-      connection.setReadTimeout(READ_TIMEOUT_MILLIS);
-      connection.setRequestProperty(auth.header(), auth.value());
-      connection.setRequestProperty("Accept", "application/json");
-
-      final int status = connection.getResponseCode();
-      if (status == HttpURLConnection.HTTP_UNAUTHORIZED
-          || status == HttpURLConnection.HTTP_FORBIDDEN) {
-        throw new IOException(
-            "Octopus rejected the "
-                + auth.description()
-                + " (HTTP "
-                + status
-                + "). Check its permissions.");
-      }
-      if (status >= 300 && status <= 399) {
-        throw new IOException(
-            "The Octopus URL redirected (HTTP "
-                + status
-                + "). Point it directly at the Octopus server.");
-      }
-      if (status < 200 || status > 299) {
-        throw new IOException("Octopus returned HTTP " + status + " when listing spaces.");
-      }
-      try (InputStream in = connection.getInputStream()) {
-        return IOUtils.toString(in, StandardCharsets.UTF_8);
-      }
-    } finally {
-      connection.disconnect();
-    }
+    return OctopusHttpClient.baseUrl(serverUrl) + "/api/spaces?skip=0&take=" + TAKE;
   }
 
   /** Shape of the subset of {@code /api/spaces} we read. Field names match the JSON. */
