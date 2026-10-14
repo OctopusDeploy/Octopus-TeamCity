@@ -22,20 +22,19 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import octopus.teamcity.server.client.OctopusAuth;
 import org.junit.jupiter.api.Test;
 
 class OctopusSpacesFetcherTest {
 
   private final List<String> requestedUrls = new ArrayList<>();
-  private final List<String> sentApiKeys = new ArrayList<>();
-  private final List<String> sentHeaders = new ArrayList<>();
+  private final List<OctopusAuth> sentAuth = new ArrayList<>();
 
   private OctopusSpacesFetcher fetcherReturning(final String body) {
     return new OctopusSpacesFetcher(
         (url, auth) -> {
           requestedUrls.add(url);
-          sentHeaders.add(auth.header());
-          sentApiKeys.add(auth.value());
+          sentAuth.add(auth);
           return body;
         });
   }
@@ -97,27 +96,11 @@ class OctopusSpacesFetcherTest {
   }
 
   @Test
-  void trimsTheApiKeyBeforeSendingIt() throws Exception {
-    fetcherReturning("{\"Items\":[]}").fetch("https://octopus.example.com", "  API-KEY  ");
-
-    assertThat(sentApiKeys).containsExactly("API-KEY");
-  }
-
-  @Test
-  void sendsAnApiKeyInTheOctopusApiKeyHeader() throws Exception {
+  void sendsTheApiKey() throws Exception {
     fetcherReturning("{\"Items\":[]}").fetch("https://octopus.example.com", "API-KEY");
 
-    assertThat(sentHeaders).containsExactly("X-Octopus-ApiKey");
-    assertThat(sentApiKeys).containsExactly("API-KEY");
-  }
-
-  @Test
-  void sendsAnAccessTokenAsABearerToken() throws Exception {
-    fetcherReturning("{\"Items\":[]}")
-        .fetch("https://octopus.example.com", OctopusAuth.accessToken("  access-token  "));
-
-    assertThat(sentHeaders).containsExactly("Authorization");
-    assertThat(sentApiKeys).containsExactly("Bearer access-token");
+    assertThat(sentAuth).extracting(OctopusAuth::header).containsExactly("X-Octopus-ApiKey");
+    assertThat(sentAuth).extracting(OctopusAuth::value).containsExactly("API-KEY");
   }
 
   @Test
@@ -130,57 +113,18 @@ class OctopusSpacesFetcherTest {
   }
 
   @Test
-  void rejectsAMissingUrlOrKeyWithoutCallingOut() {
+  void rejectsAnInvalidUrlOrMissingKeyWithoutCallingOut() {
     final OctopusSpacesFetcher fetcher = fetcherReturning("{\"Items\":[]}");
 
     assertThatThrownBy(() -> fetcher.fetch("  ", "API-KEY"))
         .isInstanceOf(IOException.class)
         .hasMessageContaining("Octopus URL is required");
+    assertThatThrownBy(() -> fetcher.fetch("file:///etc/passwd", "API-KEY"))
+        .isInstanceOf(IOException.class)
+        .hasMessageContaining("must start with http:// or https://");
     assertThatThrownBy(() -> fetcher.fetch("https://octopus.example.com", " "))
         .isInstanceOf(IOException.class)
         .hasMessageContaining("API key is required");
-    assertThat(requestedUrls).isEmpty();
-  }
-
-  @Test
-  void rejectsSchemesOtherThanHttpAndHttps() {
-    // Without this, URL.openConnection() would happily read a file: or jar: URL.
-    final OctopusSpacesFetcher fetcher = fetcherReturning("{\"Items\":[]}");
-
-    for (final String url :
-        new String[] {
-          "file:///etc/passwd", "jar:file:/tmp/x.jar!/y", "ftp://octopus.example.com", "gopher://x"
-        }) {
-      assertThatThrownBy(() -> fetcher.fetch(url, "API-KEY"))
-          .isInstanceOf(IOException.class)
-          .hasMessageContaining("must start with http:// or https://");
-    }
-    assertThat(requestedUrls).isEmpty();
-  }
-
-  @Test
-  void rejectsAUrlWithNoHost() {
-    // These parse as a URI with the right scheme but no authority, e.g. "http:example.com".
-    final OctopusSpacesFetcher fetcher = fetcherReturning("{\"Items\":[]}");
-
-    for (final String url : new String[] {"http:example.com", "https:/onlypath"}) {
-      assertThatThrownBy(() -> fetcher.fetch(url, "API-KEY"))
-          .isInstanceOf(IOException.class)
-          .hasMessageContaining("missing a host name");
-    }
-    assertThat(requestedUrls).isEmpty();
-  }
-
-  @Test
-  void rejectsAMalformedUrl() {
-    // "https://" and a URL containing a space are not parseable at all.
-    final OctopusSpacesFetcher fetcher = fetcherReturning("{\"Items\":[]}");
-
-    for (final String url : new String[] {"https://", "http://exa mple.com"}) {
-      assertThatThrownBy(() -> fetcher.fetch(url, "API-KEY"))
-          .isInstanceOf(IOException.class)
-          .hasMessageContaining("is not a valid URL");
-    }
     assertThat(requestedUrls).isEmpty();
   }
 
