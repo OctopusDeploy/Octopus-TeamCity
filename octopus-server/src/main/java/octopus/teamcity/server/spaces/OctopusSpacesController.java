@@ -159,6 +159,12 @@ public class OctopusSpacesController extends BaseController {
       final List<OctopusSpace> spaces = fetcher.fetch(credentials.serverUrl, credentials.auth);
       writeSpaces(response, spaces);
     } catch (final IOException e) {
+      Loggers.SERVER.warn(
+          "Could not list the spaces on "
+              + credentials.serverUrl
+              + " for project "
+              + project.getExternalId(),
+          e);
       // The fetcher's messages describe the failure without quoting the credential back.
       writeError(response, HttpServletResponse.SC_OK, e.getMessage());
     }

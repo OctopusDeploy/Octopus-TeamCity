@@ -93,6 +93,7 @@
 </c:if>
 <jsp:include page="spacePicker.jsp">
   <jsp:param name="note" value="Space name - optional. If not provided, individual build steps can specify."/>
+  <jsp:param name="octopusConnectionId" value="${requestScope.oauthConnectionBean.connectionId}"/>
 </jsp:include>
 
 <script type="text/javascript">

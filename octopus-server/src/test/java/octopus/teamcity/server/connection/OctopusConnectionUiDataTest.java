@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 
 import jetbrains.buildServer.serverSide.ProjectManager;
@@ -278,19 +277,6 @@ class OctopusConnectionUiDataTest {
     return request;
   }
 
-  private SProject projectNamed(final String externalId) {
-    final SProject project = mock(SProject.class);
-    when(projectManager.findProjectByExternalId(externalId)).thenReturn(project);
-    return project;
-  }
-
-  private static OAuthConnectionDescriptor connectionOfType(final String providerType) {
-    final OAuthConnectionDescriptor descriptor = mock(OAuthConnectionDescriptor.class);
-    when(descriptor.getParameters())
-        .thenReturn(Collections.singletonMap("providerType", providerType));
-    return descriptor;
-  }
-
   @Test
   void spacePickerScriptUrlIsContextRelativeAndVersioned() {
     final HttpServletRequest request = mock(HttpServletRequest.class);
@@ -324,41 +310,5 @@ class OctopusConnectionUiDataTest {
 
     assertThat(OctopusConnectionUiData.spacePickerProjectId(requestWith(parameters)))
         .isEqualTo("Rtest");
-  }
-
-  @Test
-  void spacePickerConnectionIdIsTheOctopusConnectionBeingEdited() {
-    final SProject project = projectNamed("Rtest");
-    final OAuthConnectionDescriptor octopus = connectionOfType(OctopusConnection.TYPE);
-    when(connectionsManager.resolve(project, "PROJECT_EXT_7")).thenReturn(Optional.of(octopus));
-    final Map<String, String> parameters = new HashMap<>();
-    parameters.put("projectId", "Rtest");
-    parameters.put("featureId", "PROJECT_EXT_7");
-
-    assertThat(OctopusConnectionUiData.spacePickerConnectionId(requestWith(parameters)))
-        .isEqualTo("PROJECT_EXT_7");
-  }
-
-  @Test
-  void spacePickerConnectionIdIgnoresAConnectionOfAnotherType() {
-    final SProject project = projectNamed("Rtest");
-    final OAuthConnectionDescriptor github = connectionOfType("GitHubApp");
-    when(connectionsManager.resolve(project, "PROJECT_EXT_8")).thenReturn(Optional.of(github));
-    final Map<String, String> parameters = new HashMap<>();
-    parameters.put("projectId", "Rtest");
-    parameters.put("connectionId", "PROJECT_EXT_8");
-
-    assertThat(OctopusConnectionUiData.spacePickerConnectionId(requestWith(parameters))).isEmpty();
-  }
-
-  @Test
-  void spacePickerConnectionIdIsEmptyForAnUnsavedConnection() {
-    final SProject project = projectNamed("Rtest");
-    when(connectionsManager.resolve(project, "unsaved")).thenReturn(Optional.empty());
-    final Map<String, String> parameters = new HashMap<>();
-    parameters.put("projectId", "Rtest");
-    parameters.put("connectionId", "unsaved");
-
-    assertThat(OctopusConnectionUiData.spacePickerConnectionId(requestWith(parameters))).isEmpty();
   }
 }

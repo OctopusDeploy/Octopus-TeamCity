@@ -244,6 +244,71 @@ class OctopusSpacePickerUiTest {
   }
 
   @Test
+  void switchingConnectionDropsTheSavedSpaceId() throws Exception {
+    try (final OctopusTeamCityStack stack = SharedStack.full()) {
+      final TeamCityRest tc = stack.rest();
+      tc.createProject("SpacePickerSwitchIT", "Space picker connection switch IT");
+      final String connectionId =
+          tc.createOctopusConnection(
+              "SpacePickerSwitchIT",
+              "Real Octopus",
+              stack.octopusUrlForContainers(),
+              stack.octopusApiKey(),
+              "");
+      tc.createBuildType("SpacePickerSwitchIT_Release", "Create release", "SpacePickerSwitchIT");
+      final String runnerId = tc.addCreateReleaseStep("SpacePickerSwitchIT_Release");
+      tc.setStepProperty(
+          "SpacePickerSwitchIT_Release", runnerId, "octopus_connection_id", connectionId);
+      tc.setStepProperty("SpacePickerSwitchIT_Release", runnerId, "octopus_space_id", "Spaces-1");
+      tc.setStepProperty("SpacePickerSwitchIT_Release", runnerId, "octopus_space_name", "Default");
+
+      PlaywrightUi.withLoggedInPage(
+          stack,
+          page -> {
+            openStep(page, stack, "SpacePickerSwitchIT_Release", runnerId);
+            waitForSpaces(page);
+            assertThat(spaceId(page)).isEqualTo("Spaces-1");
+
+            page.selectOption("#octopusConnectionId", new String[] {""});
+
+            assertThat(spaceId(page)).isEmpty();
+            assertThat(spaceName(page).inputValue()).isEqualTo("Default");
+          });
+    }
+  }
+
+  @Test
+  void connectionFormSuggestsTheConnectionsOwnSpaces() throws Exception {
+    try (final OctopusTeamCityStack stack = SharedStack.full()) {
+      final TeamCityRest tc = stack.rest();
+      tc.createProject("SpacePickerConnFormIT", "Space picker connection form IT");
+      tc.createOctopusConnection(
+          "SpacePickerConnFormIT",
+          "Picker Octopus",
+          stack.octopusUrlForContainers(),
+          stack.octopusApiKey(),
+          "");
+
+      PlaywrightUi.withLoggedInPage(
+          stack,
+          page -> {
+            page.navigate(
+                stack.tcBaseUrl()
+                    + "/admin/editProject.html?projectId=SpacePickerConnFormIT"
+                    + "&tab=oauthConnections");
+            page.waitForLoadState(LoadState.NETWORKIDLE);
+            page.locator("tr", new Page.LocatorOptions().setHasText("Picker Octopus"))
+                .locator("a:has-text(\"Edit\")")
+                .first()
+                .click();
+
+            waitForSpaces(page);
+            assertThat(suggestions(page)).contains("Default (Spaces-1)");
+          });
+    }
+  }
+
+  @Test
   void explainsAnApiKeyParameterThatOnlyResolvesDuringABuild() throws Exception {
     try (final OctopusTeamCityStack stack = SharedStack.full()) {
       final TeamCityRest tc = stack.rest();
