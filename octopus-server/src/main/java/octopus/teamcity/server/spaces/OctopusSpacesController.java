@@ -241,7 +241,7 @@ public class OctopusSpacesController extends BaseController {
       return new Credentials(serverUrl, OctopusAuth.apiKey(apiKey));
     }
     if (ConnectionPropertyNames.API_KEY_SOURCE_OIDC.equals(source)) {
-      final SBuildType buildType = editableBuildType(request, user);
+      final SBuildType buildType = projectBuildType(request, project);
       return new Credentials(
           serverUrl,
           OctopusAuth.accessToken(oidcAccessToken(params, project, buildType, serverUrl)));
