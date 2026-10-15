@@ -214,21 +214,6 @@ public final class TeamCityRest {
   }
 
   /**
-   * Adds the OIDC plugin's build feature to a build configuration, taking its settings from the
-   * given OIDC connector, as an OIDC Octopus connection needs for its builds to authenticate.
-   */
-  public void addOidcBuildFeature(final String buildTypeId, final String oidcConnectorId)
-      throws Exception {
-    send(
-        "POST",
-        "/httpAuth/app/rest/buildTypes/" + buildTypeId + "/features",
-        "application/json",
-        "{\"type\":\"oidc-plugin\",\"properties\":{\"property\":["
-            + createProp("connection_id", oidcConnectorId)
-            + "]}}");
-  }
-
-  /**
    * The subject the OIDC plugin puts in tokens issued for a build configuration, with its default
    * subject settings.
    */

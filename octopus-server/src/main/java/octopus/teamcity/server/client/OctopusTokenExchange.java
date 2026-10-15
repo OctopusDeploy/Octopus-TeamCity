@@ -68,8 +68,8 @@ public class OctopusTokenExchange {
         throw new IOException(
             "Octopus did not accept the OIDC token (HTTP "
                 + e.getStatus()
-                + "). Check the service account has an OIDC identity whose subject matches this"
-                + " build configuration.",
+                + "). Check the service account has an OIDC identity whose issuer and subject"
+                + " match the tokens TeamCity issues.",
             e);
       }
       throw e;
