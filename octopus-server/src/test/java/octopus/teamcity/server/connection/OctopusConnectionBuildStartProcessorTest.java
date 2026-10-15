@@ -274,6 +274,19 @@ class OctopusConnectionBuildStartProcessorTest {
   }
 
   @Test
+  void parameterSourceInjectsTheReferenceWithoutSurroundingWhitespace() {
+    final Map<String, String> properties = new HashMap<>();
+    properties.put(CONSTANTS.getConnectionIdKey(), "CONN_PARAM");
+    when(runnerContext.getParameters()).thenReturn(properties);
+    final OAuthConnectionDescriptor paramConn = parameterConnectionWith(" %octopus.apikey% ");
+    when(connectionsManager.resolve(project, "CONN_PARAM")).thenReturn(Optional.of(paramConn));
+
+    processor.updateParameters(buildStartContext);
+
+    verify(runnerContext).addRunnerParameter(CONSTANTS.getApiKey(), "%octopus.apikey%");
+  }
+
+  @Test
   void oidcSourceInjectsAudienceAndTokenReference() {
     final Map<String, String> properties = new HashMap<>();
     properties.put(CONSTANTS.getConnectionIdKey(), "CONN_OIDC");
