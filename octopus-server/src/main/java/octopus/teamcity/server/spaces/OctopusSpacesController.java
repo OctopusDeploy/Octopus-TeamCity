@@ -63,6 +63,10 @@ import org.springframework.web.servlet.ModelAndView;
  *       and the browser therefore does not hold the real key;
  *   <li>a build configuration named by the request is used only when the caller holds {@link
  *       Permission#EDIT_PROJECT} on its project too, since its parameters can hold the API key;
+ *   <li>an API key held in a parameter is resolved only for a caller who also holds {@link
+ *       Permission#RUN_BUILD} where it resolves, and each such lookup is logged. Its value may be a
+ *       password the caller cannot read, but a caller who can edit and run a build can already send
+ *       it anywhere from a build step;
  *   <li>no credential - API key, ID token or access token - is echoed back, in an error message or
  *       otherwise.
  * </ul>
@@ -215,10 +219,28 @@ public class OctopusSpacesController extends BaseController {
             ConnectionPropertyNames.API_KEY_SOURCE, ConnectionPropertyNames.API_KEY_SOURCE_KEY);
     if (ConnectionPropertyNames.API_KEY_SOURCE_PARAMETER.equals(source)) {
       final SBuildType buildType = editableBuildType(request, user);
-      return new Credentials(
-          serverUrl,
-          OctopusAuth.apiKey(
-              resolveApiKeyParameter(params, buildType == null ? project : buildType)));
+      final String scopeProjectId =
+          buildType == null ? project.getProjectId() : buildType.getProjectId();
+      if (!user.isPermissionGrantedForProject(scopeProjectId, Permission.RUN_BUILD)) {
+        throw new CredentialsUnavailableException(
+            "Spaces can only be listed with an API key parameter by someone who can run builds"
+                + " here. Enter the space name instead.");
+      }
+      final String apiKey = resolveApiKeyParameter(params, buildType == null ? project : buildType);
+      Loggers.SERVER.info(
+          "User "
+              + user.getUsername()
+              + " resolved the API key parameter "
+              + params.get(ConnectionPropertyNames.API_KEY_PARAMETER).trim()
+              + " of Octopus connection "
+              + connectionId.trim()
+              + " in "
+              + (buildType == null
+                  ? "project " + project.getExternalId()
+                  : "build configuration " + buildType.getExternalId())
+              + " to list the spaces on "
+              + serverUrl);
+      return new Credentials(serverUrl, OctopusAuth.apiKey(apiKey));
     }
     if (ConnectionPropertyNames.API_KEY_SOURCE_OIDC.equals(source)) {
       final SBuildType buildType = editableBuildType(request, user);
