@@ -30,15 +30,15 @@
 
   The property names are the same on a connection and on a step, so OctopusConstants supplies both
   regardless of which page is including this. The including page passes its own help text as the
-  "note" param.
+  "note" param. The connection form also passes the id of the connection being edited as the
+  "octopusConnectionId" param, empty until the connection is saved; a step form's connection
+  selector supplies it there instead.
 --%>
 
 <jsp:useBean id="spaceKeys" class="octopus.teamcity.common.OctopusConstants"/>
 <%
   pageContext.setAttribute(
       "spacePickerProjectId", OctopusConnectionUiData.spacePickerProjectId(request));
-  pageContext.setAttribute(
-      "spacePickerConnectionId", OctopusConnectionUiData.spacePickerConnectionId(request));
   pageContext.setAttribute(
       "spacePickerScriptUrl", OctopusConnectionUiData.spacePickerScriptUrl(request));
 %>
@@ -63,7 +63,7 @@
           data-project-id="<c:out value='${spacePickerProjectId}'/>"
           data-lookup-url="<c:out value='${pageContext.request.contextPath}'/>/octopus/listSpaces.html"
           data-space-id-field="<c:out value='${spaceKeys.spaceId}'/>"
-          data-connection-id="<c:out value='${spacePickerConnectionId}'/>"
+          data-connection-id="<c:out value='${param.octopusConnectionId}'/>"
           data-script-url="<c:out value='${spacePickerScriptUrl}'/>"></span>
 
     <span class="smallNote"><c:out value="${param.note}"/></span>
@@ -82,17 +82,32 @@
     function setUp() {
       window.OctopusSpacePicker.setupAll();
     }
+    function showLoadFailure() {
+      const statuses = document.querySelectorAll(".octopusSpaceStatus");
+      for (let index = 0; index < statuses.length; index++) {
+        statuses[index].className = "smallNote error octopusSpaceStatus";
+        statuses[index].querySelector(".octopusSpaceStatusText").textContent =
+          "Unable to retrieve spaces, please enter space name manually";
+      }
+    }
     if (window.OctopusSpacePicker) {
       setUp();
       return;
     }
+    const meta = document.querySelector(".octopusSpacePickerMeta");
+    if (!meta) return;
     let script = document.getElementById("octopusSpacePickerScript");
     if (!script) {
       script = document.createElement("script");
       script.id = "octopusSpacePickerScript";
-      script.src = document.querySelector(".octopusSpacePickerMeta").getAttribute("data-script-url");
+      script.src = meta.getAttribute("data-script-url");
+      // Removed on failure so the next form to include this tries loading it again.
+      script.addEventListener("error", function () {
+        script.remove();
+      });
       document.head.appendChild(script);
     }
     script.addEventListener("load", setUp);
+    script.addEventListener("error", showLoadFailure);
   })();
 </script>

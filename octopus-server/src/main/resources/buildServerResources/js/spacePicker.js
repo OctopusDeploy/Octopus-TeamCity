@@ -46,16 +46,16 @@ window.OctopusSpacePicker = window.OctopusSpacePicker || (function () {
       known: !!spaces,
 
       withId: function (id) {
-        for (let i = 0; spaces && i < spaces.length; i++) {
-          if (spaces[i].id === id) return spaces[i];
+        for (let index = 0; spaces && index < spaces.length; index++) {
+          if (spaces[index].id === id) return spaces[index];
         }
         return null;
       },
 
       named: function (name) {
         const wanted = name.trim().toLowerCase();
-        for (let i = 0; spaces && wanted && i < spaces.length; i++) {
-          if (spaces[i].name.toLowerCase() === wanted) return spaces[i];
+        for (let index = 0; spaces && wanted && index < spaces.length; index++) {
+          if (spaces[index].name.toLowerCase() === wanted) return spaces[index];
         }
         return null;
       },
@@ -64,8 +64,8 @@ window.OctopusSpacePicker = window.OctopusSpacePicker || (function () {
         if (!spaces || isParameterReference(term)) return [];
         const wanted = term.trim().toLowerCase();
         const matches = [];
-        for (let i = 0; i < spaces.length; i++) {
-          const space = spaces[i];
+        for (let index = 0; index < spaces.length; index++) {
+          const space = spaces[index];
           if (space.name.toLowerCase().indexOf(wanted) === -1) continue;
           matches.push({
             // TeamCity's autocomplete inserts the label as HTML, and a space name is admin-supplied.
@@ -218,7 +218,7 @@ window.OctopusSpacePicker = window.OctopusSpacePicker || (function () {
       if (!hasParameterCompletion) return false;
       try {
         return !!parameterSourceUrl()
-          && (parameters.sliceForCompletion(field) !== null || !!field.data("ctrlSpace"));
+          && (!!parameters.sliceForCompletion(field) || !!field.data("ctrlSpace"));
       } catch (ignored) {
         return false;
       }
@@ -397,7 +397,14 @@ window.OctopusSpacePicker = window.OctopusSpacePicker || (function () {
       checkTypedName();
     });
 
-    if (connectionSelect) connectionSelect.addEventListener("change", load);
+    // A space id belongs to one Octopus server, so it does not carry over to another connection.
+    // The name is kept, and picks the same-named space if the new connection has one.
+    function connectionChanged() {
+      if (idField) idField.value = "";
+      load();
+    }
+
+    if (connectionSelect) connectionSelect.addEventListener("change", connectionChanged);
     load();
   }
 
