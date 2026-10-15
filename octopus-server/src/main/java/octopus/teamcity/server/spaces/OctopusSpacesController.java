@@ -232,7 +232,7 @@ public class OctopusSpacesController extends BaseController {
     }
     if (!ConnectionPropertyNames.API_KEY_SOURCE_KEY.equals(source)) {
       throw new CredentialsUnavailableException(
-          "Spaces can't be listed for a connection that authenticates with OIDC. Enter the space"
+          "Spaces cannot be listed for a connection that authenticates with OIDC. Enter the space name instead."
               + " name instead.");
     }
     return new Credentials(
