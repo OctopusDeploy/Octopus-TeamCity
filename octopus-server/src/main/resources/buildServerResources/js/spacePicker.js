@@ -162,7 +162,8 @@ window.OctopusSpacePicker = window.OctopusSpacePicker || (function () {
       type: "POST",
       data: {
         projectId: meta.getAttribute("data-project-id"),
-        connectionId: connectionId
+        connectionId: connectionId,
+        buildTypeId: meta.getAttribute("data-build-type-id") || ""
       },
       dataType: "json",
       // TeamCity's own scripts add this header to jQuery requests only once the page has

@@ -40,6 +40,8 @@
   pageContext.setAttribute(
       "spacePickerProjectId", OctopusConnectionUiData.spacePickerProjectId(request));
   pageContext.setAttribute(
+      "spacePickerBuildTypeId", OctopusConnectionUiData.spacePickerBuildTypeId(request));
+  pageContext.setAttribute(
       "spacePickerScriptUrl", OctopusConnectionUiData.spacePickerScriptUrl(request));
 %>
 
@@ -64,6 +66,7 @@
           data-lookup-url="<c:out value='${pageContext.request.contextPath}'/>/octopus/listSpaces.html"
           data-space-id-field="<c:out value='${spaceKeys.spaceId}'/>"
           data-connection-id="<c:out value='${param.octopusConnectionId}'/>"
+          data-build-type-id="<c:out value='${spacePickerBuildTypeId}'/>"
           data-script-url="<c:out value='${spacePickerScriptUrl}'/>"></span>
 
     <span class="smallNote"><c:out value="${param.note}"/></span>

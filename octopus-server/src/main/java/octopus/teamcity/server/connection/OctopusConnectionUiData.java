@@ -192,6 +192,16 @@ public class OctopusConnectionUiData {
   }
 
   /**
+   * The step form's build configuration, so the space picker can resolve credentials as a build of
+   * it would. {@code ""} on the connection form and on templates, which have none.
+   */
+  @NotNull
+  public static String spacePickerBuildTypeId(final HttpServletRequest request) {
+    final SBuildType buildType = currentBuildType(request);
+    return buildType == null ? "" : buildType.getExternalId();
+  }
+
+  /**
    * Context-relative URL of the space picker's script. The plugin version is appended so a browser
    * does not keep running a cached copy after the plugin is upgraded.
    */
