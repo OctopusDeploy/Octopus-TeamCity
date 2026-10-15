@@ -36,9 +36,11 @@ import jetbrains.buildServer.serverSide.SBuildType;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.auth.Permission;
 import jetbrains.buildServer.serverSide.oauth.OAuthConnectionDescriptor;
+import jetbrains.buildServer.serverSide.oauth.OAuthProvider;
 import jetbrains.buildServer.users.SUser;
 import octopus.teamcity.common.connection.ConnectionPropertyNames;
 import octopus.teamcity.server.client.OctopusTokenExchange;
+import octopus.teamcity.server.connection.OctopusConnection;
 import octopus.teamcity.server.connection.OctopusConnectionsManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -87,9 +89,16 @@ class SpacesLookupCredentialsTest {
   }
 
   private void connection(final Map<String, String> params) {
+    connection(params, OctopusConnection.TYPE);
+  }
+
+  private void connection(final Map<String, String> params, final String providerType) {
     params.put(ConnectionPropertyNames.SERVER_URL, "https://stored.example.com");
     final OAuthConnectionDescriptor connection = mock(OAuthConnectionDescriptor.class);
     when(connection.getParameters()).thenReturn(params);
+    final OAuthProvider provider = mock(OAuthProvider.class);
+    when(provider.getType()).thenReturn(providerType);
+    when(connection.getOauthProvider()).thenReturn(provider);
     when(connectionsManager.resolve(eq(project), eq(CONNECTION_ID)))
         .thenReturn(Optional.of(connection));
   }
@@ -160,6 +169,15 @@ class SpacesLookupCredentialsTest {
   @Test
   void reportsAnUnresolvableConnection() {
     when(connectionsManager.resolve(eq(project), any())).thenReturn(Optional.empty());
+
+    assertThat(refusal()).contains("could not be resolved");
+  }
+
+  @Test
+  void refusesAConnectionThatIsNotAnOctopusConnection() {
+    final Map<String, String> params = new HashMap<>();
+    params.put(ConnectionPropertyNames.API_KEY, "API-STORED");
+    connection(params, "GitHubApp");
 
     assertThat(refusal()).contains("could not be resolved");
   }

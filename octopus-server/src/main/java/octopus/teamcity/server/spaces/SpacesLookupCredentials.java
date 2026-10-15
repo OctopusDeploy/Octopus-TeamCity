@@ -25,9 +25,11 @@ import jetbrains.buildServer.serverSide.SBuildType;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.auth.Permission;
 import jetbrains.buildServer.serverSide.oauth.OAuthConnectionDescriptor;
+import jetbrains.buildServer.serverSide.oauth.OAuthProvider;
 import jetbrains.buildServer.users.SUser;
 import octopus.teamcity.common.connection.ConnectionPropertyNames;
 import octopus.teamcity.server.client.OctopusAuth;
+import octopus.teamcity.server.connection.OctopusConnection;
 import octopus.teamcity.server.connection.OctopusConnectionsManager;
 import org.jetbrains.annotations.Nullable;
 
@@ -82,7 +84,9 @@ class SpacesLookupCredentials {
               + " select one) and try again, or enter the space name instead.");
     }
     final Optional<OAuthConnectionDescriptor> connection =
-        connectionsManager.resolve(project, connectionId.trim());
+        connectionsManager
+            .resolve(project, connectionId.trim())
+            .filter(SpacesLookupCredentials::isOctopusConnection);
     if (!connection.isPresent()) {
       throw new CredentialsUnavailableException("That Octopus connection could not be resolved.");
     }
@@ -123,6 +127,11 @@ class SpacesLookupCredentials {
     }
     return new Credentials(
         serverUrl, OctopusAuth.apiKey(params.get(ConnectionPropertyNames.API_KEY)));
+  }
+
+  private static boolean isOctopusConnection(final OAuthConnectionDescriptor connection) {
+    final OAuthProvider provider = connection.getOauthProvider();
+    return provider != null && OctopusConnection.TYPE.equals(provider.getType());
   }
 
   /**

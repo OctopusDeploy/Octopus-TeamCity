@@ -308,6 +308,22 @@ class OctopusConnectionBuildStartProcessorTest {
   }
 
   @Test
+  void oidcSourceInjectsTheAudienceWithoutSurroundingWhitespace() {
+    final Map<String, String> properties = new HashMap<>();
+    properties.put(CONSTANTS.getConnectionIdKey(), "CONN_OIDC");
+    when(runnerContext.getParameters()).thenReturn(properties);
+    final OAuthConnectionDescriptor oidcOctopusConn = oidcOctopusConnectionWith("OIDC_CONN_1");
+    final OAuthConnectionDescriptor oidcConnector = oidcConnectorWith(" Spaces-SA-123 ", "my.jwt");
+    when(connectionsManager.resolve(project, "CONN_OIDC")).thenReturn(Optional.of(oidcOctopusConn));
+    when(connectionsManager.resolve(project, "OIDC_CONN_1")).thenReturn(Optional.of(oidcConnector));
+
+    processor.updateParameters(buildStartContext);
+
+    verify(runnerContext)
+        .addRunnerParameter(CONSTANTS.getOidcServiceAccountIdKey(), "Spaces-SA-123");
+  }
+
+  @Test
   void oidcSourceDefaultsTokenVariableToJwtToken() {
     final Map<String, String> properties = new HashMap<>();
     properties.put(CONSTANTS.getConnectionIdKey(), "CONN_OIDC");

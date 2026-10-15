@@ -38,9 +38,11 @@ import jetbrains.buildServer.serverSide.ProjectManager;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.auth.Permission;
 import jetbrains.buildServer.serverSide.oauth.OAuthConnectionDescriptor;
+import jetbrains.buildServer.serverSide.oauth.OAuthProvider;
 import jetbrains.buildServer.users.SUser;
 import octopus.teamcity.common.connection.ConnectionPropertyNames;
 import octopus.teamcity.server.client.OctopusTokenExchange;
+import octopus.teamcity.server.connection.OctopusConnection;
 import octopus.teamcity.server.connection.OctopusConnectionsManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -120,6 +122,9 @@ class OctopusSpacesControllerTest {
     params.put(ConnectionPropertyNames.API_KEY, "API-STORED");
     final OAuthConnectionDescriptor connection = mock(OAuthConnectionDescriptor.class);
     when(connection.getParameters()).thenReturn(params);
+    final OAuthProvider provider = mock(OAuthProvider.class);
+    when(provider.getType()).thenReturn(OctopusConnection.TYPE);
+    when(connection.getOauthProvider()).thenReturn(provider);
     when(connectionsManager.resolve(eq(project), any())).thenReturn(Optional.of(connection));
     when(request.getParameter("connectionId")).thenReturn("octopus-conn-1");
   }
