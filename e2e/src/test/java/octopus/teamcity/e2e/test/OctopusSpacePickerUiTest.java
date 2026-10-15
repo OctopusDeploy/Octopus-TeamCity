@@ -7,6 +7,7 @@ import java.util.List;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.LoadState;
+import com.microsoft.playwright.options.SelectOption;
 import com.microsoft.playwright.options.WaitForSelectorState;
 import com.microsoft.playwright.options.WaitUntilState;
 import octopus.teamcity.e2e.dsl.OctopusTeamCityStack;
@@ -358,9 +359,7 @@ class OctopusSpacePickerUiTest {
   }
 
   private static void selectConnection(final Page page, final String connectionName) {
-    page.selectOption(
-        "#octopusConnectionId",
-        new com.microsoft.playwright.options.SelectOption().setLabel(connectionName));
+    page.selectOption("#octopusConnectionId", new SelectOption().setLabel(connectionName));
   }
 
   /** Why the spaces could not be listed, as the help icon's tooltip shows it. */
