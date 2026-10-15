@@ -31,18 +31,13 @@ import org.springframework.context.ApplicationContext;
  * Requests an ID token from the OIDC Identity Token plugin through TeamCity's connection
  * credentials API.
  *
- * <p>That API exists from TeamCity 2023.05, and this plugin still loads on older servers, so this
- * is the only class that references it: it is constructed only after {@link #isSupported()}
- * confirms the API is present.
+ * <p>The credentials API exists from TeamCity 2023.05, and this plugin still loads on older
+ * servers. This is the only class that references the credentials API, and loading this class loads
+ * the API's classes; create an instance only after {@link ConnectionCredentialsApi#isPresent()}
+ * confirms the API is there.
  */
 final class OidcIdTokenRequester implements OidcIdTokens {
 
-  static final String UNSUPPORTED_MESSAGE =
-      "This TeamCity server cannot issue OIDC tokens outside a build, so spaces cannot be listed"
-          + " here. Enter the space name instead.";
-
-  private static final String CREDENTIALS_MANAGER_CLASS =
-      "jetbrains.buildServer.serverSide.connections.credentials.ProjectConnectionCredentialsManager";
   private static final String BUILD_TYPE_ID_PARAM = "oidc.edit.buildTypeId";
   private static final String ID_TOKEN = "id_token";
   private static final String UNSUPPORTED_PROVIDER = "Unsupported Connection Provider type";
@@ -51,15 +46,6 @@ final class OidcIdTokenRequester implements OidcIdTokens {
 
   OidcIdTokenRequester(final ApplicationContext context) {
     this.context = context;
-  }
-
-  static boolean isSupported() {
-    try {
-      Class.forName(CREDENTIALS_MANAGER_CLASS, false, OidcIdTokenRequester.class.getClassLoader());
-      return true;
-    } catch (final ClassNotFoundException e) {
-      return false;
-    }
   }
 
   @Override
@@ -97,7 +83,7 @@ final class OidcIdTokenRequester implements OidcIdTokens {
     try {
       return context.getBean(ProjectConnectionCredentialsManager.class);
     } catch (final BeansException e) {
-      throw new IOException(UNSUPPORTED_MESSAGE, e);
+      throw new IOException(ConnectionCredentialsApi.UNSUPPORTED_MESSAGE, e);
     }
   }
 }

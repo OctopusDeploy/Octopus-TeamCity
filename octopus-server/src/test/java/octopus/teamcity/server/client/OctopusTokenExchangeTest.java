@@ -89,6 +89,20 @@ class OctopusTokenExchangeTest {
   }
 
   @Test
+  void explainsAServerWithoutTheTokenExchangeEndpoint() {
+    final OctopusTokenExchange exchange =
+        new OctopusTokenExchange(
+            (url, json) -> {
+              throw new OctopusHttpStatusException(404, "Octopus returned HTTP 404.");
+            });
+
+    assertThatThrownBy(() -> exchange.exchange("https://octopus.example.com", "a", "t"))
+        .isInstanceOf(IOException.class)
+        .hasMessageContaining("no token-exchange endpoint at https://octopus.example.com/token/v1")
+        .hasMessageNotContaining("did not accept");
+  }
+
+  @Test
   void passesOnOtherFailures() {
     final OctopusTokenExchange exchange =
         new OctopusTokenExchange(

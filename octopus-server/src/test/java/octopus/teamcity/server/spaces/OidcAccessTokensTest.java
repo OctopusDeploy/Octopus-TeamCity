@@ -21,6 +21,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -127,6 +128,24 @@ class OidcAccessTokensTest {
 
     assertThat(refusal()).contains("Enable the connection subject dimension");
     assertThat(exchangeUrls).isEmpty();
+  }
+
+  @Test
+  void explainsAFailureThatHasNoMessage() {
+    oidcConnectorWithAudience();
+    idTokenFailure = new IOException("");
+
+    assertThat(refusal())
+        .isEqualTo("Could not get an Octopus access token through OIDC connection 'oidc-1'.");
+  }
+
+  @Test
+  void explainsAnOctopusHostThatCannotBeFound() {
+    oidcConnectorWithAudience();
+    idTokenFailure = new UnknownHostException("stored.example.com");
+
+    assertThat(refusal())
+        .isEqualTo("Could not reach " + SERVER_URL + ": the host could not be found.");
   }
 
   @Test

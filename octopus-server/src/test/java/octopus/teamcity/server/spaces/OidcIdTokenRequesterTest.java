@@ -55,11 +55,6 @@ class OidcIdTokenRequesterTest {
   }
 
   @Test
-  void isSupportedWhenTheCredentialsApiIsOnTheClasspath() {
-    assertThat(OidcIdTokenRequester.isSupported()).isTrue();
-  }
-
-  @Test
   void requestsATokenForTheBuildConfiguration() throws Exception {
     final ConnectionCredentials credentials =
         credentialsWith(Collections.singletonMap("id_token", "id.token.value"));

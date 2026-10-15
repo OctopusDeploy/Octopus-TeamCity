@@ -15,6 +15,7 @@
 package octopus.teamcity.server.spaces;
 
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.Optional;
 
@@ -91,8 +92,23 @@ class OidcAccessTokens {
               + " for project "
               + project.getExternalId(),
           e);
-      throw new CredentialsUnavailableException(e.getMessage());
+      throw new CredentialsUnavailableException(reason(e, oidcConnectionId, serverUrl));
     }
+  }
+
+  private static String reason(
+      final IOException failure, final String oidcConnectionId, final String serverUrl) {
+    // An unknown host's message is only the host name.
+    if (failure instanceof UnknownHostException) {
+      return "Could not reach " + serverUrl + ": the host could not be found.";
+    }
+    final String message = failure.getMessage();
+    if (message == null || message.trim().isEmpty()) {
+      return "Could not get an Octopus access token through OIDC connection '"
+          + oidcConnectionId
+          + "'.";
+    }
+    return message;
   }
 
   private static String oidcConnectionId(final Map<String, String> connectionParams)
@@ -106,12 +122,23 @@ class OidcAccessTokens {
     return oidcConnectionId.trim();
   }
 
+  /**
+   * Turns OIDC lookups off, rather than failing, on a server without the connection credentials
+   * API.
+   */
   private static OidcIdTokens idTokensFor(final ApplicationContext applicationContext) {
-    if (OidcIdTokenRequester.isSupported()) {
-      return new OidcIdTokenRequester(applicationContext);
+    if (ConnectionCredentialsApi.isPresent()) {
+      try {
+        return new OidcIdTokenRequester(applicationContext);
+      } catch (final LinkageError e) {
+        Loggers.SERVER.warn(
+            "TeamCity's connection credentials API could not be loaded. Spaces cannot be listed"
+                + " for OIDC connections.",
+            e);
+      }
     }
     return (project, oidcConnectionId, buildTypeExternalId) -> {
-      throw new IOException(OidcIdTokenRequester.UNSUPPORTED_MESSAGE);
+      throw new IOException(ConnectionCredentialsApi.UNSUPPORTED_MESSAGE);
     };
   }
 }

@@ -64,6 +64,14 @@ public class OctopusTokenExchange {
     try {
       body = requester.post(url, GSON.toJson(request));
     } catch (final OctopusHttpStatusException e) {
+      if (e.getStatus() == 404) {
+        throw new IOException(
+            "Octopus has no token-exchange endpoint at "
+                + url
+                + " (HTTP 404). Check the connection's URL points at an Octopus server that"
+                + " supports OIDC.",
+            e);
+      }
       if (e.getStatus() >= 400 && e.getStatus() <= 499) {
         throw new IOException(
             "Octopus did not accept the OIDC token (HTTP "
