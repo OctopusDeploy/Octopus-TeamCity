@@ -28,6 +28,7 @@ import jetbrains.buildServer.serverSide.SBuildType;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.oauth.OAuthConnectionDescriptor;
 import jetbrains.buildServer.users.SUser;
+import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import jetbrains.buildServer.web.util.SessionUser;
 import octopus.teamcity.common.connection.ConnectionPropertyNames;
 import org.jetbrains.annotations.NotNull;
@@ -46,13 +47,17 @@ public class OctopusConnectionUiData {
 
   private static volatile OctopusConnectionsManager connectionsManager;
   private static volatile ProjectManager projectManager;
+  private static volatile PluginDescriptor pluginDescriptor;
 
   @SuppressWarnings(
       "StaticAssignmentInConstructor") // JSPs have no Spring context; capture statically.
   public OctopusConnectionUiData(
-      final OctopusConnectionsManager connectionsManager, final ProjectManager projectManager) {
+      final OctopusConnectionsManager connectionsManager,
+      final ProjectManager projectManager,
+      final PluginDescriptor pluginDescriptor) {
     OctopusConnectionUiData.connectionsManager = connectionsManager;
     OctopusConnectionUiData.projectManager = projectManager;
+    OctopusConnectionUiData.pluginDescriptor = pluginDescriptor;
   }
 
   /**
@@ -168,6 +173,37 @@ public class OctopusConnectionUiData {
     return request.getContextPath()
         + "/admin/editBuildFeatures.html?id=buildType:"
         + buildType.getExternalId();
+  }
+
+  /**
+   * The project whose form is being edited, for the space picker's permission check.
+   *
+   * <p>A connection page carries {@code projectId} directly; a step page instead carries {@code
+   * id=buildType:...}, so the project is derived from the build type.
+   */
+  @NotNull
+  public static String spacePickerProjectId(final HttpServletRequest request) {
+    final String projectId = request.getParameter("projectId");
+    if (projectId != null && !projectId.trim().isEmpty()) {
+      return projectId.trim();
+    }
+    final String fromBuildType = currentProjectExternalId(request);
+    return fromBuildType == null ? "" : fromBuildType;
+  }
+
+  /**
+   * Context-relative URL of the space picker's script. The plugin version is appended so a browser
+   * does not keep running a cached copy after the plugin is upgraded.
+   */
+  @NotNull
+  public static String spacePickerScriptUrl(final HttpServletRequest request) {
+    if (pluginDescriptor == null) {
+      return "";
+    }
+    final String version = pluginDescriptor.getPluginVersion();
+    return request.getContextPath()
+        + pluginDescriptor.getPluginResourcesPath("js/spacePicker.js")
+        + (version == null ? "" : "?v=" + version);
   }
 
   private static String currentProjectExternalId(final HttpServletRequest request) {

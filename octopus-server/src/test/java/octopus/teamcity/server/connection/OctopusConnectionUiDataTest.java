@@ -1,6 +1,7 @@
 package octopus.teamcity.server.connection;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -17,6 +18,7 @@ import jetbrains.buildServer.serverSide.SBuildType;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.oauth.OAuthConnectionDescriptor;
 import jetbrains.buildServer.users.SUser;
+import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import octopus.teamcity.common.connection.ConnectionPropertyNames;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,12 +31,13 @@ class OctopusConnectionUiDataTest {
 
   @Mock private OctopusConnectionsManager connectionsManager;
   @Mock private ProjectManager projectManager;
+  @Mock private PluginDescriptor pluginDescriptor;
   @Mock private SUser user;
 
   @BeforeEach
   void setUp() {
     // Constructing the bean captures the collaborators into the class's static fields.
-    new OctopusConnectionUiData(connectionsManager, projectManager);
+    new OctopusConnectionUiData(connectionsManager, projectManager, pluginDescriptor);
   }
 
   private OAuthConnectionDescriptor connection(
@@ -246,5 +249,47 @@ class OctopusConnectionUiDataTest {
     when(request.getParameter("id")).thenReturn(null);
 
     assertThat(OctopusConnectionUiData.buildFeaturesUrl(request)).isEqualTo("");
+  }
+
+  private static HttpServletRequest requestWith(final Map<String, String> parameters) {
+    final HttpServletRequest request = mock(HttpServletRequest.class);
+    when(request.getParameter(anyString()))
+        .thenAnswer(invocation -> parameters.get(invocation.<String>getArgument(0)));
+    return request;
+  }
+
+  @Test
+  void spacePickerScriptUrlIsContextRelativeAndVersioned() {
+    final HttpServletRequest request = mock(HttpServletRequest.class);
+    when(request.getContextPath()).thenReturn("/tc");
+    when(pluginDescriptor.getPluginResourcesPath("js/spacePicker.js"))
+        .thenReturn("/plugins/Octopus.TeamCity/js/spacePicker.js");
+    when(pluginDescriptor.getPluginVersion()).thenReturn("6.2.0");
+
+    assertThat(OctopusConnectionUiData.spacePickerScriptUrl(request))
+        .isEqualTo("/tc/plugins/Octopus.TeamCity/js/spacePicker.js?v=6.2.0");
+  }
+
+  @Test
+  void spacePickerProjectIdIsTheConnectionFormsProject() {
+    final Map<String, String> parameters = new HashMap<>();
+    parameters.put("projectId", " Rtest ");
+
+    assertThat(OctopusConnectionUiData.spacePickerProjectId(requestWith(parameters)))
+        .isEqualTo("Rtest");
+  }
+
+  @Test
+  void spacePickerProjectIdIsTheStepFormsBuildConfigurationsProject() {
+    final SBuildType buildType = mock(SBuildType.class);
+    final SProject project = mock(SProject.class);
+    when(projectManager.findBuildTypeByExternalId("Rtest_Build")).thenReturn(buildType);
+    when(buildType.getProject()).thenReturn(project);
+    when(project.getExternalId()).thenReturn("Rtest");
+    final Map<String, String> parameters = new HashMap<>();
+    parameters.put("id", "buildType:Rtest_Build");
+
+    assertThat(OctopusConnectionUiData.spacePickerProjectId(requestWith(parameters)))
+        .isEqualTo("Rtest");
   }
 }

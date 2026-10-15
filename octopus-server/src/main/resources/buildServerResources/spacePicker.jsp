@@ -1,6 +1,9 @@
 <%@ include file="/include-internal.jsp" %>
 <%@ taglib prefix="props" tagdir="/WEB-INF/tags/props" %>
+<%@ taglib prefix="l" tagdir="/WEB-INF/tags/layout" %>
+<%@ taglib prefix="bs" tagdir="/WEB-INF/tags" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page import="octopus.teamcity.server.connection.OctopusConnectionUiData" %>
 
 <%--
   ~ Copyright (c) Octopus Deploy and contributors. All rights reserved.
@@ -17,15 +20,94 @@
   ~ specific language governing permissions and limitations under the License.
   --%>
 
-<%-- Space field shared by the connection form and every step form; both store the space under the
-     same property name. The including page passes its help text as the "note" param. --%>
-<jsp:useBean id="spaceKeys" class="octopus.teamcity.common.OctopusConstants"/>
+<%--
+  Space picker, shared by the connection form and every step form.
 
-<tr>
-  <th>Space name:</th>
+  A text field that suggests the connection's spaces as you type. Choosing a space, or typing its
+  exact name, stores the space's *id* alongside the name; the id survives the space being renamed
+  in Octopus. Anything else typed - including a parameter reference such as %octopus.space%, which
+  TeamCity resolves when the build runs - is stored as the name alone.
+
+  The property names are the same on a connection and on a step, so OctopusConstants supplies both
+  regardless of which page is including this. The including page passes its own help text as the
+  "note" param. The connection form also passes the id of the connection being edited as the
+  "octopusConnectionId" param, empty until the connection is saved; a step form's connection
+  selector supplies it there instead.
+--%>
+
+<jsp:useBean id="spaceKeys" class="octopus.teamcity.common.OctopusConstants"/>
+<%
+  pageContext.setAttribute(
+      "spacePickerProjectId", OctopusConnectionUiData.spacePickerProjectId(request));
+  pageContext.setAttribute(
+      "spacePickerScriptUrl", OctopusConnectionUiData.spacePickerScriptUrl(request));
+%>
+
+<tr class="octopusSpacePickerRow">
+  <th>Space:</th>
   <td>
-    <props:textProperty name="${spaceKeys.spaceName}" className="longField"/>
+    <props:hiddenProperty name="${spaceKeys.spaceId}"/>
+    <span class="octopusSpaceNameInput">
+      <props:textProperty name="${spaceKeys.spaceName}" className="longField"/>
+    </span>
     <span class="error" id="error_${spaceKeys.spaceName}"></span>
+    <span class="error octopusSpaceMissing" style="display:none;"></span>
+    <span class="smallNote octopusSpaceStatus"><span class="octopusSpaceStatusText"></span>
+      <%-- Why the spaces could not be listed, shown in a tooltip; the reason is in data-reason. --%>
+      <span class="octopusSpaceDetails" tabindex="0" role="button" style="display:none;"><bs:helpIcon/></span>
+    </span>
+
+    <%-- Config passed as HTML-escaped data attributes rather than interpolated into JS string
+         literals, so nothing server-side can break out into script. --%>
+    <span class="octopusSpacePickerMeta" style="display:none;"
+          data-project-id="<c:out value='${spacePickerProjectId}'/>"
+          data-lookup-url="<c:out value='${pageContext.request.contextPath}'/>/octopus/listSpaces.html"
+          data-space-id-field="<c:out value='${spaceKeys.spaceId}'/>"
+          data-connection-id="<c:out value='${param.octopusConnectionId}'/>"
+          data-script-url="<c:out value='${spacePickerScriptUrl}'/>"></span>
+
     <span class="smallNote"><c:out value="${param.note}"/></span>
+    <span class="smallNote octopusSpaceByIdNote" style="display:none;">
+      Choose a space from the suggestions to store it by id, so renaming it in Octopus will not
+      break this configuration.
+    </span>
   </td>
 </tr>
+
+<%-- The behaviour lives in js/spacePicker.js. It is added to the page from here rather than with
+     a script src tag, because the connection form arrives through an AJAX dialog that runs inline
+     scripts but does not load external ones. --%>
+<script type="text/javascript">
+  (function () {
+    function setUp() {
+      window.OctopusSpacePicker.setupAll();
+    }
+    function showLoadFailure() {
+      const statuses = document.querySelectorAll(".octopusSpaceStatus");
+      for (let index = 0; index < statuses.length; index++) {
+        statuses[index].className = "smallNote error octopusSpaceStatus";
+        statuses[index].querySelector(".octopusSpaceStatusText").textContent =
+          "Unable to retrieve spaces, please enter space name manually";
+      }
+    }
+    if (window.OctopusSpacePicker) {
+      setUp();
+      return;
+    }
+    const meta = document.querySelector(".octopusSpacePickerMeta");
+    if (!meta) return;
+    let script = document.getElementById("octopusSpacePickerScript");
+    if (!script) {
+      script = document.createElement("script");
+      script.id = "octopusSpacePickerScript";
+      script.src = meta.getAttribute("data-script-url");
+      // Removed on failure so the next form to include this tries loading it again.
+      script.addEventListener("error", function () {
+        script.remove();
+      });
+      document.head.appendChild(script);
+    }
+    script.addEventListener("load", setUp);
+    script.addEventListener("error", showLoadFailure);
+  })();
+</script>
