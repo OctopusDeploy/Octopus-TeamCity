@@ -265,7 +265,7 @@ public class OctopusSpacesController extends BaseController {
     final String reference = params.get(ConnectionPropertyNames.API_KEY_PARAMETER);
     if (reference == null || reference.trim().isEmpty()) {
       throw new CredentialsUnavailableException(
-          "This connection does not name an API key parameter.");
+          "This connection does not use an API key parameter.");
     }
     return reference.trim();
   }
