@@ -105,7 +105,7 @@ jobs:
         echo "::set-output name=package-created::$PACKAGE_NAME"
         echo "::set-output name=package-basename::$(basename "$PACKAGE_NAME")"
 
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v7
       with:
         name: Octopus.TeamCity.${{ steps.git-version.outputs.nugetVersion }}
         path: '${{ steps.create-package.outputs.package-created }}'
@@ -143,7 +143,7 @@ jobs:
     # Caches the Playwright browser binaries (~/.cache/ms-playwright), keyed on the Playwright
     # version in e2e/build.gradle. Bump the key when that version changes.
     - name: Cache Playwright browsers
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: ~/.cache/ms-playwright
         key: ${{ runner.os }}-playwright-1.60.0
@@ -195,7 +195,7 @@ jobs:
         path: package
 
     - name: Login to Octopus
-      uses: OctopusDeploy/login@v1
+      uses: OctopusDeploy/login@v2
       with:
         server: ${{ secrets.OCTOPUS_SERVER }}
         service_account_id: ${{ vars.OCTOPUS_SERVICE_ACCOUNT }}
@@ -211,7 +211,7 @@ jobs:
         overwrite_mode: OverwriteExisting
 
     - name: Push a package to Octopus Deploy 🐙
-      uses: OctopusDeploy/push-package-action@v3
+      uses: OctopusDeploy/push-package-action@v4
       with:
         packages: 'package/${{ needs.build.outputs.package-basename }}'
         overwrite_mode: OverwriteExisting
@@ -226,7 +226,7 @@ jobs:
         echo "::set-output name=release-note-file::$OUTPUT_FILE"
 
     - name: Create a release in Octopus Deploy 🐙
-      uses: OctopusDeploy/create-release-action@v3
+      uses: OctopusDeploy/create-release-action@v4
       with:
         project: 'TeamCity Plugin'
         package_version: ${{ needs.build.outputs.version }}
