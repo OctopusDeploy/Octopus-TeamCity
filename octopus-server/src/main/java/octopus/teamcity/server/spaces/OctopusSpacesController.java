@@ -28,6 +28,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import jetbrains.buildServer.controllers.BaseController;
+import jetbrains.buildServer.log.Loggers;
 import jetbrains.buildServer.parameters.ProcessingResult;
 import jetbrains.buildServer.serverSide.ParametersSupport;
 import jetbrains.buildServer.serverSide.ProjectManager;
@@ -146,6 +147,12 @@ public class OctopusSpacesController extends BaseController {
       final List<OctopusSpace> spaces = fetcher.fetch(credentials.serverUrl, credentials.auth);
       writeSpaces(response, spaces);
     } catch (final IOException e) {
+      Loggers.SERVER.warn(
+          "Could not list the spaces on "
+              + credentials.serverUrl
+              + " for project "
+              + project.getExternalId(),
+          e);
       // The fetcher's messages describe the failure without quoting the credential back.
       writeError(response, HttpServletResponse.SC_OK, e.getMessage());
     }

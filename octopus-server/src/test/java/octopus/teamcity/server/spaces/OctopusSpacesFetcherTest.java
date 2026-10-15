@@ -17,9 +17,11 @@ package octopus.teamcity.server.spaces;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import octopus.teamcity.server.client.OctopusAuth;
@@ -146,7 +148,10 @@ class OctopusSpacesFetcherTest {
     assertThatThrownBy(
             () -> fetcherReturning("<html>not octopus</html>").fetch("https://x", "API-KEY"))
         .isInstanceOf(IOException.class)
-        .hasMessageContaining("Unable to retrieve spaces from the Octopus Server.");
+        .hasMessage("Unable to retrieve spaces from the Octopus Server.")
+        .getCause()
+        .hasMessageContaining("https://x/api/spaces")
+        .hasMessageContaining("<html>not octopus</html>");
   }
 
   @Test
@@ -154,6 +159,18 @@ class OctopusSpacesFetcherTest {
     assertThatThrownBy(() -> fetcherReturning("{\"Links\":{}}").fetch("https://x", "API-KEY"))
         .isInstanceOf(IOException.class)
         .hasMessageContaining("Unable to retrieve spaces from the Octopus Server.");
+  }
+
+  @Test
+  void keepsOnlyTheStartOfALongResponseForTheLog() {
+    final String longBody = "<html>" + String.join("", Collections.nCopies(2000, "x"));
+
+    final Throwable failure =
+        catchThrowable(() -> fetcherReturning(longBody).fetch("https://x", "API-KEY"));
+
+    assertThat(failure.getCause().getMessage())
+        .contains(longBody.substring(0, 1000))
+        .doesNotContain(longBody.substring(0, 1001));
   }
 
   @Test

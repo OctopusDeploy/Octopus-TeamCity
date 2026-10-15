@@ -24,7 +24,6 @@ import java.util.List;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
-import jetbrains.buildServer.log.Loggers;
 import octopus.teamcity.server.client.OctopusAuth;
 import octopus.teamcity.server.client.OctopusHttpClient;
 
@@ -95,19 +94,24 @@ public class OctopusSpacesFetcher {
     return spaces;
   }
 
+  /**
+   * A short message for the user, with the URL and the start of the response kept in the cause for
+   * the server log.
+   */
   private static IOException notASpacesList(
-      final String url, final String body, final JsonSyntaxException cause) {
-    Loggers.SERVER.warn(
-        "The response from "
-            + url
-            + " was not an Octopus spaces list. Response body (first "
-            + LOGGED_BODY_LENGTH
-            + " characters): "
-            + (body == null || body.length() <= LOGGED_BODY_LENGTH
-                ? body
-                : body.substring(0, LOGGED_BODY_LENGTH)),
-        cause);
-    return new IOException("Unable to retrieve spaces from the Octopus Server.");
+      final String url, final String body, final JsonSyntaxException parseFailure) {
+    final IOException detail =
+        new IOException(
+            "The response from "
+                + url
+                + " was not an Octopus spaces list. Response body (first "
+                + LOGGED_BODY_LENGTH
+                + " characters): "
+                + (body == null || body.length() <= LOGGED_BODY_LENGTH
+                    ? body
+                    : body.substring(0, LOGGED_BODY_LENGTH)),
+            parseFailure);
+    return new IOException("Unable to retrieve spaces from the Octopus Server.", detail);
   }
 
   static String spacesUrl(final String serverUrl) throws IOException {
