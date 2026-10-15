@@ -212,12 +212,14 @@ public class OctopusSpacesController extends BaseController {
             "Spaces can only be listed with an API key parameter by someone who can run builds"
                 + " here. Enter the space name instead.");
       }
-      final String apiKey = resolveApiKeyParameter(params, buildType == null ? project : buildType);
+      final String reference = apiKeyParameterReference(params);
+      final String apiKey =
+          resolveApiKeyParameter(reference, buildType == null ? project : buildType);
       Loggers.SERVER.info(
           "User "
               + user.getUsername()
               + " resolved the API key parameter "
-              + params.get(ConnectionPropertyNames.API_KEY_PARAMETER).trim()
+              + reference
               + " of Octopus connection "
               + connectionId.trim()
               + " in "
@@ -257,26 +259,31 @@ public class OctopusSpacesController extends BaseController {
     return buildType;
   }
 
-  /** Resolves the connection's {@code %parameter%} reference as a build of {@code scope} would. */
-  private static String resolveApiKeyParameter(
-      final Map<String, String> params, final ParametersSupport scope)
+  /** The connection's {@code %parameter%} reference, trimmed as a build injects it. */
+  private static String apiKeyParameterReference(final Map<String, String> params)
       throws CredentialsUnavailableException {
     final String reference = params.get(ConnectionPropertyNames.API_KEY_PARAMETER);
     if (reference == null || reference.trim().isEmpty()) {
       throw new CredentialsUnavailableException(
           "This connection does not name an API key parameter.");
     }
-    final ProcessingResult resolved = scope.getValueResolver().resolve(reference.trim());
-    if (!resolved.isFullyResolved()
-        || resolved.getResult() == null
-        || resolved.getResult().trim().isEmpty()) {
+    return reference.trim();
+  }
+
+  /** Resolves {@code reference} as a build of {@code scope} would. */
+  private static String resolveApiKeyParameter(
+      final String reference, final ParametersSupport scope)
+      throws CredentialsUnavailableException {
+    final ProcessingResult resolved = scope.getValueResolver().resolve(reference);
+    final String apiKey = resolved.getResult();
+    if (!resolved.isFullyResolved() || apiKey == null || apiKey.trim().isEmpty()) {
       throw new CredentialsUnavailableException(
           "The API key parameter "
-              + reference.trim()
+              + reference
               + " can't be resolved here - it may only be set when a build runs. Enter the space"
               + " name instead.");
     }
-    return resolved.getResult();
+    return apiKey;
   }
 
   private static void writeSpaces(
