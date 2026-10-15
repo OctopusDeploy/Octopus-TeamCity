@@ -263,15 +263,16 @@ class OctopusSpacesControllerTest {
   }
 
   @Test
-  void refusesABuildConfigurationTheUserCannotEdit() throws Exception {
+  void refusesABuildConfigurationFromAnotherProject() throws Exception {
     parameterSourcedConnection();
-    buildTypeInProject("project999");
+    final SBuildType buildType = buildTypeInProject("project999");
     when(user.isPermissionGrantedForProject("project999", Permission.EDIT_PROJECT))
-        .thenReturn(false);
+        .thenReturn(true);
+    when(user.isPermissionGrantedForProject("project999", Permission.RUN_BUILD)).thenReturn(true);
+    final ValueResolver resolver = resolverReturning("API-FROM-PARAMETER", true);
+    when(buildType.getValueResolver()).thenReturn(resolver);
 
-    final String body = handle();
-
-    assertThat(body).contains("was not found, or you do not have permission to edit its project");
+    assertThat(handle()).contains("MyProject_Deploy").contains("was not found in this project");
     assertThat(fetchedUrls).isEmpty();
   }
 
@@ -284,19 +285,6 @@ class OctopusSpacesControllerTest {
     when(project.getValueResolver()).thenReturn(resolver);
 
     assertThat(handle()).contains("can run builds").contains("space name instead");
-    assertThat(fetchedUrls).isEmpty();
-  }
-
-  @Test
-  void refusesAParameterSourcedKeyToAUserWhoCannotRunTheBuildConfiguration() throws Exception {
-    parameterSourcedConnection();
-    final SBuildType buildType = buildTypeInProject("project999");
-    when(user.isPermissionGrantedForProject("project999", Permission.EDIT_PROJECT))
-        .thenReturn(true);
-    final ValueResolver resolver = resolverReturning("API-FROM-PARAMETER", true);
-    when(buildType.getValueResolver()).thenReturn(resolver);
-
-    assertThat(handle()).contains("can run builds");
     assertThat(fetchedUrls).isEmpty();
   }
 

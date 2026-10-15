@@ -59,10 +59,10 @@ import org.springframework.web.servlet.ModelAndView;
  *   <li>when a saved connection is named, its credentials are read server-side and the request's
  *       own {@code apiKey} is ignored, because TeamCity renders a stored secret as a placeholder
  *       and the browser therefore does not hold the real key;
- *   <li>a build configuration named by the request is used only when the caller holds {@link
- *       Permission#EDIT_PROJECT} on its project too, since its parameters can hold the API key;
+ *   <li>a build configuration named by the request is used only when it belongs to that project, as
+ *       a build of it would find the connection from there;
  *   <li>an API key held in a parameter is resolved only for a caller who also holds {@link
- *       Permission#RUN_BUILD} where it resolves, and each such lookup is logged. Its value may be a
+ *       Permission#RUN_BUILD} on the project, and each such lookup is logged. Its value may be a
  *       password the caller cannot read, but a caller who can edit and run a build can already send
  *       it anywhere from a build step;
  *   <li>the API key is never echoed back, in an error message or otherwise.
@@ -206,10 +206,8 @@ public class OctopusSpacesController extends BaseController {
         params.getOrDefault(
             ConnectionPropertyNames.API_KEY_SOURCE, ConnectionPropertyNames.API_KEY_SOURCE_KEY);
     if (ConnectionPropertyNames.API_KEY_SOURCE_PARAMETER.equals(source)) {
-      final SBuildType buildType = editableBuildType(request, user);
-      final String scopeProjectId =
-          buildType == null ? project.getProjectId() : buildType.getProjectId();
-      if (!user.isPermissionGrantedForProject(scopeProjectId, Permission.RUN_BUILD)) {
+      final SBuildType buildType = projectBuildType(request, project);
+      if (!user.isPermissionGrantedForProject(project.getProjectId(), Permission.RUN_BUILD)) {
         throw new CredentialsUnavailableException(
             "Spaces can only be listed with an API key parameter by someone who can run builds"
                 + " here. Enter the space name instead.");
@@ -241,23 +239,20 @@ public class OctopusSpacesController extends BaseController {
 
   /**
    * The step form's build configuration, or {@code null} on a form that has none. A missing one and
-   * one whose project the caller cannot edit get the same message, so the request cannot be used to
-   * find out which build configurations exist.
+   * one in another project get the same message, so the request cannot be used to find out which
+   * build configurations exist.
    */
   @Nullable
-  private SBuildType editableBuildType(final HttpServletRequest request, final SUser user)
+  private SBuildType projectBuildType(final HttpServletRequest request, final SProject project)
       throws CredentialsUnavailableException {
     final String buildTypeId = request.getParameter("buildTypeId");
     if (buildTypeId == null || buildTypeId.trim().isEmpty()) {
       return null;
     }
     final SBuildType buildType = projectManager.findBuildTypeByExternalId(buildTypeId.trim());
-    if (buildType == null
-        || !user.isPermissionGrantedForProject(buildType.getProjectId(), Permission.EDIT_PROJECT)) {
+    if (buildType == null || !project.getProjectId().equals(buildType.getProjectId())) {
       throw new CredentialsUnavailableException(
-          "Build configuration '"
-              + buildTypeId.trim()
-              + "' was not found, or you do not have permission to edit its project.");
+          "Build configuration '" + buildTypeId.trim() + "' was not found in this project.");
     }
     return buildType;
   }
