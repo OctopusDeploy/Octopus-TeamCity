@@ -16,16 +16,12 @@
 package octopus.teamcity.agent.cli;
 
 import java.util.Map;
-import java.util.function.Supplier;
 
-/**
- * Promotes a release from one environment to other environment(s)
- */
+/** Promotes a release from one environment to other environment(s) */
 final class PromoteReleaseCommand extends ServerTaskCommand {
   private final Map<String, String> parameters;
 
-  PromoteReleaseCommand(
-      final Map<String, String> parameters) {
+  PromoteReleaseCommand(final Map<String, String> parameters) {
     this.parameters = parameters;
   }
 

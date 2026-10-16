@@ -27,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class PromoteReleaseBuildProcess extends CLIBuildProcess {
   public PromoteReleaseBuildProcess(
-        @NotNull AgentRunningBuild runningBuild, @NotNull BuildRunnerContext context) {
+      @NotNull AgentRunningBuild runningBuild, @NotNull BuildRunnerContext context) {
     super(runningBuild, context);
   }
 

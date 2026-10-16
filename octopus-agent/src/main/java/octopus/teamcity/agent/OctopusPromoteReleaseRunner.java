@@ -25,7 +25,6 @@ import jetbrains.buildServer.agent.BuildProcess;
 import jetbrains.buildServer.agent.BuildRunnerContext;
 import octopus.teamcity.agent.cli.PromoteReleaseBuildProcess;
 import octopus.teamcity.common.OctopusConstants;
-import octopus.teamcity.common.connection.ConnectionPropertyNames;
 import org.jetbrains.annotations.NotNull;
 
 public class OctopusPromoteReleaseRunner implements AgentBuildRunner {

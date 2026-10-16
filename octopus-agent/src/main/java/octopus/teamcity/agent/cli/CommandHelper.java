@@ -59,11 +59,7 @@ public class CommandHelper {
           "--deployment-freeze-name",
           "--deployment-freeze-override-reason");
   static final Set<String> promoteReleaseAdditionalArgumentsToBeIgnored =
-          commandArgumentSet(
-                  "--from",
-                  "--to",
-                  "--tenant",
-                  "--tenant-tag");
+      commandArgumentSet("--from", "--to", "--tenant", "--tenant-tag");
   static final Set<String> runbookRunAdditionalArgumentsToBeIgnored =
       commandArgumentSet(
           "-n", "--name", "-e", "--environment", "--tenant", "--tenant-tag", "--snapshot");
@@ -138,8 +134,7 @@ public class CommandHelper {
     return commands.toArray(new String[0]);
   }
 
-  public static String[] promoteRelease(
-          Map<String, String> params) {
+  public static String[] promoteRelease(Map<String, String> params) {
     final OctopusConstants constants = OctopusConstants.Instance;
     final ArrayList<String> commands = new ArrayList<>();
     final String spaceName = SpaceSelection.resolveOrDefault(params);
@@ -182,7 +177,7 @@ public class CommandHelper {
     if (StringUtils.isNotBlank(commandLineArguments)) {
       List<String> commandArgs = splitSpaceSeparatedValues(commandLineArguments);
       List<String> updatedCommandArgs =
-              sanitizeCommandArgs(commandArgs, promoteReleaseAdditionalArgumentsToBeIgnored);
+          sanitizeCommandArgs(commandArgs, promoteReleaseAdditionalArgumentsToBeIgnored);
       commands.addAll(updatedCommandArgs);
     }
 
