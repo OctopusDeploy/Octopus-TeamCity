@@ -160,6 +160,31 @@ public final class TeamCityRest {
     return jsonField(resp.body(), "id");
   }
 
+  /** Creates an Octopus connection that authenticates through the given OIDC connector. */
+  public String createOctopusConnectionWithOidc(
+      final String projectId,
+      final String displayName,
+      final String octopusUrl,
+      final String oidcConnectorId,
+      final String space)
+      throws Exception {
+    final String json =
+        createOauthProviderJson(
+            createProp("providerType", "OctopusConnection"),
+            createProp("displayName", displayName),
+            createProp("octopus_host", octopusUrl),
+            createProp("octopus_apikey_source", "oidc"),
+            createProp("octopus_oidc_connection_id", oidcConnectorId),
+            createProp("octopus_space_name", space));
+    final Http.Response resp =
+        send(
+            "POST",
+            "/httpAuth/app/rest/projects/" + projectId + "/projectFeatures",
+            "application/json",
+            json);
+    return jsonField(resp.body(), "id");
+  }
+
   /**
    * Creates an OIDC Identity Token connection (the teamcity-oidc-plugin's {@code
    * oidc-identity-token} provider). Our Octopus connection form lists these as OIDC connectors.
@@ -186,6 +211,32 @@ public final class TeamCityRest {
             "application/json",
             json);
     return jsonField(resp.body(), "id");
+  }
+
+  /**
+   * The subject the OIDC plugin puts in tokens issued for a build configuration, with its default
+   * subject settings.
+   */
+  public String oidcSubject(final String projectId, final String buildTypeId) throws Exception {
+    final String projectInternalId =
+        jsonField(
+            send(
+                    "GET",
+                    "/httpAuth/app/rest/projects/id:" + projectId + "?fields=internalId",
+                    null,
+                    null)
+                .body(),
+            "internalId");
+    final String buildTypeInternalId =
+        jsonField(
+            send(
+                    "GET",
+                    "/httpAuth/app/rest/buildTypes/id:" + buildTypeId + "?fields=internalId",
+                    null,
+                    null)
+                .body(),
+            "internalId");
+    return "project:" + projectInternalId + ":build_type:" + buildTypeInternalId;
   }
 
   /**

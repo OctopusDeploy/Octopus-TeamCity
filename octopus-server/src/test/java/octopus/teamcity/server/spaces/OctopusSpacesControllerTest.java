@@ -41,6 +41,7 @@ import jetbrains.buildServer.serverSide.oauth.OAuthConnectionDescriptor;
 import jetbrains.buildServer.serverSide.oauth.OAuthProvider;
 import jetbrains.buildServer.users.SUser;
 import octopus.teamcity.common.connection.ConnectionPropertyNames;
+import octopus.teamcity.server.client.OctopusTokenExchange;
 import octopus.teamcity.server.connection.OctopusConnection;
 import octopus.teamcity.server.connection.OctopusConnectionsManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -92,10 +93,20 @@ class OctopusSpacesControllerTest {
               }
               return "{\"Items\":[{\"Id\":\"Spaces-123\",\"Name\":\"Example Space\"}]}";
             });
+    final OidcAccessTokens noOidc =
+        new OidcAccessTokens(
+            connectionsManager,
+            (tokenProject, oidcConnectionId, buildTypeId) -> {
+              throw new IOException("not used");
+            },
+            new OctopusTokenExchange(
+                (url, json) -> {
+                  throw new IOException("not used");
+                }));
     return new OctopusSpacesController(
         null,
         projectManager,
-        new SpacesLookupCredentials(connectionsManager, projectManager),
+        new SpacesLookupCredentials(connectionsManager, projectManager, noOidc),
         fetcher,
         req -> currentUser);
   }

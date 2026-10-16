@@ -40,27 +40,32 @@ import org.jetbrains.annotations.Nullable;
  * server calls are ones an admin has already saved into project configuration, and a stored secret,
  * which TeamCity renders to the browser as a placeholder, never has to come from the page. The cost
  * is that a brand-new connection has to be saved once before its spaces can be listed, and a step
- * using inline credentials cannot list spaces at all. Both fall back to typing the space name, as
- * does a connection that authenticates with OIDC.
+ * using inline credentials cannot list spaces at all. Both fall back to typing the space name.
  *
  * <ul>
  *   <li>A build configuration named by the request is used only when it belongs to the request's
  *       project, as a build of it would find the connection from there.
- *   <li>An API key held in a parameter is resolved only for a caller who also holds {@link
- *       Permission#RUN_BUILD} on the project, and each such lookup is logged. The parameter's value
- *       may be a password the caller cannot read, but a caller who can edit and run a build can
- *       already send the value anywhere from a build step.
+ *   <li>A credential that is not stored on the connection - an API key held in a parameter, or an
+ *       OIDC token - is produced only for a caller who also holds {@link Permission#RUN_BUILD} on
+ *       the project, and each API key parameter lookup is logged. Producing the credential sends it
+ *       to the connection's URL, and an API key parameter's value may be a password the caller
+ *       cannot read, but a caller who can edit and run a build can already send either credential
+ *       anywhere from a build step.
  * </ul>
  */
 class SpacesLookupCredentials {
 
   private final OctopusConnectionsManager connectionsManager;
   private final ProjectManager projectManager;
+  private final OidcAccessTokens oidcAccessTokens;
 
   SpacesLookupCredentials(
-      final OctopusConnectionsManager connectionsManager, final ProjectManager projectManager) {
+      final OctopusConnectionsManager connectionsManager,
+      final ProjectManager projectManager,
+      final OidcAccessTokens oidcAccessTokens) {
     this.connectionsManager = connectionsManager;
     this.projectManager = projectManager;
+    this.oidcAccessTokens = oidcAccessTokens;
   }
 
   /**
@@ -113,9 +118,12 @@ class SpacesLookupCredentials {
       return new Credentials(serverUrl, OctopusAuth.apiKey(apiKey));
     }
     if (ConnectionPropertyNames.API_KEY_SOURCE_OIDC.equals(source)) {
-      throw new CredentialsUnavailableException(
-          "Spaces cannot be listed for a connection that authenticates with OIDC. Enter the space"
-              + " name instead.");
+      final SBuildType buildType = projectBuildType(buildTypeId, project);
+      requireRunBuild(user, project, "an OIDC connection");
+      return new Credentials(
+          serverUrl,
+          OctopusAuth.accessToken(
+              oidcAccessTokens.accessToken(params, project, buildType, serverUrl)));
     }
     return new Credentials(
         serverUrl, OctopusAuth.apiKey(params.get(ConnectionPropertyNames.API_KEY)));

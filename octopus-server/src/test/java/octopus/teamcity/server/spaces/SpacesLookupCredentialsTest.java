@@ -22,7 +22,10 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -36,6 +39,7 @@ import jetbrains.buildServer.serverSide.oauth.OAuthConnectionDescriptor;
 import jetbrains.buildServer.serverSide.oauth.OAuthProvider;
 import jetbrains.buildServer.users.SUser;
 import octopus.teamcity.common.connection.ConnectionPropertyNames;
+import octopus.teamcity.server.client.OctopusTokenExchange;
 import octopus.teamcity.server.connection.OctopusConnection;
 import octopus.teamcity.server.connection.OctopusConnectionsManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,6 +55,7 @@ class SpacesLookupCredentialsTest {
   private final ProjectManager projectManager = mock(ProjectManager.class);
   private final SUser user = mock(SUser.class);
   private final SProject project = mock(SProject.class);
+  private final List<String> idTokenRequests = new ArrayList<>();
 
   private String buildTypeId = null;
 
@@ -62,7 +67,15 @@ class SpacesLookupCredentialsTest {
   }
 
   private Credentials resolve() throws CredentialsUnavailableException {
-    return new SpacesLookupCredentials(connectionsManager, projectManager)
+    final OidcAccessTokens oidcAccessTokens =
+        new OidcAccessTokens(
+            connectionsManager,
+            (tokenProject, oidcConnectionId, requestedBuildTypeId) -> {
+              idTokenRequests.add(oidcConnectionId + " for " + requestedBuildTypeId);
+              return "id.token.value";
+            },
+            new OctopusTokenExchange((url, json) -> "{\"access_token\":\"octopus-access\"}"));
+    return new SpacesLookupCredentials(connectionsManager, projectManager, oidcAccessTokens)
         .resolve(project, user, CONNECTION_ID, buildTypeId);
   }
 
@@ -96,6 +109,20 @@ class SpacesLookupCredentialsTest {
         ConnectionPropertyNames.API_KEY_SOURCE, ConnectionPropertyNames.API_KEY_SOURCE_PARAMETER);
     params.put(ConnectionPropertyNames.API_KEY_PARAMETER, " %octopus.apikey% ");
     connection(params);
+  }
+
+  private void oidcSourcedConnection() {
+    final Map<String, String> params = new HashMap<>();
+    params.put(ConnectionPropertyNames.API_KEY_SOURCE, ConnectionPropertyNames.API_KEY_SOURCE_OIDC);
+    params.put(ConnectionPropertyNames.OIDC_CONNECTION_ID, "oidc-1");
+    connection(params);
+    final OAuthConnectionDescriptor oidcConnector = mock(OAuthConnectionDescriptor.class);
+    when(oidcConnector.getParameters())
+        .thenReturn(
+            Collections.singletonMap(
+                ConnectionPropertyNames.OIDC_CONNECTOR_AUDIENCE, "service-account-guid"));
+    when(connectionsManager.resolve(eq(project), eq("oidc-1")))
+        .thenReturn(Optional.of(oidcConnector));
   }
 
   private static ValueResolver resolverReturning(final String value, final boolean resolved) {
@@ -134,7 +161,7 @@ class SpacesLookupCredentialsTest {
     // ones an admin already persisted into project configuration.
     assertThatThrownBy(
             () ->
-                new SpacesLookupCredentials(connectionsManager, projectManager)
+                new SpacesLookupCredentials(connectionsManager, projectManager, null)
                     .resolve(project, user, " ", null))
         .hasMessageContaining("saved Octopus connection");
   }
@@ -216,12 +243,24 @@ class SpacesLookupCredentialsTest {
   }
 
   @Test
-  void explainsThatAnOidcConnectionCannotListSpaces() {
-    final Map<String, String> params = new HashMap<>();
-    params.put(ConnectionPropertyNames.API_KEY_SOURCE, ConnectionPropertyNames.API_KEY_SOURCE_OIDC);
-    connection(params);
+  void listsAnOidcConnectionsSpacesWithAnAccessTokenForTheBuildConfiguration() throws Exception {
+    oidcSourcedConnection();
+    buildTypeInProject(PROJECT_INTERNAL_ID);
 
-    assertThat(refusal()).contains("authenticates with OIDC").contains("space name instead");
+    final Credentials credentials = resolve();
+
+    assertThat(credentials.auth.value()).isEqualTo("Bearer octopus-access");
+    assertThat(idTokenRequests).containsExactly("oidc-1 for MyProject_Deploy");
+  }
+
+  @Test
+  void refusesAnOidcConnectionToAUserWhoCannotRunBuilds() {
+    oidcSourcedConnection();
+    when(user.isPermissionGrantedForProject(PROJECT_INTERNAL_ID, Permission.RUN_BUILD))
+        .thenReturn(false);
+
+    assertThat(refusal()).contains("with an OIDC connection by someone who can run builds");
+    assertThat(idTokenRequests).isEmpty();
   }
 
   @Test

@@ -36,6 +36,7 @@ import jetbrains.buildServer.web.util.SessionUser;
 import octopus.teamcity.server.connection.OctopusConnectionsManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.context.ApplicationContext;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
@@ -50,7 +51,8 @@ import org.springframework.web.servlet.ModelAndView;
  *       place, so it grants no reach a user did not already have;
  *   <li>the credentials come from a saved connection, never from the request, under the rules in
  *       {@link SpacesLookupCredentials};
- *   <li>the API key is never echoed back, in an error message or otherwise.
+ *   <li>no credential - API key, ID token or access token - is echoed back, in an error message or
+ *       otherwise.
  * </ul>
  */
 public class OctopusSpacesController extends BaseController {
@@ -72,11 +74,15 @@ public class OctopusSpacesController extends BaseController {
   public OctopusSpacesController(
       final WebControllerManager webControllerManager,
       final OctopusConnectionsManager connectionsManager,
-      final ProjectManager projectManager) {
+      final ProjectManager projectManager,
+      final ApplicationContext applicationContext) {
     this(
         webControllerManager,
         projectManager,
-        new SpacesLookupCredentials(connectionsManager, projectManager),
+        new SpacesLookupCredentials(
+            connectionsManager,
+            projectManager,
+            new OidcAccessTokens(connectionsManager, applicationContext)),
         new OctopusSpacesFetcher(),
         SessionUser::getUser);
   }

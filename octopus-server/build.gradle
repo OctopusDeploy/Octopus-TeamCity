@@ -15,6 +15,8 @@ tasks.named('jar') {
 dependencies {
   provided 'org.jetbrains.teamcity:server-api'
   provided 'org.jetbrains.teamcity:oauth'
+  // Only OidcIdTokenRequester references it, and loads only when the running server has it.
+  provided('org.jetbrains.teamcity:connections-api-core') { transitive = false }
   implementation project(':octopus-common')
   implementation 'com.google.guava:guava'
   implementation 'com.google.code.gson:gson'
@@ -22,6 +24,7 @@ dependencies {
 
   testImplementation 'org.jetbrains.teamcity:server-api'
   testImplementation 'org.jetbrains.teamcity:oauth'
+  testImplementation('org.jetbrains.teamcity:connections-api-core') { transitive = false }
   testImplementation 'org.junit.jupiter:junit-jupiter-api'
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
   testImplementation 'org.junit.jupiter:junit-jupiter-params'
