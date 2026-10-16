@@ -58,6 +58,12 @@ public class CommandHelper {
           "--exclude-deployment-target",
           "--deployment-freeze-name",
           "--deployment-freeze-override-reason");
+  static final Set<String> promoteReleaseAdditionalArgumentsToBeIgnored =
+          commandArgumentSet(
+                  "--from",
+                  "--to",
+                  "--tenant",
+                  "--tenant-tag");
   static final Set<String> runbookRunAdditionalArgumentsToBeIgnored =
       commandArgumentSet(
           "-n", "--name", "-e", "--environment", "--tenant", "--tenant-tag", "--snapshot");
@@ -124,7 +130,59 @@ public class CommandHelper {
     if (StringUtils.isNotBlank(commandLineArguments)) {
       List<String> commandArgs = splitSpaceSeparatedValues(commandLineArguments);
       List<String> updatedCommandArgs =
-          sanitizeCommandArgs(commandArgs, createReleaseAdditionalArgumentsToBeIgnored);
+          sanitizeCommandArgs(commandArgs, deployReleaseAdditionalArgumentsToBeIgnored);
+      commands.addAll(updatedCommandArgs);
+    }
+
+    commands.add("--no-prompt");
+    return commands.toArray(new String[0]);
+  }
+
+  public static String[] promoteRelease(
+          Map<String, String> params) {
+    final OctopusConstants constants = OctopusConstants.Instance;
+    final ArrayList<String> commands = new ArrayList<>();
+    final String spaceName = SpaceSelection.resolveOrDefault(params);
+    final String commandLineArguments = params.get(constants.getCommandLineArgumentsKey());
+    final String projectName = params.get(constants.getProjectNameKey());
+    final String promoteFrom = params.get(constants.getPromoteFromKey());
+    final String deployTo = params.get(constants.getDeployToKey());
+    final String tenants = params.get(constants.getTenantsKey());
+    final String tenantTags = params.get(constants.getTenantTagsKey());
+
+    commands.add("release");
+    commands.add("promote");
+    commands.add("--space");
+    commands.add(spaceName);
+
+    commands.add("--project");
+    commands.add(projectName);
+
+    commands.add("--from");
+    commands.add(promoteFrom);
+
+    for (String env : splitCommaSeparatedValues(deployTo)) {
+      commands.add("--to");
+      commands.add(deployTo);
+    }
+
+    for (String tenant : splitCommaSeparatedValues(tenants)) {
+      commands.add("--tenant");
+      commands.add(tenant);
+    }
+
+    for (String tenantTag : splitCommaSeparatedValues(tenantTags)) {
+      commands.add("--tenant-tag");
+      commands.add(tenantTag);
+    }
+
+    commands.add("--output-format");
+    commands.add("json");
+
+    if (StringUtils.isNotBlank(commandLineArguments)) {
+      List<String> commandArgs = splitSpaceSeparatedValues(commandLineArguments);
+      List<String> updatedCommandArgs =
+              sanitizeCommandArgs(commandArgs, promoteReleaseAdditionalArgumentsToBeIgnored);
       commands.addAll(updatedCommandArgs);
     }
 
@@ -273,7 +331,7 @@ public class CommandHelper {
     if (StringUtils.isNotBlank(commandLineArguments)) {
       List<String> commandArgs = splitSpaceSeparatedValues(commandLineArguments);
       List<String> updatedCommandArgs =
-          sanitizeCommandArgs(commandArgs, deployReleaseAdditionalArgumentsToBeIgnored);
+          sanitizeCommandArgs(commandArgs, createReleaseAdditionalArgumentsToBeIgnored);
       commands.addAll(updatedCommandArgs);
     }
 
