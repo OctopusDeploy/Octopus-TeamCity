@@ -42,7 +42,8 @@ import org.testcontainers.utility.MountableFile;
  *
  * <p>TeamCity's root URL is {@link #ROOT_URL}, an HTTPS address served by a Caddy proxy on the full
  * stack, which Octopus trusts. The OIDC plugin only issues tokens for an HTTPS issuer, and Octopus
- * fetches the issuer's signing keys from it, so this is what lets an OIDC connection authenticate.
+ * fetches the issuer's signing keys from that address; an OIDC connection needs both to
+ * authenticate.
  *
  * <p>The UI test only needs TeamCity, so use {@link #startTeamCityOnly()}. The full end-to-end test
  * needs Octopus + an agent, so use {@link #startWithAgentAndOctopus()}.
@@ -60,7 +61,7 @@ public final class OctopusTeamCityStack implements AutoCloseable {
   private static final String CADDY_IMAGE = "caddy:2.8.4";
   private static final String TLS_ALIAS = "teamcity-tls";
 
-  /** TeamCity's root URL, and so the issuer of the OIDC plugin's tokens. */
+  /** TeamCity's root URL, which is also the issuer of the OIDC plugin's tokens. */
   public static final String ROOT_URL = "https://" + TLS_ALIAS;
 
   private static final String CADDY_ROOT_CERT = "/data/caddy/pki/authorities/local/root.crt";

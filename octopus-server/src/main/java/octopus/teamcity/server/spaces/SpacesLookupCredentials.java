@@ -36,21 +36,21 @@ import org.jetbrains.annotations.Nullable;
 /**
  * The credentials for listing a saved connection's spaces, read server-side from the connection.
  *
- * <p>The request names a connection; it never supplies a URL or key of its own. So the only URLs
- * the server will call are ones an admin has already saved into project configuration, and a stored
- * secret, which TeamCity renders to the browser as a placeholder, never has to come from the page.
- * The cost is that a brand-new connection has to be saved once before its spaces can be listed, and
- * a step using inline credentials cannot list spaces at all. Both fall back to typing the space
- * name.
+ * <p>The request names a connection and never supplies a URL or key of its own. The only URLs the
+ * server calls are ones an admin has already saved into project configuration, and a stored secret,
+ * which TeamCity renders to the browser as a placeholder, never has to come from the page. The cost
+ * is that a brand-new connection has to be saved once before its spaces can be listed, and a step
+ * using inline credentials cannot list spaces at all. Both fall back to typing the space name.
  *
  * <ul>
  *   <li>A build configuration named by the request is used only when it belongs to the request's
  *       project, as a build of it would find the connection from there.
  *   <li>A credential that is not stored on the connection - an API key held in a parameter, or an
  *       OIDC token - is produced only for a caller who also holds {@link Permission#RUN_BUILD} on
- *       the project. Producing it sends it to the connection's URL, and an API key parameter may be
- *       a password the caller cannot read, but a caller who can edit and run a build can already
- *       send either anywhere from a build step. Each API key parameter lookup is logged.
+ *       the project, and each API key parameter lookup is logged. Producing the credential sends it
+ *       to the connection's URL, and an API key parameter's value may be a password the caller
+ *       cannot read, but a caller who can edit and run a build can already send either credential
+ *       anywhere from a build step.
  * </ul>
  */
 class SpacesLookupCredentials {
@@ -135,9 +135,9 @@ class SpacesLookupCredentials {
   }
 
   /**
-   * The step form's build configuration, or {@code null} on a form that has none. A missing one and
-   * one in another project get the same message, so the request cannot be used to find out which
-   * build configurations exist.
+   * The step form's build configuration, or {@code null} on a form that has none. A build
+   * configuration that does not exist and one in another project get the same message; the request
+   * cannot reveal which build configurations exist.
    */
   @Nullable
   private SBuildType projectBuildType(@Nullable final String buildTypeId, final SProject project)

@@ -262,4 +262,14 @@ class SpacesLookupCredentialsTest {
     assertThat(refusal()).contains("with an OIDC connection by someone who can run builds");
     assertThat(idTokenRequests).isEmpty();
   }
+
+  @Test
+  void usesTheStoredKeyForABlankSource() throws Exception {
+    final Map<String, String> params = new HashMap<>();
+    params.put(ConnectionPropertyNames.API_KEY_SOURCE, "");
+    params.put(ConnectionPropertyNames.API_KEY, "API-STORED");
+    connection(params);
+
+    assertThat(resolve().auth.value()).isEqualTo("API-STORED");
+  }
 }

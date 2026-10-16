@@ -24,13 +24,14 @@ import com.google.gson.JsonSyntaxException;
 
 /**
  * Exchanges an OIDC ID token for an Octopus access token, through Octopus's token-exchange
- * endpoint, so spaces can be listed for a connection that authenticates with OIDC.
+ * endpoint. A connection that authenticates with OIDC has no API key; the access token takes its
+ * place.
  */
 public class OctopusTokenExchange {
 
   private static final Gson GSON = new GsonBuilder().create();
 
-  /** Performs the POST, so tests need no server. */
+  /** Performs the POST. A seam for tests, which need no server. */
   public interface Requester {
     String post(String url, String json) throws IOException;
   }
