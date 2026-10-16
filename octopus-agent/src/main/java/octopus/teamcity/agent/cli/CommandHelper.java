@@ -130,7 +130,7 @@ public class CommandHelper {
     if (StringUtils.isNotBlank(commandLineArguments)) {
       List<String> commandArgs = splitSpaceSeparatedValues(commandLineArguments);
       List<String> updatedCommandArgs =
-          sanitizeCommandArgs(commandArgs, deployReleaseAdditionalArgumentsToBeIgnored);
+          sanitizeCommandArgs(commandArgs, createReleaseAdditionalArgumentsToBeIgnored);
       commands.addAll(updatedCommandArgs);
     }
 
@@ -331,7 +331,7 @@ public class CommandHelper {
     if (StringUtils.isNotBlank(commandLineArguments)) {
       List<String> commandArgs = splitSpaceSeparatedValues(commandLineArguments);
       List<String> updatedCommandArgs =
-          sanitizeCommandArgs(commandArgs, createReleaseAdditionalArgumentsToBeIgnored);
+          sanitizeCommandArgs(commandArgs, deployReleaseAdditionalArgumentsToBeIgnored);
       commands.addAll(updatedCommandArgs);
     }
 
