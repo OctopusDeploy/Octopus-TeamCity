@@ -163,7 +163,7 @@ public class CommandHelper {
 
     for (String env : splitCommaSeparatedValues(deployTo)) {
       commands.add("--to");
-      commands.add(deployTo);
+      commands.add(env);
     }
 
     for (String tenant : splitCommaSeparatedValues(tenants)) {
