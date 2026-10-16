@@ -1,5 +1,24 @@
 # Changelog
 
+## [6.8.0](https://github.com/OctopusDeploy/Octopus-TeamCity/compare/v6.7.2...v6.8.0) (2026-10-16)
+
+
+### Features
+
+* exchange an OIDC ID token for an Octopus access token ([#268](https://github.com/OctopusDeploy/Octopus-TeamCity/issues/268)) ([ba53b8d](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/ba53b8d19aff49df64e7168927d907f7fd72811b))
+* link to the release a Create release step makes ([#245](https://github.com/OctopusDeploy/Octopus-TeamCity/issues/245)) ([4c7dac4](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/4c7dac41e7600aa24b58d7970b1ce00b971a8212))
+* list an Octopus server's spaces for a connection with a stored API key ([#262](https://github.com/OctopusDeploy/Octopus-TeamCity/issues/262)) ([b48078e](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/b48078e890f62d00be9679d0aa0982b4b0b95213))
+* list spaces for a connection that authenticates with OIDC ([#265](https://github.com/OctopusDeploy/Octopus-TeamCity/issues/265)) ([0632c0a](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/0632c0a40093337e170aa6a248aef2e2e32e7119))
+* list spaces for a connection whose API key is held in a parameter ([#264](https://github.com/OctopusDeploy/Octopus-TeamCity/issues/264)) ([a8a2390](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/a8a23902b8d91e8aa348691e8db0f008067f68cf))
+* show the release a build created on the build page ([#246](https://github.com/OctopusDeploy/Octopus-TeamCity/issues/246)) ([731511d](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/731511d5ecc8cb75f0b13e2a3a6e6d8b4cb27b4d))
+* store a space id and prefer it over the space name ([#261](https://github.com/OctopusDeploy/Octopus-TeamCity/issues/261)) ([b0760b2](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/b0760b281494890454e0c6cedfceca77191ee32d))
+* suggest a connection's spaces in the space field and store the chosen id ([#263](https://github.com/OctopusDeploy/Octopus-TeamCity/issues/263)) ([b60d353](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/b60d353a6383450e2e80f0d5d9678e7a21a5109b))
+
+
+### Bug Fixes
+
+* log every failure to list an Octopus server's spaces ([#266](https://github.com/OctopusDeploy/Octopus-TeamCity/issues/266)) ([fe7fb3b](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/fe7fb3b8b31d2e4c16a18eb799ec058bd29ca039))
+
 ## [6.7.2](https://github.com/OctopusDeploy/Octopus-TeamCity/compare/v6.7.1...v6.7.2) (2026-08-31)
 
 
