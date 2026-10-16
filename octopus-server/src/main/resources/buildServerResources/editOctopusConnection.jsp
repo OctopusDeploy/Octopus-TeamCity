@@ -33,7 +33,7 @@
     <span class="smallNote">A uniquely distinguishable name for this connection.</span>
   </td>
 </tr>
-<tr>
+<tr class="octopusConnectionSetting octopusConnectionServer">
   <th>Octopus URL:<l:star/></th>
   <td>
     <props:textProperty name="${keys.serverUrlPropertyName}" className="longField"/>
@@ -41,7 +41,7 @@
     <span class="smallNote">Specify the Octopus server URL (e.g. http(s)://{hostname}:{port}).</span>
   </td>
 </tr>
-<tr>
+<tr class="octopusConnectionSetting">
   <th>API key source:</th>
   <td>
     <props:selectProperty name="${keys.apiKeySourcePropertyName}" id="octopusApiKeySource" className="longField">
@@ -54,7 +54,7 @@
     <span class="smallNote">How this connection supplies credentials to Octopus.</span>
   </td>
 </tr>
-<tr class="octopusApiKeyField octopusApiKeySource-key">
+<tr class="octopusApiKeyField octopusApiKeySource-key octopusConnectionSetting">
   <th>API key:<l:star/></th>
   <td>
     <props:passwordProperty name="${keys.apiKeyPropertyName}" className="longField"/>
@@ -65,7 +65,7 @@
     </span>
   </td>
 </tr>
-<tr class="octopusApiKeyField octopusApiKeySource-parameter">
+<tr class="octopusApiKeyField octopusApiKeySource-parameter octopusConnectionSetting">
   <th>API key parameter:<l:star/></th>
   <td>
     <props:textProperty name="${keys.apiKeyParameterPropertyName}" className="longField"/>
@@ -74,7 +74,7 @@
   </td>
 </tr>
 <c:if test="${not empty oidcConnectors}">
-  <tr class="octopusApiKeyField octopusApiKeySource-oidc">
+  <tr class="octopusApiKeyField octopusApiKeySource-oidc octopusConnectionSetting">
     <th>OIDC connector:<l:star/></th>
     <td>
       <props:selectProperty name="${keys.oidcConnectionIdPropertyName}" className="longField">
