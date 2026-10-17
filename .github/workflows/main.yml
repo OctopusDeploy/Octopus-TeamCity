@@ -36,7 +36,7 @@ jobs:
         fetch-depth: '0'
 
     - name: Set up JDK 8
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@v6
       with:
         java-version: '8'
         distribution: 'adopt'
@@ -127,7 +127,7 @@ jobs:
         fetch-depth: '0'
 
     - name: Set up JDK 8
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@v6
       with:
         java-version: '8'
         distribution: 'adopt'
