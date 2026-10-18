@@ -235,8 +235,13 @@ public final class OctopusProvisioner {
    * exactly {@code subject}, and adds it to Octopus Administrators so it can see every space.
    * Returns the account's external id, which is the audience its tokens must be issued for.
    */
-  public String createOidcServiceAccount(
-      final String username, final String issuer, final String subject) throws Exception {
+  public static String createOidcServiceAccount(
+      final String octopusBaseUrl,
+      final String apiKey,
+      final String username,
+      final String issuer,
+      final String subject)
+      throws Exception {
     final JsonObject user = new JsonObject();
     user.addProperty("Username", username);
     user.addProperty("DisplayName", username);
