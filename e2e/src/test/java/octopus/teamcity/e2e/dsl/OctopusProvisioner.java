@@ -26,14 +26,14 @@ import com.google.gson.JsonParser;
  * cannot author a deployment process, so the (single, run-on-server) script step is added via the
  * Octopus REST API directly.
  */
-public final class OctopusProvisioning {
+public final class OctopusProvisioner {
 
   private final OctopusClient client;
   private final SpaceHome spaceHome;
   private final String octopusBaseUrl;
   private final String apiKey;
 
-  public OctopusProvisioning(
+  public OctopusProvisioner(
       final OctopusClient client,
       final SpaceHome spaceHome,
       final String octopusBaseUrl,

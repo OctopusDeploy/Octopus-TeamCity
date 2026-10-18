@@ -14,7 +14,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.microsoft.playwright.options.LoadState;
-import octopus.teamcity.e2e.dsl.OctopusProvisioning;
+import octopus.teamcity.e2e.dsl.OctopusProvisioner;
 import octopus.teamcity.e2e.dsl.OctopusTeamCityStack;
 import octopus.teamcity.e2e.dsl.PlaywrightUi;
 import octopus.teamcity.e2e.dsl.SharedStack;
@@ -36,7 +36,7 @@ class OctopusReleaseLinkUiTest {
   private static final String OCTOPUS_PROJECT = "ReleaseLinkIT";
   private static final String RELEASE_VERSION = "2.0.0";
 
-  private OctopusProvisioning octopusProvisioning;
+  private OctopusProvisioner octopusProvisioner;
   private String projectId;
 
   @Test
@@ -45,11 +45,11 @@ class OctopusReleaseLinkUiTest {
       final OctopusClient client = stack.octopusClient();
       final SpaceHome spaceHome = stack.spaceHome(client);
 
-      octopusProvisioning =
-          new OctopusProvisioning(
+      octopusProvisioner =
+          new OctopusProvisioner(
               client, spaceHome, stack.octopusUrlForHost(), stack.octopusApiKey());
       projectId =
-          octopusProvisioning.ensureProjectWithServerScriptStep(
+          octopusProvisioner.ensureProjectWithServerScriptStep(
               OCTOPUS_PROJECT, Collections.emptyList());
 
       final TeamCityRest tc = stack.rest();
@@ -125,7 +125,7 @@ class OctopusReleaseLinkUiTest {
   @AfterEach
   void deleteOctopusProject() throws Exception {
     if (projectId != null) {
-      octopusProvisioning.deleteProject(projectId);
+      octopusProvisioner.deleteProject(projectId);
     }
   }
 }

@@ -11,7 +11,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 
-import octopus.teamcity.e2e.dsl.OctopusProvisioning;
+import octopus.teamcity.e2e.dsl.OctopusProvisioner;
 import octopus.teamcity.e2e.dsl.OctopusTeamCityStack;
 import octopus.teamcity.e2e.dsl.SharedStack;
 import octopus.teamcity.e2e.dsl.TeamCityRest;
@@ -32,7 +32,7 @@ class OctopusPromoteReleaseE2ETest {
   private static final String DEV = "PromoteReleaseIT-Development";
   private static final String PROD = "PromoteReleaseIT-Production";
 
-  private OctopusProvisioning octopusProvisioning;
+  private OctopusProvisioner octopusProvisioner;
   private String projectId;
 
   @Test
@@ -41,14 +41,14 @@ class OctopusPromoteReleaseE2ETest {
       final OctopusClient client = stack.octopusClient();
       final SpaceHome spaceHome = stack.spaceHome(client);
 
-      final String devEnvironmentId = OctopusProvisioning.createEnvironment(client, spaceHome, DEV);
+      final String devEnvironmentId = OctopusProvisioner.createEnvironment(client, spaceHome, DEV);
       final String prodEnvironmentId =
-          OctopusProvisioning.createEnvironment(client, spaceHome, PROD);
-      octopusProvisioning =
-          new OctopusProvisioning(
+          OctopusProvisioner.createEnvironment(client, spaceHome, PROD);
+      octopusProvisioner =
+          new OctopusProvisioner(
               client, spaceHome, stack.octopusUrlForHost(), stack.octopusApiKey());
       projectId =
-          octopusProvisioning.createProjectWithServerScriptStep(
+          octopusProvisioner.createProjectWithServerScriptStep(
               OCTOPUS_PROJECT, Arrays.asList(devEnvironmentId, prodEnvironmentId));
 
       // Provision TeamCity: project, connection, build type with create -> deploy(Dev) ->
@@ -87,7 +87,7 @@ class OctopusPromoteReleaseE2ETest {
   @AfterEach
   void deleteOctopusProject() throws Exception {
     if (projectId != null) {
-      octopusProvisioning.deleteProject(projectId);
+      octopusProvisioner.deleteProject(projectId);
     }
   }
 }

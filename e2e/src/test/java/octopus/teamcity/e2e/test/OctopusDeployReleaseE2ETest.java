@@ -11,7 +11,7 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 
-import octopus.teamcity.e2e.dsl.OctopusProvisioning;
+import octopus.teamcity.e2e.dsl.OctopusProvisioner;
 import octopus.teamcity.e2e.dsl.OctopusTeamCityStack;
 import octopus.teamcity.e2e.dsl.SharedStack;
 import octopus.teamcity.e2e.dsl.TeamCityRest;
@@ -32,7 +32,7 @@ class OctopusDeployReleaseE2ETest {
   // Unique to this test — environment names are space-global on the shared Octopus.
   private static final String ENVIRONMENT = "DeployReleaseIT-Development";
 
-  private OctopusProvisioning octopusProvisioning;
+  private OctopusProvisioner octopusProvisioner;
   private String projectId;
 
   @Test
@@ -42,12 +42,12 @@ class OctopusDeployReleaseE2ETest {
       final SpaceHome spaceHome = stack.spaceHome(client);
 
       final String environmentId =
-          OctopusProvisioning.createEnvironment(client, spaceHome, ENVIRONMENT);
-      octopusProvisioning =
-          new OctopusProvisioning(
+          OctopusProvisioner.createEnvironment(client, spaceHome, ENVIRONMENT);
+      octopusProvisioner =
+          new OctopusProvisioner(
               client, spaceHome, stack.octopusUrlForHost(), stack.octopusApiKey());
       projectId =
-          octopusProvisioning.createProjectWithServerScriptStep(
+          octopusProvisioner.createProjectWithServerScriptStep(
               OCTOPUS_PROJECT, Collections.singletonList(environmentId));
 
       // Provision TeamCity: project, connection, build type with create-then-deploy steps.
@@ -84,7 +84,7 @@ class OctopusDeployReleaseE2ETest {
   @AfterEach
   void deleteOctopusProject() throws Exception {
     if (projectId != null) {
-      octopusProvisioning.deleteProject(projectId);
+      octopusProvisioner.deleteProject(projectId);
     }
   }
 }

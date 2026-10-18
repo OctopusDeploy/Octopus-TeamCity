@@ -12,7 +12,7 @@ import java.util.Map;
 
 /**
  * Minimal HttpURLConnection wrapper shared by the e2e DSL clients ({@link TeamCityRest}, {@link
- * OctopusProvisioning}). Redirects are not followed — TeamCity briefly 302-redirects authenticated
+ * OctopusProvisioner}). Redirects are not followed — TeamCity briefly 302-redirects authenticated
  * calls during startup and callers rely on seeing that.
  */
 final class Http {
