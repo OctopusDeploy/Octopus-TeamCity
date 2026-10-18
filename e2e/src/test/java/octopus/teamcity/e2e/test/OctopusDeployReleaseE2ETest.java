@@ -41,11 +41,12 @@ class OctopusDeployReleaseE2ETest {
       final OctopusClient client = stack.octopusClient();
       final SpaceHome spaceHome = stack.spaceHome(client);
 
-      final String environmentId =
-          OctopusProvisioner.createEnvironment(client, spaceHome, ENVIRONMENT);
       octopusProvisioner =
           new OctopusProvisioner(
               client, spaceHome, stack.octopusUrlForHost(), stack.octopusApiKey());
+
+      final String environmentId = octopusProvisioner.createEnvironment(ENVIRONMENT);
+
       projectId =
           octopusProvisioner.createProjectWithServerScriptStep(
               OCTOPUS_PROJECT, Collections.singletonList(environmentId));

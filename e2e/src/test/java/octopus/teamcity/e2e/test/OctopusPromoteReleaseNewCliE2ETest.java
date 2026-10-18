@@ -11,10 +11,8 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 
-import octopus.teamcity.e2e.dsl.OctopusProvisioning;
-import octopus.teamcity.e2e.dsl.OctopusTeamCityStack;
-import octopus.teamcity.e2e.dsl.SharedStack;
-import octopus.teamcity.e2e.dsl.TeamCityRest;
+import octopus.teamcity.e2e.dsl.*;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -35,22 +33,25 @@ class OctopusPromoteReleaseNewCliE2ETest {
   private static final String TC_PROJECT_ID = "PromNewCliIT";
   private static final String TC_BUILD_TYPE_ID = "PromNewCliIT_Promote";
 
+  private OctopusProvisioner octopusProvisioner;
+  private String projectId;
+
   @Test
   void promoteReleaseStepOnNewCliPromotesToTheNextEnvironment() throws Exception {
     try (final OctopusTeamCityStack stack = SharedStack.full()) {
       final OctopusClient client = stack.octopusClient();
       final SpaceHome spaceHome = stack.spaceHome(client);
 
-      final String devEnvironmentId = OctopusProvisioning.createEnvironment(client, spaceHome, DEV);
-      final String prodEnvironmentId =
-          OctopusProvisioning.createEnvironment(client, spaceHome, PROD);
-      OctopusProvisioning.createProjectWithServerScriptStep(
-          client,
-          spaceHome,
-          stack.octopusUrlForHost(),
-          stack.octopusApiKey(),
-          OCTOPUS_PROJECT,
-          Arrays.asList(devEnvironmentId, prodEnvironmentId));
+      octopusProvisioner =
+          new OctopusProvisioner(
+              client, spaceHome, stack.octopusUrlForHost(), stack.octopusApiKey());
+
+      final String devEnvironmentId = octopusProvisioner.createEnvironment(DEV);
+      final String prodEnvironmentId = octopusProvisioner.createEnvironment(PROD);
+
+      projectId =
+          octopusProvisioner.createProjectWithServerScriptStep(
+              OCTOPUS_PROJECT, Arrays.asList(devEnvironmentId, prodEnvironmentId));
 
       // Provision TeamCity: project, connection, build type with create -> deploy(Dev) ->
       // promote(Dev -> Prod) steps, all on the new CLI.
@@ -92,6 +93,13 @@ class OctopusPromoteReleaseNewCliE2ETest {
           .anyMatch(d -> prodEnvironmentId.equals(d.getProperties().getEnvironmentId()));
 
       assertThat(log).doesNotContain(stack.octopusApiKey());
+    }
+  }
+
+  @AfterEach
+  void deleteOctopusProject() throws Exception {
+    if (projectId != null) {
+      octopusProvisioner.deleteProject(projectId);
     }
   }
 }

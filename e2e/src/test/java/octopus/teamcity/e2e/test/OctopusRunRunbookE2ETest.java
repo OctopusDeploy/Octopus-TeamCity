@@ -32,22 +32,17 @@ class OctopusRunRunbookE2ETest {
       final OctopusClient client = stack.octopusClient();
       final SpaceHome spaceHome = stack.spaceHome(client);
 
-      final String environmentId =
-          OctopusProvisioner.createEnvironment(client, spaceHome, ENVIRONMENT);
       octopusProvisioner =
           new OctopusProvisioner(
               client, spaceHome, stack.octopusUrlForHost(), stack.octopusApiKey());
+
+      final String environmentId = octopusProvisioner.createEnvironment(ENVIRONMENT);
       projectId =
           octopusProvisioner.createProjectWithServerScriptStep(
               OCTOPUS_PROJECT, Collections.singletonList(environmentId));
+
       final String runbookId =
-          OctopusProvisioner.createRunbookWithServerScriptStep(
-              client,
-              spaceHome,
-              stack.octopusUrlForHost(),
-              stack.octopusApiKey(),
-              OCTOPUS_PROJECT,
-              RUNBOOK);
+          octopusProvisioner.createRunbookWithServerScriptStep(OCTOPUS_PROJECT, RUNBOOK);
 
       final TeamCityRest tc = stack.rest();
       tc.createProject("RunbookIT", "Runbook IT");
@@ -70,9 +65,7 @@ class OctopusRunRunbookE2ETest {
           .withFailMessage("Build did not succeed. Log:\n%s", log)
           .isEqualTo("SUCCESS");
 
-      assertThat(
-              OctopusProvisioner.hasRunbookRun(
-                  spaceHome, stack.octopusUrlForHost(), stack.octopusApiKey(), runbookId))
+      assertThat(octopusProvisioner.hasRunbookRun(runbookId))
           .withFailMessage("No run of runbook %s found. Log:\n%s", RUNBOOK, log)
           .isTrue();
 

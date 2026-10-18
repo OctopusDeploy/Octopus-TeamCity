@@ -41,12 +41,13 @@ class OctopusPromoteReleaseE2ETest {
       final OctopusClient client = stack.octopusClient();
       final SpaceHome spaceHome = stack.spaceHome(client);
 
-      final String devEnvironmentId = OctopusProvisioner.createEnvironment(client, spaceHome, DEV);
-      final String prodEnvironmentId =
-          OctopusProvisioner.createEnvironment(client, spaceHome, PROD);
       octopusProvisioner =
           new OctopusProvisioner(
               client, spaceHome, stack.octopusUrlForHost(), stack.octopusApiKey());
+
+      final String devEnvironmentId = octopusProvisioner.createEnvironment(DEV);
+      final String prodEnvironmentId = octopusProvisioner.createEnvironment(PROD);
+
       projectId =
           octopusProvisioner.createProjectWithServerScriptStep(
               OCTOPUS_PROJECT, Arrays.asList(devEnvironmentId, prodEnvironmentId));
