@@ -11,10 +11,11 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 
-import octopus.teamcity.e2e.dsl.OctopusProvisioning;
+import octopus.teamcity.e2e.dsl.OctopusProvisioner;
 import octopus.teamcity.e2e.dsl.OctopusTeamCityStack;
 import octopus.teamcity.e2e.dsl.SharedStack;
 import octopus.teamcity.e2e.dsl.TeamCityRest;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -31,6 +32,9 @@ class OctopusDeployReleaseE2ETest {
   // Unique to this test — environment names are space-global on the shared Octopus.
   private static final String ENVIRONMENT = "DeployReleaseIT-Development";
 
+  private OctopusProvisioner octopusProvisioner;
+  private String projectId;
+
   @Test
   void deployReleaseStepUsingConnectionDeploysToTheEnvironment() throws Exception {
     try (final OctopusTeamCityStack stack = SharedStack.full()) {
@@ -38,14 +42,13 @@ class OctopusDeployReleaseE2ETest {
       final SpaceHome spaceHome = stack.spaceHome(client);
 
       final String environmentId =
-          OctopusProvisioning.createEnvironment(client, spaceHome, ENVIRONMENT);
-      OctopusProvisioning.createProjectWithServerScriptStep(
-          client,
-          spaceHome,
-          stack.octopusUrlForHost(),
-          stack.octopusApiKey(),
-          OCTOPUS_PROJECT,
-          Collections.singletonList(environmentId));
+          OctopusProvisioner.createEnvironment(client, spaceHome, ENVIRONMENT);
+      octopusProvisioner =
+          new OctopusProvisioner(
+              client, spaceHome, stack.octopusUrlForHost(), stack.octopusApiKey());
+      projectId =
+          octopusProvisioner.createProjectWithServerScriptStep(
+              OCTOPUS_PROJECT, Collections.singletonList(environmentId));
 
       // Provision TeamCity: project, connection, build type with create-then-deploy steps.
       final TeamCityRest tc = stack.rest();
@@ -75,6 +78,13 @@ class OctopusDeployReleaseE2ETest {
           .anyMatch(d -> environmentId.equals(d.getProperties().getEnvironmentId()));
 
       assertThat(log).doesNotContain(stack.octopusApiKey());
+    }
+  }
+
+  @AfterEach
+  void deleteOctopusProject() throws Exception {
+    if (projectId != null) {
+      octopusProvisioner.deleteProject(projectId);
     }
   }
 }

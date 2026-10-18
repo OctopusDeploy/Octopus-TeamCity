@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -25,9 +26,23 @@ import com.google.gson.JsonParser;
  * cannot author a deployment process, so the (single, run-on-server) script step is added via the
  * Octopus REST API directly.
  */
-public final class OctopusProvisioning {
+public final class OctopusProvisioner {
 
-  private OctopusProvisioning() {}
+  private final OctopusClient client;
+  private final SpaceHome spaceHome;
+  private final String octopusBaseUrl;
+  private final String apiKey;
+
+  public OctopusProvisioner(
+      final OctopusClient client,
+      final SpaceHome spaceHome,
+      final String octopusBaseUrl,
+      final String apiKey) {
+    this.client = client;
+    this.spaceHome = spaceHome;
+    this.octopusBaseUrl = octopusBaseUrl;
+    this.apiKey = apiKey;
+  }
 
   /**
    * Creates an Octopus project with a dedicated lifecycle and a single inline-script step that runs
@@ -42,14 +57,8 @@ public final class OctopusProvisioning {
    * (as the deployment process below also is). Pass an empty list for a project whose releases are
    * only created, never deployed.
    */
-  public static void createProjectWithServerScriptStep(
-      final OctopusClient client,
-      final SpaceHome spaceHome,
-      final String octopusBaseUrl,
-      final String apiKey,
-      final String projectName,
-      final List<String> deployableEnvironmentIds)
-      throws Exception {
+  public String createProjectWithServerScriptStep(
+      final String projectName, final List<String> deployableEnvironmentIds) throws Exception {
     final String lifecycleId =
         createLifecycleWithPhases(
             octopusBaseUrl,
@@ -68,30 +77,32 @@ public final class OctopusProvisioning {
     if (deploymentProcessId == null) {
       deploymentProcessId = "deploymentprocess-" + created.getProperties().getId();
     }
+
     addInlineScriptStep(
         octopusBaseUrl, apiKey, spaceHome.getDeploymentProcessesLink() + "/" + deploymentProcessId);
+
+    return created.getProperties().getId();
+  }
+
+  /** Deletes a project by its id, so tests don't leave projects behind on the shared Octopus. */
+  public void deleteProject(final String projectId) throws Exception {
+    ProjectApi.create(client, spaceHome).delete(projectId);
   }
 
   /**
    * The same, for a project tests are willing to share. The Octopus in the stack runs unlicensed,
    * which caps how many projects may exist at once, so tests that only need somewhere to make a
    * release should share one rather than each spending a slot; whichever test runs first creates
-   * it.
+   * it. Returns the project's id, whether it already existed or was just created.
    */
-  public static void ensureProjectWithServerScriptStep(
-      final OctopusClient client,
-      final SpaceHome spaceHome,
-      final String octopusBaseUrl,
-      final String apiKey,
-      final String projectName,
-      final List<String> deployableEnvironmentIds)
-      throws Exception {
-    if (ProjectApi.create(client, spaceHome).getByName(projectName).isPresent()) {
-      return;
+  public String ensureProjectWithServerScriptStep(
+      final String projectName, final List<String> deployableEnvironmentIds) throws Exception {
+    final Optional<Project> existing = ProjectApi.create(client, spaceHome).getByName(projectName);
+    if (existing.isPresent()) {
+      return existing.get().getProperties().getId();
     }
 
-    createProjectWithServerScriptStep(
-        client, spaceHome, octopusBaseUrl, apiKey, projectName, deployableEnvironmentIds);
+    return createProjectWithServerScriptStep(projectName, deployableEnvironmentIds);
   }
 
   /** Creates an environment; returns its id (e.g. {@code Environments-1}). */

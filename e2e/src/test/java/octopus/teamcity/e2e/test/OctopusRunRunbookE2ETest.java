@@ -8,10 +8,11 @@ import com.octopus.sdk.model.space.SpaceHome;
 import java.time.Duration;
 import java.util.Collections;
 
-import octopus.teamcity.e2e.dsl.OctopusProvisioning;
+import octopus.teamcity.e2e.dsl.OctopusProvisioner;
 import octopus.teamcity.e2e.dsl.OctopusTeamCityStack;
 import octopus.teamcity.e2e.dsl.SharedStack;
 import octopus.teamcity.e2e.dsl.TeamCityRest;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 /** Runs a published runbook through the Run runbook step and asserts Octopus recorded the run. */
@@ -22,6 +23,9 @@ class OctopusRunRunbookE2ETest {
   // Unique to this test — environment names are space-global on the shared Octopus.
   private static final String ENVIRONMENT = "RunRunbookIT-Development";
 
+  private OctopusProvisioner octopusProvisioner;
+  private String projectId;
+
   @Test
   void runRunbookStepUsingConnectionRunsTheRunbook() throws Exception {
     try (final OctopusTeamCityStack stack = SharedStack.full()) {
@@ -29,16 +33,15 @@ class OctopusRunRunbookE2ETest {
       final SpaceHome spaceHome = stack.spaceHome(client);
 
       final String environmentId =
-          OctopusProvisioning.createEnvironment(client, spaceHome, ENVIRONMENT);
-      OctopusProvisioning.createProjectWithServerScriptStep(
-          client,
-          spaceHome,
-          stack.octopusUrlForHost(),
-          stack.octopusApiKey(),
-          OCTOPUS_PROJECT,
-          Collections.singletonList(environmentId));
+          OctopusProvisioner.createEnvironment(client, spaceHome, ENVIRONMENT);
+      octopusProvisioner =
+          new OctopusProvisioner(
+              client, spaceHome, stack.octopusUrlForHost(), stack.octopusApiKey());
+      projectId =
+          octopusProvisioner.createProjectWithServerScriptStep(
+              OCTOPUS_PROJECT, Collections.singletonList(environmentId));
       final String runbookId =
-          OctopusProvisioning.createRunbookWithServerScriptStep(
+          OctopusProvisioner.createRunbookWithServerScriptStep(
               client,
               spaceHome,
               stack.octopusUrlForHost(),
@@ -68,12 +71,19 @@ class OctopusRunRunbookE2ETest {
           .isEqualTo("SUCCESS");
 
       assertThat(
-              OctopusProvisioning.hasRunbookRun(
+              OctopusProvisioner.hasRunbookRun(
                   spaceHome, stack.octopusUrlForHost(), stack.octopusApiKey(), runbookId))
           .withFailMessage("No run of runbook %s found. Log:\n%s", RUNBOOK, log)
           .isTrue();
 
       assertThat(log).doesNotContain(stack.octopusApiKey());
+    }
+  }
+
+  @AfterEach
+  void deleteOctopusProject() throws Exception {
+    if (projectId != null) {
+      octopusProvisioner.deleteProject(projectId);
     }
   }
 }

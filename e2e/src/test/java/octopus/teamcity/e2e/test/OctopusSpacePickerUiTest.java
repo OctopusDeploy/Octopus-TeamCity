@@ -11,7 +11,7 @@ import com.microsoft.playwright.options.LoadState;
 import com.microsoft.playwright.options.SelectOption;
 import com.microsoft.playwright.options.WaitForSelectorState;
 import com.microsoft.playwright.options.WaitUntilState;
-import octopus.teamcity.e2e.dsl.OctopusProvisioning;
+import octopus.teamcity.e2e.dsl.OctopusProvisioner;
 import octopus.teamcity.e2e.dsl.OctopusTeamCityStack;
 import octopus.teamcity.e2e.dsl.PlaywrightUi;
 import octopus.teamcity.e2e.dsl.SharedStack;
@@ -361,7 +361,7 @@ class OctopusSpacePickerUiTest {
       final String untrustedRunnerId = tc.addCreateReleaseStep("SpacePickerOidcIT_Untrusted");
 
       final String audience =
-          OctopusProvisioning.createOidcServiceAccount(
+          OctopusProvisioner.createOidcServiceAccount(
               stack.octopusUrlForHost(),
               stack.octopusApiKey(),
               "space-picker-oidc-it",

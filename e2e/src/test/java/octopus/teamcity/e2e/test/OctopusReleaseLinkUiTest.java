@@ -14,11 +14,12 @@ import java.util.Collections;
 import java.util.List;
 
 import com.microsoft.playwright.options.LoadState;
-import octopus.teamcity.e2e.dsl.OctopusProvisioning;
+import octopus.teamcity.e2e.dsl.OctopusProvisioner;
 import octopus.teamcity.e2e.dsl.OctopusTeamCityStack;
 import octopus.teamcity.e2e.dsl.PlaywrightUi;
 import octopus.teamcity.e2e.dsl.SharedStack;
 import octopus.teamcity.e2e.dsl.TeamCityRest;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -35,19 +36,21 @@ class OctopusReleaseLinkUiTest {
   private static final String OCTOPUS_PROJECT = "ReleaseLinkIT";
   private static final String RELEASE_VERSION = "2.0.0";
 
+  private OctopusProvisioner octopusProvisioner;
+  private String projectId;
+
   @Test
   void buildOverviewLinksToTheReleaseTheBuildCreated() throws Exception {
     try (final OctopusTeamCityStack stack = SharedStack.full()) {
       final OctopusClient client = stack.octopusClient();
       final SpaceHome spaceHome = stack.spaceHome(client);
 
-      OctopusProvisioning.ensureProjectWithServerScriptStep(
-          client,
-          spaceHome,
-          stack.octopusUrlForHost(),
-          stack.octopusApiKey(),
-          OCTOPUS_PROJECT,
-          Collections.emptyList());
+      octopusProvisioner =
+          new OctopusProvisioner(
+              client, spaceHome, stack.octopusUrlForHost(), stack.octopusApiKey());
+      projectId =
+          octopusProvisioner.ensureProjectWithServerScriptStep(
+              OCTOPUS_PROJECT, Collections.emptyList());
 
       final TeamCityRest tc = stack.rest();
       tc.createProject("RelLinkUiIT", "Release link UI IT");
@@ -116,6 +119,13 @@ class OctopusReleaseLinkUiTest {
             assertThat(page.locator("div.octopusRelease a").first().getAttribute("href"))
                 .isEqualTo(expectedLink);
           });
+    }
+  }
+
+  @AfterEach
+  void deleteOctopusProject() throws Exception {
+    if (projectId != null) {
+      octopusProvisioner.deleteProject(projectId);
     }
   }
 }
