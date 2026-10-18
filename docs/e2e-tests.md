@@ -4,7 +4,7 @@ The e2e suite drives the **real plugin** through real containers with
 [Testcontainers](https://testcontainers.com): one shared stack — a TeamCity server (booted from a
 prepared data directory with the built plugin pre-installed), a TeamCity agent, an **unlicensed**
 Octopus Deploy, and its MSSQL database — is started **once** for the whole suite (see `SharedStack`)
-and reaped at JVM exit. Each test provisions its own Octopus project via the `OctopusProvisioning`
+and reaped at JVM exit. Each test provisions its own Octopus project via the `OctopusProvisioner`
 DSL, creates a TeamCity project/build with the relevant Octopus step over the REST client
 (`TeamCityRest`), triggers the build, and asserts on what appears in Octopus (via the Octopus Java
 SDK). The `*UiTest` classes additionally drive the connection edit forms in a browser with
@@ -65,7 +65,7 @@ GRADLE_TESTS="--tests octopus.teamcity.e2e.test.*" \
 Tests build everything programmatically — there's no project export to maintain. To add one:
 
 1. Grab the shared stack: `try (OctopusTeamCityStack stack = SharedStack.full()) { ... }`.
-2. Provision any Octopus prerequisites with `OctopusProvisioning` (e.g. a project with a deployment
+2. Provision any Octopus prerequisites with `OctopusProvisioner` (e.g. a project with a deployment
    process so `octo create-release` has a viable plan).
 3. Create the TeamCity project/build and add the Octopus step over `TeamCityRest`, then trigger the
    build.

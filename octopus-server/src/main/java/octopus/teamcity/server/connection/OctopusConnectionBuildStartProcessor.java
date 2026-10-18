@@ -168,7 +168,7 @@ public class OctopusConnectionBuildStartProcessor implements BuildStartContextPr
     }
     runner.addRunnerParameter(
         CONSTANTS.getApiKeySourceKey(), ConnectionPropertyNames.API_KEY_SOURCE_OIDC);
-    runner.addRunnerParameter(CONSTANTS.getOidcServiceAccountIdKey(), audience);
+    runner.addRunnerParameter(CONSTANTS.getOidcServiceAccountIdKey(), audience.trim());
     runner.addRunnerParameter(CONSTANTS.getOidcIdTokenKey(), "%" + tokenVariable + "%");
   }
 

@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -25,9 +26,23 @@ import com.google.gson.JsonParser;
  * cannot author a deployment process, so the (single, run-on-server) script step is added via the
  * Octopus REST API directly.
  */
-public final class OctopusProvisioning {
+public final class OctopusProvisioner {
 
-  private OctopusProvisioning() {}
+  private final OctopusClient client;
+  private final SpaceHome spaceHome;
+  private final String octopusBaseUrl;
+  private final String apiKey;
+
+  public OctopusProvisioner(
+      final OctopusClient client,
+      final SpaceHome spaceHome,
+      final String octopusBaseUrl,
+      final String apiKey) {
+    this.client = client;
+    this.spaceHome = spaceHome;
+    this.octopusBaseUrl = octopusBaseUrl;
+    this.apiKey = apiKey;
+  }
 
   /**
    * Creates an Octopus project with a dedicated lifecycle and a single inline-script step that runs
@@ -42,14 +57,8 @@ public final class OctopusProvisioning {
    * (as the deployment process below also is). Pass an empty list for a project whose releases are
    * only created, never deployed.
    */
-  public static void createProjectWithServerScriptStep(
-      final OctopusClient client,
-      final SpaceHome spaceHome,
-      final String octopusBaseUrl,
-      final String apiKey,
-      final String projectName,
-      final List<String> deployableEnvironmentIds)
-      throws Exception {
+  public String createProjectWithServerScriptStep(
+      final String projectName, final List<String> deployableEnvironmentIds) throws Exception {
     final String lifecycleId =
         createLifecycleWithPhases(
             octopusBaseUrl,
@@ -68,30 +77,32 @@ public final class OctopusProvisioning {
     if (deploymentProcessId == null) {
       deploymentProcessId = "deploymentprocess-" + created.getProperties().getId();
     }
+
     addInlineScriptStep(
         octopusBaseUrl, apiKey, spaceHome.getDeploymentProcessesLink() + "/" + deploymentProcessId);
+
+    return created.getProperties().getId();
+  }
+
+  /** Deletes a project by its id, so tests don't leave projects behind on the shared Octopus. */
+  public void deleteProject(final String projectId) throws Exception {
+    ProjectApi.create(client, spaceHome).delete(projectId);
   }
 
   /**
    * The same, for a project tests are willing to share. The Octopus in the stack runs unlicensed,
    * which caps how many projects may exist at once, so tests that only need somewhere to make a
    * release should share one rather than each spending a slot; whichever test runs first creates
-   * it.
+   * it. Returns the project's id, whether it already existed or was just created.
    */
-  public static void ensureProjectWithServerScriptStep(
-      final OctopusClient client,
-      final SpaceHome spaceHome,
-      final String octopusBaseUrl,
-      final String apiKey,
-      final String projectName,
-      final List<String> deployableEnvironmentIds)
-      throws Exception {
-    if (ProjectApi.create(client, spaceHome).getByName(projectName).isPresent()) {
-      return;
+  public String ensureProjectWithServerScriptStep(
+      final String projectName, final List<String> deployableEnvironmentIds) throws Exception {
+    final Optional<Project> existing = ProjectApi.create(client, spaceHome).getByName(projectName);
+    if (existing.isPresent()) {
+      return existing.get().getProperties().getId();
     }
 
-    createProjectWithServerScriptStep(
-        client, spaceHome, octopusBaseUrl, apiKey, projectName, deployableEnvironmentIds);
+    return createProjectWithServerScriptStep(projectName, deployableEnvironmentIds);
   }
 
   /** Creates an environment; returns its id (e.g. {@code Environments-1}). */
@@ -229,6 +240,63 @@ public final class OctopusProvisioning {
       }
     }
     return false;
+  }
+
+  /**
+   * Creates an Octopus service account that accepts OIDC tokens from {@code issuer} carrying
+   * exactly {@code subject}, and adds it to Octopus Administrators so it can see every space.
+   * Returns the account's external id, which is the audience its tokens must be issued for.
+   */
+  public static String createOidcServiceAccount(
+      final String octopusBaseUrl,
+      final String apiKey,
+      final String username,
+      final String issuer,
+      final String subject)
+      throws Exception {
+    final JsonObject user = new JsonObject();
+    user.addProperty("Username", username);
+    user.addProperty("DisplayName", username);
+    user.addProperty("IsActive", true);
+    user.addProperty("IsService", true);
+    user.add("Identities", new JsonArray());
+    final String userId =
+        readJson(
+                octopusRequest("POST", octopusBaseUrl + "/api/users", apiKey, user.toString()),
+                "POST /api/users")
+            .get("Id")
+            .getAsString();
+
+    final JsonObject identity = new JsonObject();
+    identity.addProperty("ServiceAccountId", userId);
+    identity.addProperty("Name", "TeamCity");
+    identity.addProperty("Issuer", issuer);
+    identity.addProperty("Subject", subject);
+    readJson(
+        octopusRequest(
+            "POST",
+            octopusBaseUrl + "/api/serviceaccounts/" + userId + "/oidcidentities/create/v1",
+            apiKey,
+            identity.toString()),
+        "POST oidcidentities/create");
+
+    final String teamUrl = octopusBaseUrl + "/api/teams/teams-administrators";
+    final JsonObject team = readJson(octopusRequest("GET", teamUrl, apiKey, null), "GET team");
+    team.getAsJsonArray("MemberUserIds").add(userId);
+    readJson(octopusRequest("PUT", teamUrl, apiKey, team.toString()), "PUT team");
+
+    return readJson(
+            octopusRequest(
+                "GET",
+                octopusBaseUrl
+                    + "/api/serviceaccounts/"
+                    + userId
+                    + "/oidcidentities/v1?skip=0&take=1",
+                apiKey,
+                null),
+            "GET oidcidentities")
+        .get("ExternalId")
+        .getAsString();
   }
 
   private static void addInlineScriptStep(
