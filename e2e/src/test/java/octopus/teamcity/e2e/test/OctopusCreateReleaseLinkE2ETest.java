@@ -18,6 +18,7 @@ import octopus.teamcity.e2e.dsl.OctopusProvisioning;
 import octopus.teamcity.e2e.dsl.OctopusTeamCityStack;
 import octopus.teamcity.e2e.dsl.SharedStack;
 import octopus.teamcity.e2e.dsl.TeamCityRest;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -45,19 +46,21 @@ class OctopusCreateReleaseLinkE2ETest {
   private static final String READ_BACK_URL_PREFIX = "READ_BACK_URL=";
   private static final String READ_BACK_VERSION_PREFIX = "READ_BACK_VERSION=";
 
+  private OctopusProvisioning octopusProvisioning;
+  private String projectId;
+
   @Test
   void createReleaseStepLinksToTheReleaseItCreated() throws Exception {
     try (final OctopusTeamCityStack stack = SharedStack.full()) {
       final OctopusClient client = stack.octopusClient();
       final SpaceHome spaceHome = stack.spaceHome(client);
 
-      OctopusProvisioning.ensureProjectWithServerScriptStep(
-          client,
-          spaceHome,
-          stack.octopusUrlForHost(),
-          stack.octopusApiKey(),
-          OCTOPUS_PROJECT,
-          Collections.emptyList());
+      octopusProvisioning =
+          new OctopusProvisioning(
+              client, spaceHome, stack.octopusUrlForHost(), stack.octopusApiKey());
+      projectId =
+          octopusProvisioning.ensureProjectWithServerScriptStep(
+              OCTOPUS_PROJECT, Collections.emptyList());
 
       final TeamCityRest tc = stack.rest();
       tc.createProject(TC_PROJECT_ID, "Release link IT");
@@ -137,5 +140,12 @@ class OctopusCreateReleaseLinkE2ETest {
   /** TeamCity's syntax for reading a build parameter from inside a step's script. */
   private static String reference(final String parameter) {
     return "%" + parameter + "%";
+  }
+
+  @AfterEach
+  void deleteOctopusProject() throws Exception {
+    if (projectId != null) {
+      octopusProvisioning.deleteProject(projectId);
+    }
   }
 }

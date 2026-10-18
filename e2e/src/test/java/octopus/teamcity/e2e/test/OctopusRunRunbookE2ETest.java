@@ -12,6 +12,7 @@ import octopus.teamcity.e2e.dsl.OctopusProvisioning;
 import octopus.teamcity.e2e.dsl.OctopusTeamCityStack;
 import octopus.teamcity.e2e.dsl.SharedStack;
 import octopus.teamcity.e2e.dsl.TeamCityRest;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 /** Runs a published runbook through the Run runbook step and asserts Octopus recorded the run. */
@@ -22,6 +23,9 @@ class OctopusRunRunbookE2ETest {
   // Unique to this test — environment names are space-global on the shared Octopus.
   private static final String ENVIRONMENT = "RunRunbookIT-Development";
 
+  private OctopusProvisioning octopusProvisioning;
+  private String projectId;
+
   @Test
   void runRunbookStepUsingConnectionRunsTheRunbook() throws Exception {
     try (final OctopusTeamCityStack stack = SharedStack.full()) {
@@ -30,13 +34,12 @@ class OctopusRunRunbookE2ETest {
 
       final String environmentId =
           OctopusProvisioning.createEnvironment(client, spaceHome, ENVIRONMENT);
-      OctopusProvisioning.createProjectWithServerScriptStep(
-          client,
-          spaceHome,
-          stack.octopusUrlForHost(),
-          stack.octopusApiKey(),
-          OCTOPUS_PROJECT,
-          Collections.singletonList(environmentId));
+      octopusProvisioning =
+          new OctopusProvisioning(
+              client, spaceHome, stack.octopusUrlForHost(), stack.octopusApiKey());
+      projectId =
+          octopusProvisioning.createProjectWithServerScriptStep(
+              OCTOPUS_PROJECT, Collections.singletonList(environmentId));
       final String runbookId =
           OctopusProvisioning.createRunbookWithServerScriptStep(
               client,
@@ -74,6 +77,13 @@ class OctopusRunRunbookE2ETest {
           .isTrue();
 
       assertThat(log).doesNotContain(stack.octopusApiKey());
+    }
+  }
+
+  @AfterEach
+  void deleteOctopusProject() throws Exception {
+    if (projectId != null) {
+      octopusProvisioning.deleteProject(projectId);
     }
   }
 }

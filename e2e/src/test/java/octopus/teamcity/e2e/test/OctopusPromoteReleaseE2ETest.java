@@ -15,6 +15,7 @@ import octopus.teamcity.e2e.dsl.OctopusProvisioning;
 import octopus.teamcity.e2e.dsl.OctopusTeamCityStack;
 import octopus.teamcity.e2e.dsl.SharedStack;
 import octopus.teamcity.e2e.dsl.TeamCityRest;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -31,6 +32,9 @@ class OctopusPromoteReleaseE2ETest {
   private static final String DEV = "PromoteReleaseIT-Development";
   private static final String PROD = "PromoteReleaseIT-Production";
 
+  private OctopusProvisioning octopusProvisioning;
+  private String projectId;
+
   @Test
   void promoteReleaseStepUsingConnectionPromotesToTheNextEnvironment() throws Exception {
     try (final OctopusTeamCityStack stack = SharedStack.full()) {
@@ -40,13 +44,12 @@ class OctopusPromoteReleaseE2ETest {
       final String devEnvironmentId = OctopusProvisioning.createEnvironment(client, spaceHome, DEV);
       final String prodEnvironmentId =
           OctopusProvisioning.createEnvironment(client, spaceHome, PROD);
-      OctopusProvisioning.createProjectWithServerScriptStep(
-          client,
-          spaceHome,
-          stack.octopusUrlForHost(),
-          stack.octopusApiKey(),
-          OCTOPUS_PROJECT,
-          Arrays.asList(devEnvironmentId, prodEnvironmentId));
+      octopusProvisioning =
+          new OctopusProvisioning(
+              client, spaceHome, stack.octopusUrlForHost(), stack.octopusApiKey());
+      projectId =
+          octopusProvisioning.createProjectWithServerScriptStep(
+              OCTOPUS_PROJECT, Arrays.asList(devEnvironmentId, prodEnvironmentId));
 
       // Provision TeamCity: project, connection, build type with create -> deploy(Dev) ->
       // promote(Dev -> Prod) steps.
@@ -78,6 +81,13 @@ class OctopusPromoteReleaseE2ETest {
           .anyMatch(d -> prodEnvironmentId.equals(d.getProperties().getEnvironmentId()));
 
       assertThat(log).doesNotContain(stack.octopusApiKey());
+    }
+  }
+
+  @AfterEach
+  void deleteOctopusProject() throws Exception {
+    if (projectId != null) {
+      octopusProvisioning.deleteProject(projectId);
     }
   }
 }

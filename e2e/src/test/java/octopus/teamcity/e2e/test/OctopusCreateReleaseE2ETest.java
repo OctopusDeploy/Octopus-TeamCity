@@ -15,6 +15,7 @@ import octopus.teamcity.e2e.dsl.OctopusProvisioning;
 import octopus.teamcity.e2e.dsl.OctopusTeamCityStack;
 import octopus.teamcity.e2e.dsl.SharedStack;
 import octopus.teamcity.e2e.dsl.TeamCityRest;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -31,6 +32,9 @@ class OctopusCreateReleaseE2ETest {
   private static final String OCTOPUS_PROJECT = "CreateReleaseIT";
   private static final String RELEASE_VERSION = "1.0.0";
 
+  private OctopusProvisioning octopusProvisioning;
+  private String projectId;
+
   @Test
   void createReleaseStepUsingConnectionCreatesARealRelease() throws Exception {
     try (final OctopusTeamCityStack stack = SharedStack.full()) {
@@ -38,13 +42,12 @@ class OctopusCreateReleaseE2ETest {
       final SpaceHome spaceHome = stack.spaceHome(client);
 
       // No environments — this project's release is only created, never deployed.
-      OctopusProvisioning.createProjectWithServerScriptStep(
-          client,
-          spaceHome,
-          stack.octopusUrlForHost(),
-          stack.octopusApiKey(),
-          OCTOPUS_PROJECT,
-          Collections.emptyList());
+      octopusProvisioning =
+          new OctopusProvisioning(
+              client, spaceHome, stack.octopusUrlForHost(), stack.octopusApiKey());
+      projectId =
+          octopusProvisioning.createProjectWithServerScriptStep(
+              OCTOPUS_PROJECT, Collections.emptyList());
 
       // Provision TeamCity: project, connection, build type + create-release step.
       final TeamCityRest tc = stack.rest();
@@ -71,6 +74,13 @@ class OctopusCreateReleaseE2ETest {
           .anyMatch(r -> RELEASE_VERSION.equals(r.getProperties().getVersion()));
 
       assertThat(log).doesNotContain(stack.octopusApiKey());
+    }
+  }
+
+  @AfterEach
+  void deleteOctopusProject() throws Exception {
+    if (projectId != null) {
+      octopusProvisioning.deleteProject(projectId);
     }
   }
 }

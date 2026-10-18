@@ -19,6 +19,7 @@ import octopus.teamcity.e2e.dsl.OctopusTeamCityStack;
 import octopus.teamcity.e2e.dsl.PlaywrightUi;
 import octopus.teamcity.e2e.dsl.SharedStack;
 import octopus.teamcity.e2e.dsl.TeamCityRest;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -35,19 +36,21 @@ class OctopusReleaseLinkUiTest {
   private static final String OCTOPUS_PROJECT = "ReleaseLinkIT";
   private static final String RELEASE_VERSION = "2.0.0";
 
+  private OctopusProvisioning octopusProvisioning;
+  private String projectId;
+
   @Test
   void buildOverviewLinksToTheReleaseTheBuildCreated() throws Exception {
     try (final OctopusTeamCityStack stack = SharedStack.full()) {
       final OctopusClient client = stack.octopusClient();
       final SpaceHome spaceHome = stack.spaceHome(client);
 
-      OctopusProvisioning.ensureProjectWithServerScriptStep(
-          client,
-          spaceHome,
-          stack.octopusUrlForHost(),
-          stack.octopusApiKey(),
-          OCTOPUS_PROJECT,
-          Collections.emptyList());
+      octopusProvisioning =
+          new OctopusProvisioning(
+              client, spaceHome, stack.octopusUrlForHost(), stack.octopusApiKey());
+      projectId =
+          octopusProvisioning.ensureProjectWithServerScriptStep(
+              OCTOPUS_PROJECT, Collections.emptyList());
 
       final TeamCityRest tc = stack.rest();
       tc.createProject("RelLinkUiIT", "Release link UI IT");
@@ -116,6 +119,13 @@ class OctopusReleaseLinkUiTest {
             assertThat(page.locator("div.octopusRelease a").first().getAttribute("href"))
                 .isEqualTo(expectedLink);
           });
+    }
+  }
+
+  @AfterEach
+  void deleteOctopusProject() throws Exception {
+    if (projectId != null) {
+      octopusProvisioning.deleteProject(projectId);
     }
   }
 }
