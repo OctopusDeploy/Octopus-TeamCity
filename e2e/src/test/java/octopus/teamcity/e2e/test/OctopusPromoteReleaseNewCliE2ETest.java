@@ -74,11 +74,10 @@ class OctopusPromoteReleaseNewCliE2ETest {
       tc.addDeployReleaseStepUsingConnection(
           TC_BUILD_TYPE_ID, connectionId, OCTOPUS_PROJECT, RELEASE_VERSION, DEV);
 
-      // we pause for 5s to allow Octopus Server to register the deployment has occurred and the dashboard updated
-      tc.addCommandLineStep(TC_BUILD_TYPE_ID,
-              "Pause for 5s",
-              "sleep 5");
-      //now we can promote it
+      // we pause for 5s to allow Octopus Server to register the deployment has occurred and the
+      // dashboard updated
+      tc.addCommandLineStep(TC_BUILD_TYPE_ID, "Pause for 5s", "sleep 5");
+      // now we can promote it
       tc.addPromoteReleaseStepUsingConnection(
           TC_BUILD_TYPE_ID, connectionId, OCTOPUS_PROJECT, DEV, PROD);
 
