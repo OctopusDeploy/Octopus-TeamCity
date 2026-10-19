@@ -1,6 +1,7 @@
 package octopus.teamcity.e2e.dsl;
 
 import com.octopus.sdk.api.EnvironmentApi;
+import com.octopus.sdk.api.LifecycleApi;
 import com.octopus.sdk.api.ProjectApi;
 import com.octopus.sdk.api.ProjectGroupApi;
 import com.octopus.sdk.domain.Project;
@@ -84,9 +85,20 @@ public final class OctopusProvisioner {
     return created.getProperties().getId();
   }
 
-  /** Deletes a project by its id, so tests don't leave projects behind on the shared Octopus. */
+  /**
+   * Deletes a project and its dedicated lifecycle, so tests don't leave either behind on the shared
+   * Octopus. The lifecycle can only be deleted once no project uses it.
+   */
   public void deleteProject(final String projectId) throws Exception {
-    ProjectApi.create(client, spaceHome).delete(projectId);
+    final ProjectApi projects = ProjectApi.create(client, spaceHome);
+    final String lifecycleId =
+        projects
+            .getById(projectId)
+            .orElseThrow(() -> new IllegalStateException("No project with id " + projectId))
+            .getProperties()
+            .getLifecycleId();
+    projects.delete(projectId);
+    LifecycleApi.create(client, spaceHome).delete(lifecycleId);
   }
 
   /**
