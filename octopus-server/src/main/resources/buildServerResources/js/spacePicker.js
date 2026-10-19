@@ -405,7 +405,37 @@ window.OctopusSpacePicker = window.OctopusSpacePicker || (function () {
       load();
     }
 
-    if (connectionSelect) connectionSelect.addEventListener("change", connectionChanged);
+    // The connection form's lookup uses the saved settings, so once they are edited its spaces
+    // may not be the ones the form would save. A space id belongs to one Octopus server, so a
+    // new URL also drops it.
+    function connectionSettingChanged(serverChanged) {
+      if (serverChanged && idField) idField.value = "";
+      if (!savedConnectionId()) return;
+      lookupSequence++;
+      cannotList("Save the changed settings to choose from this connection's spaces.", false);
+    }
+
+    function watchConnectionSettings() {
+      const form = cell.closest("form") || document;
+      const rows = form.querySelectorAll("tr.octopusConnectionSetting");
+      for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+        const serverChanged = rows[rowIndex].classList.contains("octopusConnectionServer");
+        const fields = rows[rowIndex].querySelectorAll("input, select");
+        for (let fieldIndex = 0; fieldIndex < fields.length; fieldIndex++) {
+          const onChange = function () {
+            connectionSettingChanged(serverChanged);
+          };
+          fields[fieldIndex].addEventListener("input", onChange);
+          fields[fieldIndex].addEventListener("change", onChange);
+        }
+      }
+    }
+
+    if (connectionSelect) {
+      connectionSelect.addEventListener("change", connectionChanged);
+    } else {
+      watchConnectionSettings();
+    }
     load();
   }
 

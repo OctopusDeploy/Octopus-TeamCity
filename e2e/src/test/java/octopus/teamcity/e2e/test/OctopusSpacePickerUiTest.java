@@ -309,6 +309,55 @@ class OctopusSpacePickerUiTest {
     }
   }
 
+  /**
+   * The connection form lists the spaces the saved settings reach, which the edited settings may
+   * not. A space id belongs to one Octopus server, so a new URL also drops it.
+   */
+  @Test
+  void connectionFormStopsSuggestingSpacesOnceItsSettingsAreEdited() throws Exception {
+    try (final OctopusTeamCityStack stack = SharedStack.full()) {
+      final TeamCityRest tc = stack.rest();
+      tc.createProject("SpacePickerConnEditIT", "Space picker connection edit IT");
+      tc.createOctopusConnection(
+          "SpacePickerConnEditIT",
+          "Edited Octopus",
+          stack.octopusUrlForContainers(),
+          stack.octopusApiKey(),
+          "");
+
+      PlaywrightUi.withLoggedInPage(
+          stack,
+          page -> {
+            page.navigate(
+                stack.tcBaseUrl()
+                    + "/admin/editProject.html?projectId=SpacePickerConnEditIT"
+                    + "&tab=oauthConnections");
+            page.waitForLoadState(LoadState.NETWORKIDLE);
+            page.locator("tr", new Page.LocatorOptions().setHasText("Edited Octopus"))
+                .locator("a:has-text(\"Edit\")")
+                .first()
+                .click();
+            waitForSpaces(page);
+            assertThat(suggestions(page)).contains("Default (Spaces-1)");
+            page.locator("ul.ui-autocomplete li", new Page.LocatorOptions().setHasText("Default"))
+                .first()
+                .click();
+            assertThat(spaceId(page)).isEqualTo("Spaces-1");
+
+            page.selectOption("#octopusApiKeySource", new String[] {"parameter"});
+
+            assertThat(status(page).innerText()).contains("Save the changed settings");
+            assertNoSpacesListed(page);
+            assertThat(spaceId(page)).isEqualTo("Spaces-1");
+
+            page.locator("input[name='prop:octopus_host']").fill("https://elsewhere.example");
+
+            assertThat(spaceId(page)).isEmpty();
+            assertThat(spaceName(page).inputValue()).isEqualTo("Default");
+          });
+    }
+  }
+
   @Test
   void explainsAnApiKeyParameterThatOnlyResolvesDuringABuild() throws Exception {
     try (final OctopusTeamCityStack stack = SharedStack.full()) {
