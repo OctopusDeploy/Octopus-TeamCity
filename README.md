@@ -109,7 +109,7 @@ An Octopus connection can supply credentials three ways, chosen by the **API key
 - **Enter an API key** (default) — a stored secret API key, as before.
 - **Reference a parameter** — a single parameter reference such as `%octopus.apikey%`. Keep the
   secret in that TeamCity parameter; the connection just points at it.
-- **Use an OIDC token** — It the Octopus [TeamCity OIDC plugin](https://github.com/OctopusDeploy/teamcity-oidc-plugin) 
+- **Use an OIDC token** — If the Octopus [TeamCity OIDC plugin](https://github.com/OctopusDeploy/teamcity-oidc-plugin) 
   is installed, you can reference an *OIDC Identity Token* connector. The connector's audience is the 
   Octopus service account id; the token is taken from the connector's token variable (default `%jwt.token%`). 
   This option appears only when an OIDC connector exists in the project.
@@ -120,6 +120,26 @@ and reuses the session, so a single long-running deploy-with-wait that outlives 
 when it expires. OIDC is not available for the **Promote release** step, as the new Octopus CLI does not
 currently support promote-from; use an API key or parameter source there, or promote via a Deploy
 release step.
+
+## Choosing a space
+
+The **Space** field on a connection and on each step suggests the spaces on the connection's Octopus
+server. Choosing a suggestion stores the space's id as well as its name, and the id keeps working
+after the space is renamed in Octopus. Anything else typed, including a parameter reference, is
+stored as the name.
+
+Suggestions come from a saved connection. A step that enters its own URL and API key, or a
+connection with unsaved changes, gets none; type the space name instead.
+
+Listing spaces for a connection that uses an OIDC token needs:
+
+- [TeamCity OIDC plugin](https://github.com/OctopusDeploy/teamcity-oidc-plugin) **0.0.1732 or later**,
+  which can issue tokens outside a build.
+- The **connection** subject dimension enabled on the *OIDC Identity Token* connection. Its tokens
+  then have a subject starting `connection_project:<project internal id>:connection:<connection id>:`.
+  Give the Octopus service account an OIDC identity with the subject
+  `connection_project:<project internal id>:connection:<connection id>:*`, which matches both the
+  space lookup and the builds that use the connection.
 
 ## Branch override
 
