@@ -39,7 +39,7 @@ jobs:
       uses: actions/setup-java@v6
       with:
         java-version: '8'
-        distribution: 'adopt'
+        distribution: 'temurin'
 
     # Caches ~/.gradle (resolved dependencies + wrapper distributions) and runs cache cleanup.
     # By default the cache is only written from the default branch; PR builds read it but don't
@@ -130,7 +130,7 @@ jobs:
       uses: actions/setup-java@v6
       with:
         java-version: '8'
-        distribution: 'adopt'
+        distribution: 'temurin'
 
     - name: Set up Gradle caching
       uses: gradle/actions/setup-gradle@v6
