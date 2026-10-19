@@ -118,8 +118,7 @@ public final class OctopusProvisioner {
   }
 
   /** Creates an environment; returns its id (e.g. {@code Environments-1}). */
-  public static String createEnvironment(
-      final OctopusClient client, final SpaceHome spaceHome, final String name) throws Exception {
+  public String createEnvironment(final String name) throws Exception {
     return EnvironmentApi.create(client, spaceHome)
         .create(new EnvironmentResource(name))
         .getProperties()
@@ -165,14 +164,8 @@ public final class OctopusProvisioner {
    * Adds a runbook with the same single run-on-server script step to an existing project, and
    * publishes a snapshot so it can be run without naming one. Returns the runbook's id.
    */
-  public static String createRunbookWithServerScriptStep(
-      final OctopusClient client,
-      final SpaceHome spaceHome,
-      final String octopusBaseUrl,
-      final String apiKey,
-      final String projectName,
-      final String runbookName)
-      throws Exception {
+  public String createRunbookWithServerScriptStep(
+      final String projectName, final String runbookName) throws Exception {
     final String projectId =
         ProjectApi.create(client, spaceHome)
             .getByName(projectName)
@@ -232,12 +225,7 @@ public final class OctopusProvisioner {
   }
 
   /** True if the runbook has been run at least once. */
-  public static boolean hasRunbookRun(
-      final SpaceHome spaceHome,
-      final String octopusBaseUrl,
-      final String apiKey,
-      final String runbookId)
-      throws Exception {
+  public boolean hasRunbookRun(final String runbookId) throws Exception {
     final JsonObject runs =
         readJson(
             octopusRequest(

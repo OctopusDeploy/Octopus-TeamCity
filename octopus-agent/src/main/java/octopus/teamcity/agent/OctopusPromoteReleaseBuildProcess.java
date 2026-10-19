@@ -74,10 +74,8 @@ public class OctopusPromoteReleaseBuildProcess extends OctopusBuildProcess {
         commands.add(projectName);
         commands.add("--enableservicemessages");
 
-        if (promoteFrom != null && !promoteFrom.isEmpty()) {
-          commands.add("--from");
-          commands.add(promoteFrom);
-        }
+        commands.add("--from");
+        commands.add(promoteFrom);
 
         for (String env : splitCommaSeparatedValues(deployTo)) {
           commands.add("--deployto");
