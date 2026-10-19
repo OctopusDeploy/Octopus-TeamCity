@@ -11,7 +11,10 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 
-import octopus.teamcity.e2e.dsl.*;
+import octopus.teamcity.e2e.dsl.OctopusProvisioner;
+import octopus.teamcity.e2e.dsl.OctopusTeamCityStack;
+import octopus.teamcity.e2e.dsl.SharedStack;
+import octopus.teamcity.e2e.dsl.TeamCityRest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
