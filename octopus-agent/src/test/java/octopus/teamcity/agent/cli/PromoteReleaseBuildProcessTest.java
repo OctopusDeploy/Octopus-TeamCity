@@ -32,7 +32,7 @@ class PromoteReleaseBuildProcessTest {
     params.put(OctopusConstants.Instance.getWaitForDeployments(), "true");
     final List<OctopusCommandBuilder> commands = commandsFor(params);
 
-    Commands.of(commands, DeployReleaseCommand.class)
+    Commands.of(commands, PromoteReleaseCommand.class)
         .readResponse("[{\"ServerTaskId\": \"task-xyz\"}]");
 
     assertThat(Commands.of(commands, WaitForTaskCommand.class).buildCommand()).contains("task-xyz");
