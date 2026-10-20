@@ -74,15 +74,15 @@ public abstract class CLIBuildProcess implements BuildProcess {
     retryExecutor =
         new OctopusCliRetryExecutor(logger, context.getBuildParameters().getEnvironmentVariables());
     // Execute each CLI command in sequence (e.g. login → create-release → deploy → wait).
-    // If any command fails (exitCode == 1), skip remaining commands. Each individual command
-    // is independently wrapped in retry logic by startOctopus(), so a transient failure on
+    // If any command exits non-zero, skip remaining commands. Each individual command
+    // is independently wrapped in retry logic by runCommand(), so a transient failure on
     // one command won't skip subsequent commands until retries are exhausted.
     List<OctopusCommandBuilder> commandArgumentsList = createCommand();
     for (OctopusCommandBuilder commandArguments : commandArgumentsList) {
-      if (exitCode == 1) {
+      exitCode = runCommand(commandArguments);
+      if (exitCode != 0) {
         return;
       }
-      startOctopus(commandArguments);
     }
   }
 
@@ -162,7 +162,7 @@ public abstract class CLIBuildProcess implements BuildProcess {
     return file.setExecutable(true, false);
   }
 
-  private void startOctopus(final OctopusCommandBuilder command) throws RunBuildException {
+  int runCommand(final OctopusCommandBuilder command) throws RunBuildException {
     String[] userVisibleCommand = command.buildMaskedCommand();
     String[] realCommand = command.buildCommand();
     logger.message(
@@ -232,14 +232,14 @@ public abstract class CLIBuildProcess implements BuildProcess {
             "Command exited with code "
                 + result.getExitCode()
                 + ". It only gathers extra detail, so the step carries on without it.");
-        return;
+        return 0;
       }
 
-      exitCode = result.getExitCode();
-      logger.message("Exit code: " + exitCode);
-      if (exitCode == 0) {
+      logger.message("Exit code: " + result.getExitCode());
+      if (result.getExitCode() == 0) {
         command.readResponse(result.getCombinedOutput());
       }
+      return result.getExitCode();
 
     } catch (IOException e) {
       final String message = "Error from octopus: " + e.getMessage();
