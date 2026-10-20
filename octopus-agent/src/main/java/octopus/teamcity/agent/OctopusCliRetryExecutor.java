@@ -50,12 +50,9 @@ import jetbrains.buildServer.agent.BuildProgressLogger;
  * <h3>Behavioural difference between CLI paths</h3>
  *
  * <ul>
- *   <li><b>Legacy .NET CLI</b>: the CLI itself has no retry logic; this executor provides all
- *       resilience. Each CLI invocation fails fast on connection errors (~76s TCP timeout), so the
- *       executor's backoff controls the retry cadence.
- *   <li><b>Go CLI</b>: the CLI has its own built-in exponential backoff on login. A single
- *       invocation may run for several minutes retrying internally. This executor adds a second
- *       layer if the CLI exhausts its internal retries and exits with a transient error.
+ *   <li>The CLI has its own built-in exponential backoff on login. A single invocation may run for
+ *       several minutes retrying internally. This executor adds a second layer if the CLI exhausts
+ *       its internal retries and exits with a transient error.
  * </ul>
  *
  * <h3>Configuration</h3>
