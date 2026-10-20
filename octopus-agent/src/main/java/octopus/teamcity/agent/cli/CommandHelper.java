@@ -258,10 +258,10 @@ public class CommandHelper {
           commands.add("--service-account-id");
           commands.add(params.get(constants.getOidcServiceAccountIdKey()));
           commands.add("--id-token");
-          commands.add(params.get(constants.getOidcIdTokenKey()));
+          commands.add(masked ? "SECRET" : params.get(constants.getOidcIdTokenKey()));
         } else {
           commands.add("--api-key");
-          commands.add(params.get(constants.getApiKey()));
+          commands.add(masked ? "SECRET" : params.get(constants.getApiKey()));
         }
 
         commands.add("--no-prompt");
