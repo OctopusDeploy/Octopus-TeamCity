@@ -1,9 +1,9 @@
 package octopus.teamcity.agent.cli;
 
-import octopus.teamcity.agent.OctopusCommandBuilder;
-
 import java.util.Map;
 import java.util.function.Consumer;
+
+import octopus.teamcity.agent.OctopusCommandBuilder;
 
 /** Creates the release, and hands what it made back to the step that asked for it. */
 final class CreateReleaseCommand extends OctopusCommandBuilder {
