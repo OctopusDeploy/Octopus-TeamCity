@@ -1,5 +1,7 @@
 package octopus.teamcity.agent.cli;
 
+import octopus.teamcity.agent.OctopusCommandBuilder;
+
 import java.util.Map;
 import java.util.function.Consumer;
 

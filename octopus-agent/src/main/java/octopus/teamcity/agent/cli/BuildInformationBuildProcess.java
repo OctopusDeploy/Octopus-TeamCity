@@ -31,6 +31,7 @@ import octopus.teamcity.agent.CommitHistoryFetcher;
 import octopus.teamcity.agent.OctopusBuildInformation;
 import octopus.teamcity.agent.OctopusBuildInformationBuilder;
 import octopus.teamcity.agent.OctopusBuildInformationWriter;
+import octopus.teamcity.agent.OctopusCommandBuilder;
 import octopus.teamcity.common.OctopusConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.teamcity.rest.Build;
