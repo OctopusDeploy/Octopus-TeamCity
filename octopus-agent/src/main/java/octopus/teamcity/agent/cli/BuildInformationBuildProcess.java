@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import jetbrains.buildServer.RunBuildException;
 import jetbrains.buildServer.agent.AgentRunningBuild;
 import jetbrains.buildServer.agent.BuildRunnerContext;
 import octopus.teamcity.agent.BranchResolver;
@@ -61,7 +60,7 @@ public class BuildInformationBuildProcess extends CLIBuildProcess {
   }
 
   @Override
-  protected List<OctopusCommandBuilder> createCommand() throws RunBuildException {
+  protected List<OctopusCommandBuilder> createCommand() {
     final Map<String, String> parameters = getContext().getRunnerParameters();
     final OctopusConstants constants = OctopusConstants.Instance;
     final Boolean verboseLogging =
@@ -115,7 +114,8 @@ public class BuildInformationBuildProcess extends CLIBuildProcess {
       writer.writeToFile(buildInformation, dataFile, StandardCharsets.UTF_8);
 
     } catch (Exception ex) {
-      throw new RunBuildException("Unable to create the build information file", ex);
+      logger.error("Error processing comment messages " + ex);
+      return null;
     }
     List<OctopusCommandBuilder> commands = new ArrayList<>();
 

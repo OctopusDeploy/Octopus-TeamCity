@@ -62,7 +62,7 @@ public abstract class CLIBuildProcess implements BuildProcess {
     logger = runningBuild.getBuildLogger();
   }
 
-  protected abstract List<OctopusCommandBuilder> createCommand() throws RunBuildException;
+  protected abstract List<OctopusCommandBuilder> createCommand();
 
   protected BuildRunnerContext getContext() {
     return context;
