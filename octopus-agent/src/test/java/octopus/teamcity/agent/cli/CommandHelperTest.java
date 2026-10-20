@@ -211,6 +211,16 @@ class CommandHelperTest {
   }
 
   @Test
+  void waitCommandLeavesTheTaskRunningWhenCancelOnTimeoutIsFalse() {
+    Map<String, String> params = new HashMap<>();
+    params.put(OctopusConstants.Instance.getCancelDeploymentOnTimeout(), "false");
+
+    String[] command = CommandHelper.wait(params, "task-42");
+
+    assertThat(command).doesNotContain("--cancel-on-timeout");
+  }
+
+  @Test
   void createReleaseCommandWithDeploy() {
     Map<String, String> params = new HashMap<>();
     final OctopusConstants constants = OctopusConstants.Instance;
