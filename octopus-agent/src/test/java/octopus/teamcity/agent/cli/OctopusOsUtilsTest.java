@@ -1,4 +1,4 @@
-package octopus.teamcity.agent;
+package octopus.teamcity.agent.cli;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

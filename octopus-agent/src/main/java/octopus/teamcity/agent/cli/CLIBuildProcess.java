@@ -36,7 +36,6 @@ import jetbrains.buildServer.agent.runner.LoggingProcessListener;
 import octopus.teamcity.agent.EmbeddedResourceExtractor;
 import octopus.teamcity.agent.OctopusCliRetryExecutor;
 import octopus.teamcity.agent.OctopusCommandBuilder;
-import octopus.teamcity.agent.OctopusOsUtils;
 import octopus.teamcity.agent.Output;
 import octopus.teamcity.common.OctopusConstants;
 import org.jetbrains.annotations.NotNull;

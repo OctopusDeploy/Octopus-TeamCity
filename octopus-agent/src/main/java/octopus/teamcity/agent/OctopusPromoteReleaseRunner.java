@@ -16,7 +16,6 @@
 
 package octopus.teamcity.agent;
 
-import jetbrains.buildServer.RunBuildException;
 import jetbrains.buildServer.agent.AgentBuildRunner;
 import jetbrains.buildServer.agent.AgentBuildRunnerInfo;
 import jetbrains.buildServer.agent.AgentRunningBuild;
@@ -31,12 +30,8 @@ public class OctopusPromoteReleaseRunner implements AgentBuildRunner {
   @Override
   @NotNull
   public BuildProcess createBuildProcess(
-      @NotNull AgentRunningBuild runningBuild, @NotNull BuildRunnerContext context)
-      throws RunBuildException {
-    if (OctopusCliSelector.shouldUseNewCli(runningBuild, context)) {
-      return new PromoteReleaseBuildProcess(runningBuild, context);
-    }
-    return new OctopusPromoteReleaseBuildProcess(runningBuild, context);
+      @NotNull AgentRunningBuild runningBuild, @NotNull BuildRunnerContext context) {
+    return new PromoteReleaseBuildProcess(runningBuild, context);
   }
 
   @Override
@@ -51,7 +46,7 @@ public class OctopusPromoteReleaseRunner implements AgentBuildRunner {
 
       @Override
       public boolean canRun(@NotNull BuildAgentConfiguration agentConfiguration) {
-        return OctopusOsUtils.CanRunOcto(agentConfiguration);
+        return true;
       }
     };
   }
