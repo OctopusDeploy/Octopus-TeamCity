@@ -126,13 +126,13 @@ public abstract class CLIBuildProcess implements BuildProcess {
 
   private void extractOctopusBinary() throws RunBuildException {
     final File tempDirectory = runningBuild.getBuildTempDirectory();
+    final String osFolder = OctopusOsUtils.getBinaryOsFolder(runningBuild);
     try {
       final Map<String, String> parameters = getContext().getRunnerParameters();
       final OctopusConstants constants = OctopusConstants.Instance;
       final String octopusVersion = getCliVersion(parameters, constants).replace("+", "");
-      final String osFolder = OctopusOsUtils.getBinaryOsFolder(runningBuild);
       octopusBinaryName = "octopus";
-      if (osFolder.equals("windows-os")) {
+      if (osFolder.startsWith("windows-os")) {
         octopusBinaryName = "octopus.exe";
       }
       extractedTo =

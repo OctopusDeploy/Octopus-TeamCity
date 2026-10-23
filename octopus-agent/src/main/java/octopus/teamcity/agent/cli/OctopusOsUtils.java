@@ -16,18 +16,43 @@
 
 package octopus.teamcity.agent.cli;
 
+import java.util.Locale;
+
+import jetbrains.buildServer.RunBuildException;
 import jetbrains.buildServer.agent.AgentRunningBuild;
 
 public class OctopusOsUtils {
 
-  public static String getBinaryOsFolder(AgentRunningBuild runningBuild) {
-    runningBuild.getAgentConfiguration().getSystemInfo();
+  public static String getBinaryOsFolder(AgentRunningBuild runningBuild) throws RunBuildException {
+    return getBinaryOsFolder(runningBuild, System.getProperty("os.arch"));
+  }
+
+  static String getBinaryOsFolder(AgentRunningBuild runningBuild, String jvmArchitecture)
+      throws RunBuildException {
+    final String os;
     if (runningBuild.getAgentConfiguration().getSystemInfo().isWindows()) {
-      return "windows-os";
+      os = "windows-os";
     } else if (runningBuild.getAgentConfiguration().getSystemInfo().isMac()) {
-      return "mac-os";
+      os = "mac-os";
     } else {
-      return "unix-os";
+      os = "unix-os";
+    }
+    return os + "-" + getBinaryArchitecture(jvmArchitecture);
+  }
+
+  private static String getBinaryArchitecture(String jvmArchitecture) throws RunBuildException {
+    switch (jvmArchitecture == null ? "" : jvmArchitecture.toLowerCase(Locale.ROOT)) {
+      case "amd64":
+      case "x86_64":
+        return "amd64";
+      case "aarch64":
+      case "arm64":
+        return "arm64";
+      default:
+        throw new RunBuildException(
+            "The Octopus CLI is not available for the agent's architecture '"
+                + jvmArchitecture
+                + "'. Supported architectures are amd64 and arm64.");
     }
   }
 }
