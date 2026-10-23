@@ -41,9 +41,12 @@ dependencies {
 
 def octopusCliVersion = project.property('octopusCliVersion')
 def octopusCliArchives = [
-  'windows-os': [name: "octopus_${octopusCliVersion}_windows_amd64.zip", sha256: project.property('octopusCliSha256WindowsAmd64')],
-  'unix-os': [name: "octopus_${octopusCliVersion}_linux_amd64.tar.gz", sha256: project.property('octopusCliSha256LinuxAmd64')],
-  'mac-os': [name: "octopus_${octopusCliVersion}_macOS_arm64.tar.gz", sha256: project.property('octopusCliSha256MacOsArm64')],
+  'windows-os-amd64': [name: "octopus_${octopusCliVersion}_windows_amd64.zip", sha256: project.property('octopusCliSha256WindowsAmd64')],
+  'windows-os-arm64': [name: "octopus_${octopusCliVersion}_windows_arm64.zip", sha256: project.property('octopusCliSha256WindowsArm64')],
+  'unix-os-amd64': [name: "octopus_${octopusCliVersion}_linux_amd64.tar.gz", sha256: project.property('octopusCliSha256LinuxAmd64')],
+  'unix-os-arm64': [name: "octopus_${octopusCliVersion}_linux_arm64.tar.gz", sha256: project.property('octopusCliSha256LinuxArm64')],
+  'mac-os-amd64': [name: "octopus_${octopusCliVersion}_macOS_amd64.tar.gz", sha256: project.property('octopusCliSha256MacOsAmd64')],
+  'mac-os-arm64': [name: "octopus_${octopusCliVersion}_macOS_arm64.tar.gz", sha256: project.property('octopusCliSha256MacOsArm64')],
 ]
 def octopusCliResourcesDir = layout.buildDirectory.dir('generated/octopus-cli')
 
