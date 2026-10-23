@@ -211,6 +211,16 @@ class CommandHelperTest {
   }
 
   @Test
+  void waitCommandLeavesTheTaskRunningWhenCancelOnTimeoutIsFalse() {
+    Map<String, String> params = new HashMap<>();
+    params.put(OctopusConstants.Instance.getCancelDeploymentOnTimeout(), "false");
+
+    String[] command = CommandHelper.wait(params, "task-42");
+
+    assertThat(command).doesNotContain("--cancel-on-timeout");
+  }
+
+  @Test
   void createReleaseCommandWithDeploy() {
     Map<String, String> params = new HashMap<>();
     final OctopusConstants constants = OctopusConstants.Instance;
@@ -384,6 +394,32 @@ class CommandHelperTest {
             "the-jwt-value",
             "--no-prompt");
     assertThat(command).doesNotContain("--api-key");
+  }
+
+  @Test
+  void maskedLoginCommandHidesTheApiKey() {
+    Map<String, String> params = new HashMap<>();
+    final OctopusConstants constants = OctopusConstants.Instance;
+    params.put(constants.getServerKey(), "https://octo.example");
+    params.put(constants.getApiKey(), "API-KEY-123");
+
+    String[] command = CommandHelper.login(params).buildMaskedCommand();
+
+    assertThat(command).containsSequence("--api-key", "SECRET").doesNotContain("API-KEY-123");
+  }
+
+  @Test
+  void maskedLoginCommandHidesTheOidcIdToken() {
+    Map<String, String> params = new HashMap<>();
+    final OctopusConstants constants = OctopusConstants.Instance;
+    params.put(constants.getServerKey(), "https://octo.example");
+    params.put(constants.getApiKeySourceKey(), ConnectionPropertyNames.API_KEY_SOURCE_OIDC);
+    params.put(constants.getOidcServiceAccountIdKey(), "Spaces-SA-123");
+    params.put(constants.getOidcIdTokenKey(), "the-jwt-value");
+
+    String[] command = CommandHelper.login(params).buildMaskedCommand();
+
+    assertThat(command).containsSequence("--id-token", "SECRET").doesNotContain("the-jwt-value");
   }
 
   @Test

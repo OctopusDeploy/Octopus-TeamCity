@@ -57,12 +57,13 @@ the CLI. There are **six runners**: `octopus.create.release`, `octopus.deploy.re
 `octopus.promote.release`, `octopus.push.package`, `octopus.pack.package`, and `octopus.metadata`
 (build information).
 
-**Two CLI generations on the agent.** The bundled CLI binaries live in
-`octopus-agent/src/main/resources/resources/{1,2,3,newcli}/...` (per Octopus version / OS).
-`EmbeddedResourceExtractor` + `OctopusBuildProcess` pick the binary from the `octopus_version`
-parameter and the agent OS. The top-level `Octopus*BuildProcess` classes drive the legacy
-`OctopusCLI` (`octo.exe`/`octo.dll`); the `cli/` package drives the newer Go CLI. The plugin
-deliberately stays on the legacy OctopusCLI for compatibility (see `README.md`).
+**The Go CLI on the agent.** The agent bundles the Octopus Go CLI as classpath resources at
+`resources/cli/<octopus version>/<os>/...`. The archives are not in git: the `downloadOctopusCli`
+task fetches them from the OctopusDeploy/cli GitHub release into
+`octopus-agent/build/generated/octopus-cli/` and checks them against the SHA-256 hashes in
+`gradle.properties`. To bump the Go CLI, update `octopusCliVersion` and the three hashes from the
+release's `SHA256SUMS` file. `EmbeddedResourceExtractor` extracts the archive for the agent OS
+(`OctopusOsUtils`), and the build processes in the `cli/` package run it.
 
 ### Reusable Octopus connections
 

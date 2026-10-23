@@ -258,10 +258,10 @@ public class CommandHelper {
           commands.add("--service-account-id");
           commands.add(params.get(constants.getOidcServiceAccountIdKey()));
           commands.add("--id-token");
-          commands.add(params.get(constants.getOidcIdTokenKey()));
+          commands.add(masked ? "SECRET" : params.get(constants.getOidcIdTokenKey()));
         } else {
           commands.add("--api-key");
-          commands.add(params.get(constants.getApiKey()));
+          commands.add(masked ? "SECRET" : params.get(constants.getApiKey()));
         }
 
         commands.add("--no-prompt");
@@ -485,7 +485,8 @@ public class CommandHelper {
     final OctopusConstants constants = OctopusConstants.Instance;
     final ArrayList<String> commands = new ArrayList<>();
     final String deploymentTimeout = params.get(constants.getDeploymentTimeout());
-    final String cancelDeploymentTimeout = params.get(constants.getCancelDeploymentOnTimeout());
+    final boolean cancelOnTimeout =
+        Boolean.parseBoolean(params.get(constants.getCancelDeploymentOnTimeout()));
     final String spaceName = SpaceSelection.resolveOrDefault(params);
     commands.add("task");
     commands.add("wait");
@@ -501,7 +502,7 @@ public class CommandHelper {
       commands.add(deploymentTimeout);
     }
 
-    if (StringUtils.isNotBlank(cancelDeploymentTimeout)) {
+    if (cancelOnTimeout) {
       commands.add("--cancel-on-timeout");
     }
 
