@@ -39,6 +39,44 @@ dependencies {
   //testImplementation group: 'com.octopus', name:'dsl', classifier: 'test-support'
 }
 
+def octopusCliVersion = project.property('octopusCliVersion')
+def octopusCliArchives = [
+  'windows-os': [name: "octopus_${octopusCliVersion}_windows_amd64.zip", sha256: project.property('octopusCliSha256WindowsAmd64')],
+  'unix-os': [name: "octopus_${octopusCliVersion}_linux_amd64.tar.gz", sha256: project.property('octopusCliSha256LinuxAmd64')],
+  'mac-os': [name: "octopus_${octopusCliVersion}_macOS_arm64.tar.gz", sha256: project.property('octopusCliSha256MacOsArm64')],
+]
+def octopusCliResourcesDir = layout.buildDirectory.dir('generated/octopus-cli')
+
+task downloadOctopusCli {
+  description = 'Downloads the Octopus CLI archives bundled in the agent and verifies their SHA-256 hashes.'
+  inputs.property('archives', octopusCliArchives.collectEntries { osFolder, archive -> [(osFolder): archive.toString()] })
+  outputs.dir(octopusCliResourcesDir)
+
+  doLast {
+    def outputRoot = octopusCliResourcesDir.get().asFile
+    project.delete(outputRoot)
+    octopusCliArchives.each { osFolder, archive ->
+      def target = new File(outputRoot, "resources/newcli/2.0/${osFolder}/${archive.name}")
+      target.parentFile.mkdirs()
+      def url = "https://github.com/OctopusDeploy/cli/releases/download/v${octopusCliVersion}/${archive.name}"
+      logger.lifecycle("Downloading ${url}")
+      new URL(url).withInputStream { input ->
+        target.withOutputStream { output ->
+          output << input
+        }
+      }
+
+      def actualSha256 = java.security.MessageDigest.getInstance('SHA-256').digest(target.bytes).encodeHex().toString()
+      if (actualSha256 != archive.sha256) {
+        target.delete()
+        throw new GradleException("SHA-256 of ${archive.name} is ${actualSha256}, expected ${archive.sha256}")
+      }
+    }
+  }
+}
+
+sourceSets.main.resources.srcDir(files(octopusCliResourcesDir).builtBy(downloadOctopusCli))
+
 distZip {
   archiveFileName = "Octopus.TeamCity.zip"
 }
