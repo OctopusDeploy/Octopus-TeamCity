@@ -20,8 +20,8 @@ import org.junit.jupiter.api.Test;
  * of inline URL/API key) resolves the connection at build start and publishes build information to
  * a real Octopus Deploy.
  *
- * <p>Uses the default Space — the free-tier Octopus license allows only one space, so we don't
- * create another. Leaving the connection's space blank makes {@code octo} target the default space.
+ * <p>Uses the Default space — the free-tier Octopus license allows only one space, so we don't
+ * create another.
  */
 class OctopusConnectionBuildInformationE2ETest {
 
@@ -34,13 +34,16 @@ class OctopusConnectionBuildInformationE2ETest {
       // 1. Octopus SDK client (for verification) against the default space.
       final OctopusClient client = stack.octopusClient();
 
-      // 2. Provision TeamCity via REST: project, connection, build type + build-info step. The
-      // connection's space is left blank so the step targets the default space.
+      // 2. Provision TeamCity via REST: project, connection, build type + build-info step.
       final TeamCityRest tc = stack.rest();
       tc.createProject("ConnIT", "Connection IT");
       final String connectionId =
           tc.createOctopusConnection(
-              "ConnIT", "IT Octopus", stack.octopusUrlForContainers(), stack.octopusApiKey(), "");
+              "ConnIT",
+              "IT Octopus",
+              stack.octopusUrlForContainers(),
+              stack.octopusApiKey(),
+              "Default");
       tc.createBuildType("ConnIT_BuildInfo", "Publish build info", "ConnIT");
       tc.addBuildInfoStepUsingConnection(
           "ConnIT_BuildInfo", connectionId, PACKAGE_ID, PACKAGE_VERSION);

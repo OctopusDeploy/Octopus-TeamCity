@@ -52,7 +52,7 @@ class OctopusRunRunbookE2ETest {
               "IT Octopus",
               stack.octopusUrlForContainers(),
               stack.octopusApiKey(),
-              "");
+              "Default");
       tc.createBuildType("RunbookIT_Run", "Run runbook", "RunbookIT");
       tc.addRunRunbookStepUsingConnection(
           "RunbookIT_Run", connectionId, OCTOPUS_PROJECT, RUNBOOK, ENVIRONMENT);

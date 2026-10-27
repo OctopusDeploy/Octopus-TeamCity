@@ -22,6 +22,7 @@ import java.util.regex.Pattern;
 import jetbrains.buildServer.serverSide.InvalidProperty;
 import jetbrains.buildServer.util.StringUtil;
 import octopus.teamcity.common.OctopusConstants;
+import octopus.teamcity.common.SpaceSelection;
 import org.jetbrains.annotations.NotNull;
 
 /** Shared validation helpers for run type {@code PropertiesProcessor}s. */
@@ -69,6 +70,21 @@ public final class PropertiesValidator {
     if (!usingConnection) {
       checkNotEmpty(properties, constants.getServerKey(), "Server must be specified", result);
       checkNotEmpty(properties, constants.getApiKey(), "API key must be specified", result);
+    }
+  }
+
+  /**
+   * Requires a space, by name or id, unless a reusable connection is selected (in which case the
+   * connection's space is used when the step names none).
+   */
+  public static void checkSpaceUnlessUsingConnection(
+      @NotNull final Map<String, String> properties,
+      @NotNull final OctopusConstants constants,
+      @NotNull final Collection<InvalidProperty> result) {
+    final boolean usingConnection =
+        !StringUtil.isEmptyOrSpaces(properties.get(constants.getConnectionIdKey()));
+    if (!usingConnection && !SpaceSelection.isSet(properties)) {
+      result.add(new InvalidProperty(constants.getSpaceName(), "Space must be specified"));
     }
   }
 

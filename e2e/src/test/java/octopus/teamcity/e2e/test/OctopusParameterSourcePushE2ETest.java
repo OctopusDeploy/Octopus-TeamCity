@@ -40,7 +40,7 @@ class OctopusParameterSourcePushE2ETest {
               "IT Param Octopus",
               stack.octopusUrlForContainers(),
               "%octopus.apikey%",
-              "");
+              "Default");
       tc.createBuildType("ParamIT_Push", "Pack and push via parameter", "ParamIT");
       // The secret the connection's %octopus.apikey% reference resolves to at build time.
       tc.setPasswordParameter("ParamIT_Push", "octopus.apikey", stack.octopusApiKey());

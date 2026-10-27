@@ -130,6 +130,7 @@ class CommandHelperTest {
     final OctopusConstants constants = OctopusConstants.Instance;
 
     params.put(constants.getProjectNameKey(), "MyProject");
+    params.put(constants.getSpaceName(), "Default");
     params.put(constants.getRunbookNameKey(), "Rebuild indexes");
     params.put(constants.getRunbookSnapshotKey(), "Snapshot ABC");
     params.put(constants.getDeployToKey(), "Env1,Env2");
@@ -550,10 +551,5 @@ class CommandHelperTest {
     assertThat(Arrays.asList(CommandHelper.spaceView(params)))
         .containsExactly(
             "space", "view", "Build Platform", "--output-format", "json", "--no-prompt");
-  }
-
-  @Test
-  void spaceViewFallsBackToTheDefaultSpace() {
-    assertThat(Arrays.asList(CommandHelper.spaceView(new HashMap<>()))).contains("Default");
   }
 }

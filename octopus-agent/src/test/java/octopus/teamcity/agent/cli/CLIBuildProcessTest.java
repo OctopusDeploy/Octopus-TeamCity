@@ -1,6 +1,7 @@
 package octopus.teamcity.agent.cli;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -11,6 +12,7 @@ import java.util.Arrays;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import jetbrains.buildServer.RunBuildException;
 import jetbrains.buildServer.agent.AgentRunningBuild;
@@ -21,6 +23,7 @@ import jetbrains.buildServer.agent.BuildParametersMap;
 import jetbrains.buildServer.agent.BuildProgressLogger;
 import jetbrains.buildServer.agent.BuildRunnerContext;
 import octopus.teamcity.agent.OctopusCommandBuilder;
+import octopus.teamcity.common.OctopusConstants;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -51,6 +54,17 @@ class CLIBuildProcessTest {
     assertThat(process.waitFor()).isEqualTo(BuildFinishedStatus.FINISHED_SUCCESS);
   }
 
+  @Test
+  void failsBeforeRunningAnyCommandWhenNoSpaceIsSet() {
+    final ScriptedBuildProcess process = processWithExitCodes(0, 0);
+    process.runnerParameters.remove(OctopusConstants.Instance.getSpaceName());
+
+    assertThatThrownBy(process::start)
+        .isInstanceOf(RunBuildException.class)
+        .hasMessageContaining("No Octopus space is set");
+    assertThat(process.commandsRun).isEmpty();
+  }
+
   private ScriptedBuildProcess processWithExitCodes(final Integer... exitCodes) {
     final AgentRunningBuild runningBuild = mock(AgentRunningBuild.class);
     final BuildRunnerContext context = mock(BuildRunnerContext.class);
@@ -61,22 +75,27 @@ class CLIBuildProcessTest {
     when(runningBuild.getAgentConfiguration()).thenReturn(agentConfiguration);
     when(runningBuild.getFailBuildOnExitCode()).thenReturn(true);
     when(agentConfiguration.getSystemInfo()).thenReturn(mock(BuildAgentSystemInfo.class));
-    when(context.getRunnerParameters()).thenReturn(new HashMap<>());
+    final Map<String, String> runnerParameters = new HashMap<>();
+    runnerParameters.put(OctopusConstants.Instance.getSpaceName(), "Default");
+    when(context.getRunnerParameters()).thenReturn(runnerParameters);
     when(context.getBuildParameters()).thenReturn(buildParameters);
     when(buildParameters.getEnvironmentVariables()).thenReturn(new HashMap<>());
 
-    return new ScriptedBuildProcess(runningBuild, context, exitCodes);
+    return new ScriptedBuildProcess(runningBuild, context, runnerParameters, exitCodes);
   }
 
   private static final class ScriptedBuildProcess extends CLIBuildProcess {
     private final Deque<Integer> exitCodes;
     private final List<String> commandsRun = new ArrayList<>();
+    private final Map<String, String> runnerParameters;
 
     ScriptedBuildProcess(
         final AgentRunningBuild runningBuild,
         final BuildRunnerContext context,
+        final Map<String, String> runnerParameters,
         final Integer... exitCodes) {
       super(runningBuild, context);
+      this.runnerParameters = runnerParameters;
       this.exitCodes = new ArrayDeque<>(Arrays.asList(exitCodes));
     }
 

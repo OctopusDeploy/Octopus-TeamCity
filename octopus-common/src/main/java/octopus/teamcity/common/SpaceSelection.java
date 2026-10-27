@@ -22,19 +22,13 @@ import java.util.Map;
  *
  * <p>A step (or the connection it inherits from) can identify a space either by id - {@code
  * Spaces-123} - or by name. The id is preferred because it survives the space being renamed, which
- * a name does not. Both CLIs the agent drives accept either: the legacy {@code octo} CLI resolves
- * {@code --space} with {@code Spaces.FindByNameOrIdOrFail}, and the Go CLI prefers a name match
- * then falls back to an id. So whichever value we pick here can be passed through unchanged.
+ * a name does not. The Go CLI accepts either for {@code --space}: it prefers a name match, then
+ * falls back to an id.
  *
- * <p>The two CLI paths differ in how they treat "no space set", so this class deliberately offers
- * both behaviours rather than imposing one: {@link #resolve} returns an empty string so the legacy
- * path can omit {@code --space} altogether, while {@link #resolveOrDefault} substitutes {@link
- * #DEFAULT_SPACE} as the Go CLI path has always done.
+ * <p>The Go CLI refuses to run without a space when it cannot prompt, so a step must identify one,
+ * either itself or through its connection.
  */
 public final class SpaceSelection {
-
-  /** The space the Go CLI path falls back to when a step names none. */
-  public static final String DEFAULT_SPACE = "Default";
 
   private SpaceSelection() {}
 
@@ -49,12 +43,6 @@ public final class SpaceSelection {
       return spaceId;
     }
     return trimToEmpty(params.get(constants.getSpaceName()));
-  }
-
-  /** As {@link #resolve}, but falls back to {@link #DEFAULT_SPACE} when no space is set. */
-  public static String resolveOrDefault(final Map<String, String> params) {
-    final String space = resolve(params);
-    return space.isEmpty() ? DEFAULT_SPACE : space;
   }
 
   /** Whether a space was identified at all, by either id or name. */
