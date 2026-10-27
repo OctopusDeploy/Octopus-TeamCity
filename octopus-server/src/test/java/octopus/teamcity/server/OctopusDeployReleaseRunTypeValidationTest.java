@@ -13,6 +13,8 @@ import jetbrains.buildServer.serverSide.RunTypeRegistry;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import octopus.teamcity.common.OctopusConstants;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class OctopusDeployReleaseRunTypeValidationTest {
   private static final OctopusConstants CONSTANTS = new OctopusConstants();
@@ -54,6 +56,24 @@ class OctopusDeployReleaseRunTypeValidationTest {
   void neitherConnectionNorManualIsInvalid() {
     final Map<String, String> properties = withMandatoryNonCredentialFields(new HashMap<>());
     assertThat(validate(properties)).contains(CONSTANTS.getServerKey(), CONSTANTS.getApiKey());
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"latest", "Latest", " LATEST "})
+  void latestReleaseNumberIsInvalid(final String releaseNumber) {
+    final Map<String, String> properties = withMandatoryNonCredentialFields(new HashMap<>());
+    properties.put(CONSTANTS.getConnectionIdKey(), "PROJECT_EXT_1");
+    properties.put(CONSTANTS.getReleaseNumberKey(), releaseNumber);
+    assertThat(validate(properties)).containsExactly(CONSTANTS.getReleaseNumberKey());
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"1.0.0-latest", "%octo.releaseNumber%"})
+  void releaseNumberContainingLatestIsValid(final String releaseNumber) {
+    final Map<String, String> properties = withMandatoryNonCredentialFields(new HashMap<>());
+    properties.put(CONSTANTS.getConnectionIdKey(), "PROJECT_EXT_1");
+    properties.put(CONSTANTS.getReleaseNumberKey(), releaseNumber);
+    assertThat(validate(properties)).isEmpty();
   }
 
   @Test
