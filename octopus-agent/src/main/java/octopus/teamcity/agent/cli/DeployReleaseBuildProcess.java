@@ -42,12 +42,12 @@ public class DeployReleaseBuildProcess extends CLIBuildProcess {
   private static void requireExactReleaseNumber(String releaseNumber) throws RunBuildException {
     if (StringUtils.isBlank(releaseNumber)) {
       throw new RunBuildException(
-          "The release number is empty. Enter the release to deploy, e.g. %octo.releaseNumber%"
+          "The release number is empty. Enter the release number to deploy, e.g. %octo.releaseNumber%"
               + " or %build.number%.");
     }
     if ("latest".equalsIgnoreCase(releaseNumber.trim())) {
       throw new RunBuildException(
-          "The Octopus CLI cannot deploy the 'latest' release. Enter the release to deploy,"
+          "The Octopus CLI cannot deploy the 'latest' release. Enter the release number to deploy,"
               + " e.g. %octo.releaseNumber% or %build.number%.");
     }
   }
