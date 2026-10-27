@@ -22,8 +22,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * The Create release step run on the new CLI ends by pointing at what it made: the build log links
- * to the release, and later steps can read that link out of a build parameter.
+ * The Create release step ends by pointing at what it made: the build log links to the release, and
+ * later steps can read that link out of a build parameter.
  *
  * <p>The link is asserted against the release's own {@code Links.Web} as Octopus reports it, so the
  * test fails if the plugin ever invents an address of its own. The summary the build overview is
@@ -72,7 +72,6 @@ class OctopusCreateReleaseLinkE2ETest {
               stack.octopusApiKey(),
               "");
       tc.createBuildType(TC_BUILD_TYPE_ID, "Create release", TC_PROJECT_ID);
-      tc.setParameter(TC_BUILD_TYPE_ID, "env.OCTOPUS_NEW_CLI", "true");
       // Declared empty so a later step can reference them; the step fills them in as it runs.
       tc.setParameter(TC_BUILD_TYPE_ID, RELEASE_URL_PARAMETER, "");
       tc.setParameter(TC_BUILD_TYPE_ID, RELEASE_NUMBER_PARAMETER, "");
