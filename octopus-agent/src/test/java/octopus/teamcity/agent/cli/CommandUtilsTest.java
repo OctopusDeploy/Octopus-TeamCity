@@ -1,9 +1,13 @@
 package octopus.teamcity.agent.cli;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import octopus.teamcity.common.OverwriteMode;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class CommandUtilsTest {
 
@@ -127,5 +131,29 @@ class CommandUtilsTest {
   @Test
   void getVersionReturnsAutoCreatedReleaseNumberWhenReleaseNumberIsNull() {
     assertThat(CommandUtils.getVersion(null, "2.0.0")).isEqualTo("2.0.0");
+  }
+
+  @ParameterizedTest
+  @CsvSource({
+    "00:10:00, 600",
+    "00:30:00, 1800",
+    "01:00:00, 3600",
+    "00:10, 600",
+    "1.02:03:04, 93784",
+    "00:00:01.5, 2",
+    "00:00:01.000, 1",
+    "' 00:05:00 ', 300",
+    "600, 600"
+  })
+  void convertsTimeoutToSeconds(String timeout, String expectedSeconds) {
+    assertThat(CommandUtils.toTimeoutSeconds(timeout)).isEqualTo(expectedSeconds);
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"ten minutes", "00:60:00", "24:00:00", "00:00:60", "-00:10:00", "10m"})
+  void rejectsTimeoutThatIsNotATimespanOrSeconds(String timeout) {
+    assertThatThrownBy(() -> CommandUtils.toTimeoutSeconds(timeout))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("'" + timeout + "'");
   }
 }
