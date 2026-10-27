@@ -88,11 +88,23 @@ public class PackPackageBuildProcess extends CLIBuildProcess {
   }
 
   @Override
-  protected List<OctopusCommandBuilder> createCommand() {
+  protected List<OctopusCommandBuilder> createCommand() throws RunBuildException {
     List<OctopusCommandBuilder> commands = new ArrayList<>();
     final Map<String, String> parameters = getContext().getRunnerParameters();
 
+    createOutputFolder(parameters.get(OctopusConstants.Instance.getPackageOutputPathKey()));
     commands.add(CommandHelper.packPackage(parameters));
     return commands;
+  }
+
+  /** The Octopus CLI writes the package into the output folder but does not create the folder. */
+  private void createOutputFolder(final String outputPath) throws RunBuildException {
+    File outputFolder = new File(outputPath);
+    if (!outputFolder.isAbsolute()) {
+      outputFolder = new File(getContext().getWorkingDirectory(), outputPath);
+    }
+    if (!outputFolder.isDirectory() && !outputFolder.mkdirs()) {
+      throw new RunBuildException("Unable to create the output folder " + outputFolder);
+    }
   }
 }
