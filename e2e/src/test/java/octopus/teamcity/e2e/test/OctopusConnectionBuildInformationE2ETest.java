@@ -43,7 +43,7 @@ class OctopusConnectionBuildInformationE2ETest {
               "IT Octopus",
               stack.octopusUrlForContainers(),
               stack.octopusApiKey(),
-              "Default");
+              OctopusTeamCityStack.DEFAULT_SPACE_NAME);
       tc.createBuildType("ConnIT_BuildInfo", "Publish build info", "ConnIT");
       tc.addBuildInfoStepUsingConnection(
           "ConnIT_BuildInfo", connectionId, PACKAGE_ID, PACKAGE_VERSION);

@@ -64,6 +64,9 @@ public final class OctopusTeamCityStack implements AutoCloseable {
   /** TeamCity's root URL, which is also the issuer of the OIDC plugin's tokens. */
   public static final String ROOT_URL = "https://" + TLS_ALIAS;
 
+  /** The space a fresh Octopus Server starts with; its licence allows no other. */
+  public static final String DEFAULT_SPACE_NAME = "Default";
+
   private static final String CADDY_ROOT_CERT = "/data/caddy/pki/authorities/local/root.crt";
   private static final String CADDYFILE =
       "{\n  skip_install_trust\n}\n"

@@ -66,7 +66,7 @@ class OctopusPromoteReleaseNewCliE2ETest {
               "IT Octopus",
               stack.octopusUrlForContainers(),
               stack.octopusApiKey(),
-              "Default");
+              OctopusTeamCityStack.DEFAULT_SPACE_NAME);
       tc.createBuildType(TC_BUILD_TYPE_ID, "Create, deploy and promote", TC_PROJECT_ID);
       tc.setParameter(TC_BUILD_TYPE_ID, "env.OCTOPUS_NEW_CLI", "true");
       tc.addCreateReleaseStepUsingConnection(

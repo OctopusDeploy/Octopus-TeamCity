@@ -60,7 +60,7 @@ class OctopusReleaseLinkUiTest {
               "IT Octopus",
               stack.octopusUrlForContainers(),
               stack.octopusApiKey(),
-              "Default");
+              OctopusTeamCityStack.DEFAULT_SPACE_NAME);
       tc.createBuildType("RelLinkUiIT_Create", "Create release", "RelLinkUiIT");
       tc.setParameter("RelLinkUiIT_Create", "env.OCTOPUS_NEW_CLI", "true");
       tc.addCreateReleaseStepUsingConnection(

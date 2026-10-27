@@ -38,7 +38,7 @@ class OctopusPushPackageE2ETest {
               "IT Octopus",
               stack.octopusUrlForContainers(),
               stack.octopusApiKey(),
-              "Default");
+              OctopusTeamCityStack.DEFAULT_SPACE_NAME);
       tc.createBuildType("PushIT_Push", "Pack and push", "PushIT");
       tc.addCommandLineStep(
           "PushIT_Push", "Create source", "mkdir -p topack && printf 'hi' > topack/readme.txt");

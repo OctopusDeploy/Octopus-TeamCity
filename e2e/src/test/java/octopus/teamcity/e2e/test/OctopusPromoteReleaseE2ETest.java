@@ -62,7 +62,7 @@ class OctopusPromoteReleaseE2ETest {
               "IT Octopus",
               stack.octopusUrlForContainers(),
               stack.octopusApiKey(),
-              "Default");
+              OctopusTeamCityStack.DEFAULT_SPACE_NAME);
       tc.createBuildType("PromIT_Promote", "Create, deploy and promote", "PromIT");
       tc.addCreateReleaseStepUsingConnection(
           "PromIT_Promote", connectionId, OCTOPUS_PROJECT, RELEASE_VERSION);

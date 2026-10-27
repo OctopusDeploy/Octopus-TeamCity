@@ -60,7 +60,7 @@ class OctopusDeployReleaseE2ETest {
               "IT Octopus",
               stack.octopusUrlForContainers(),
               stack.octopusApiKey(),
-              "Default");
+              OctopusTeamCityStack.DEFAULT_SPACE_NAME);
       tc.createBuildType("DepIT_Deploy", "Create and deploy", "DepIT");
       tc.addCreateReleaseStepUsingConnection(
           "DepIT_Deploy", connectionId, OCTOPUS_PROJECT, RELEASE_VERSION);
