@@ -188,7 +188,7 @@ class CommandHelperTest {
     Map<String, String> params = new HashMap<>();
     final OctopusConstants constants = OctopusConstants.Instance;
 
-    params.put(constants.getDeploymentTimeout(), "600");
+    params.put(constants.getDeploymentTimeout(), "00:10:00");
     params.put(constants.getCancelDeploymentOnTimeout(), "true");
     params.put(constants.getSpaceName(), "MySpace");
 

@@ -499,7 +499,7 @@ public class CommandHelper {
 
     if (StringUtils.isNotBlank(deploymentTimeout)) {
       commands.add("--timeout");
-      commands.add(deploymentTimeout);
+      commands.add(CommandUtils.toTimeoutSeconds(deploymentTimeout));
     }
 
     if (cancelOnTimeout) {
