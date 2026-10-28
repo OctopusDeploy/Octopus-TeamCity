@@ -37,11 +37,16 @@ import octopus.teamcity.agent.EmbeddedResourceExtractor;
 import octopus.teamcity.agent.OctopusCliRetryExecutor;
 import octopus.teamcity.agent.OctopusCommandBuilder;
 import octopus.teamcity.agent.Output;
-import octopus.teamcity.common.OctopusConstants;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.util.StringUtils;
 
 public abstract class CLIBuildProcess implements BuildProcess {
+  /**
+   * The folder under {@code resources/cli/} holding the bundled CLI. Steps saved by older plugin
+   * versions may carry an {@code octopus_version}; it no longer selects anything.
+   */
+  private static final String BUNDLED_CLI_FOLDER = "2.0";
+
   private final AgentRunningBuild runningBuild;
   private final BuildRunnerContext context;
   private volatile Process process;
@@ -128,16 +133,14 @@ public abstract class CLIBuildProcess implements BuildProcess {
     final File tempDirectory = runningBuild.getBuildTempDirectory();
     final String osFolder = OctopusOsUtils.getBinaryOsFolder(runningBuild);
     try {
-      final Map<String, String> parameters = getContext().getRunnerParameters();
-      final OctopusConstants constants = OctopusConstants.Instance;
-      final String octopusVersion = getCliVersion(parameters, constants).replace("+", "");
       octopusBinaryName = "octopus";
       if (osFolder.startsWith("windows-os")) {
         octopusBinaryName = "octopus.exe";
       }
       extractedTo =
-          new File(tempDirectory, String.format("octopus-temp/%s/%s", octopusVersion, osFolder));
-      boolean success = binaryExtracted(octopusVersion, osFolder);
+          new File(
+              tempDirectory, String.format("octopus-temp/%s/%s", BUNDLED_CLI_FOLDER, osFolder));
+      boolean success = binaryExtracted(osFolder);
       if (!success) {
         throw new RuntimeException("Failed to set executable permission on octopus binary");
       }
@@ -149,14 +152,14 @@ public abstract class CLIBuildProcess implements BuildProcess {
     }
   }
 
-  private boolean binaryExtracted(String octopusVersion, String osFolder) throws Exception {
+  private boolean binaryExtracted(String osFolder) throws Exception {
     if (!extractedTo.exists()) {
       if (!extractedTo.mkdirs())
         throw new RuntimeException("Unable to create temp output directory " + extractedTo);
     }
     EmbeddedResourceExtractor extractor = new EmbeddedResourceExtractor();
     String destinationName = extractedTo.getAbsolutePath();
-    extractor.extractCliTo(destinationName, octopusVersion, osFolder);
+    extractor.extractCliTo(destinationName, BUNDLED_CLI_FOLDER, osFolder);
     File file = new File(String.format("%s/%s", destinationName, octopusBinaryName));
     return file.setExecutable(true, false);
   }
@@ -248,15 +251,5 @@ public abstract class CLIBuildProcess implements BuildProcess {
       Logger.getInstance(getClass().getName()).error(message, e);
       throw new RunBuildException(message);
     }
-  }
-
-  private String getCliVersion(Map<String, String> parameters, OctopusConstants constants) {
-    String cliVersion = parameters.get(constants.getOctopusVersion());
-    if (cliVersion == null
-        || constants.getVersion3().equals(cliVersion)
-        || constants.getVersion1().equals(cliVersion)) {
-      cliVersion = constants.getVersion2();
-    }
-    return cliVersion;
   }
 }
