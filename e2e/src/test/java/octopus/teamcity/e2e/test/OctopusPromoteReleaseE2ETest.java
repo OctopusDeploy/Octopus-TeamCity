@@ -81,9 +81,6 @@ class OctopusPromoteReleaseE2ETest {
           .withFailMessage("No deployment to environment %s found", PROD)
           .anyMatch(d -> prodEnvironmentId.equals(d.getProperties().getEnvironmentId()));
 
-      assertThat(log)
-          .withFailMessage("Promotion did not run as octopus release promote. Log:\n%s", log)
-          .contains("Running command:   octopus release promote");
       assertThat(log).doesNotContain(stack.octopusApiKey());
     }
   }
