@@ -13,14 +13,20 @@ import jetbrains.buildServer.serverSide.RunTypeRegistry;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import octopus.teamcity.common.OctopusConstants;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class OctopusCreateReleaseRunTypeValidationTest {
   private static final OctopusConstants CONSTANTS = new OctopusConstants();
 
-  private Collection<String> validate(final Map<String, String> properties) {
+  private Collection<InvalidProperty> invalidProperties(final Map<String, String> properties) {
     final OctopusCreateReleaseRunType runType =
         new OctopusCreateReleaseRunType(mock(RunTypeRegistry.class), mock(PluginDescriptor.class));
-    return runType.getRunnerPropertiesProcessor().process(properties).stream()
+    return runType.getRunnerPropertiesProcessor().process(properties);
+  }
+
+  private Collection<String> validate(final Map<String, String> properties) {
+    return invalidProperties(properties).stream()
         .map(InvalidProperty::getPropertyName)
         .collect(Collectors.toList());
   }
@@ -86,24 +92,23 @@ class OctopusCreateReleaseRunTypeValidationTest {
         .doesNotContain(CONSTANTS.getCommandLineArgumentsKey());
   }
 
-  @Test
-  void promptedVariableWithLegacyDeployToArgumentIsValid() {
-    // The legacy octo CLI takes the deploy target on create-release, so this step does deploy and
-    // --variable does take effect - verified against octo 9.1.7.
-    assertThat(
-            validate(withAdditionalArguments("--deployTo Development --variable ImageTag:1.5.2")))
-        .doesNotContain(CONSTANTS.getCommandLineArgumentsKey());
-  }
-
-  @Test
-  void promptedVariableWithLegacyDeployToArgumentInAnyFormIsValid() {
-    // octo's option parser is case insensitive and accepts -, -- and / prefixes.
-    for (final String deployTo :
-        new String[] {"--deployto=Development", "-deployTo Development", "/DEPLOYTO Development"}) {
-      assertThat(validate(withAdditionalArguments("--variable ImageTag:1.5.2 " + deployTo)))
-          .as("deploy target supplied as %s", deployTo)
-          .doesNotContain(CONSTANTS.getCommandLineArgumentsKey());
-    }
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "--deployTo Development",
+        "--deployto=Development",
+        "-deployTo Development",
+        "/DEPLOYTO Development",
+        "--variable ImageTag:1.5.2 --deployTo Development"
+      })
+  void legacyDeployToArgumentIsInvalid(final String additionalArguments) {
+    final Collection<InvalidProperty> errors =
+        invalidProperties(withAdditionalArguments(additionalArguments));
+    assertThat(errors)
+        .extracting(InvalidProperty::getInvalidReason)
+        .containsExactly(
+            "The Octopus CLI has no --deployTo argument. Enter the environments to deploy to in"
+                + " 'Deploy to' instead.");
   }
 
   @Test
