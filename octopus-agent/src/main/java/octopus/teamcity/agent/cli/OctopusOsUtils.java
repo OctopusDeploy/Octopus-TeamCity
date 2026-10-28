@@ -40,7 +40,27 @@ public class OctopusOsUtils {
     return os + "-" + getBinaryArchitecture(jvmArchitecture);
   }
 
+  /** Whether the bundled Octopus CLI is built for the agent JVM's architecture. */
+  public static boolean canRunCli() {
+    return canRunCli(System.getProperty("os.arch"));
+  }
+
+  static boolean canRunCli(String jvmArchitecture) {
+    return binaryArchitectureOrNull(jvmArchitecture) != null;
+  }
+
   private static String getBinaryArchitecture(String jvmArchitecture) throws RunBuildException {
+    final String architecture = binaryArchitectureOrNull(jvmArchitecture);
+    if (architecture == null) {
+      throw new RunBuildException(
+          "The Octopus CLI is not available for the agent's architecture '"
+              + jvmArchitecture
+              + "'. Supported architectures are amd64 and arm64.");
+    }
+    return architecture;
+  }
+
+  private static String binaryArchitectureOrNull(String jvmArchitecture) {
     switch (jvmArchitecture == null ? "" : jvmArchitecture.toLowerCase(Locale.ROOT)) {
       case "amd64":
       case "x86_64":
@@ -49,10 +69,7 @@ public class OctopusOsUtils {
       case "arm64":
         return "arm64";
       default:
-        throw new RunBuildException(
-            "The Octopus CLI is not available for the agent's architecture '"
-                + jvmArchitecture
-                + "'. Supported architectures are amd64 and arm64.");
+        return null;
     }
   }
 }

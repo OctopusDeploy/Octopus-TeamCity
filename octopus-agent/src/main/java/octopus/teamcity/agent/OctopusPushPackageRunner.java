@@ -23,6 +23,7 @@ import jetbrains.buildServer.agent.AgentRunningBuild;
 import jetbrains.buildServer.agent.BuildAgentConfiguration;
 import jetbrains.buildServer.agent.BuildProcess;
 import jetbrains.buildServer.agent.BuildRunnerContext;
+import octopus.teamcity.agent.cli.OctopusOsUtils;
 import octopus.teamcity.agent.cli.PushPackageBuildProcess;
 import octopus.teamcity.common.OctopusConstants;
 import org.jetbrains.annotations.NotNull;
@@ -53,7 +54,7 @@ public class OctopusPushPackageRunner implements AgentBuildRunner {
 
       @Override
       public boolean canRun(@NotNull BuildAgentConfiguration agentConfiguration) {
-        return true;
+        return OctopusOsUtils.canRunCli();
       }
     };
   }
