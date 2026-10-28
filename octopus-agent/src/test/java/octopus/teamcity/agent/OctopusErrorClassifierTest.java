@@ -50,12 +50,6 @@ class OctopusErrorClassifierTest {
   @ParameterizedTest
   @ValueSource(
       strings = {
-        "Unable to connect to the remote server",
-        "The remote server returned an error: (502) Bad Gateway",
-        "The remote server returned an error: (503) Service Unavailable",
-        "The remote server returned an error: (504) Gateway Timeout",
-        "The remote name could not be resolved: 'octopus.example.com'",
-        "A connection attempt failed because the connected party did not properly respond",
         "dial tcp 10.0.0.1:443: connection refused",
         "context deadline exceeded",
         "i/o timeout",
@@ -63,8 +57,6 @@ class OctopusErrorClassifierTest {
         "server returned HTTP status 502",
         "server returned HTTP status 503",
         "server returned HTTP status 504",
-        "The Octopus server https://octopus.example.com is not available",
-        "Unable to connect to the Octopus Deploy server",
         "Octopus Cloud instance is Undergoing Maintenance",
         "Your Octopus Cloud instance is currently undergoing maintenance and will be back soon."
       })
@@ -73,11 +65,9 @@ class OctopusErrorClassifierTest {
   }
 
   @Test
-  void octoDllMaintenancePageIsTransient() {
+  void maintenancePageIsTransient() {
     String output =
-        "System.Exception: Unable to connect to the Octopus Deploy server. "
-            + "See the inner exception for details.\n"
-            + " ---> Octopus.Client.Exceptions.OctopusServerException: <!DOCTYPE html>\n"
+        "<!DOCTYPE html>\n"
             + "<html>\n"
             + "  <head>\n"
             + "    <title>Octopus Cloud instance is Undergoing Maintenance</title>\n"
@@ -87,17 +77,13 @@ class OctopusErrorClassifierTest {
             + "    <p>Your Octopus Cloud instance is currently undergoing maintenance "
             + "and will be back soon.</p>\n"
             + "  </body>\n"
-            + "</html>\n"
-            + "Exit code: -3";
-    assertThat(OctopusErrorClassifier.classify(253, output)).isEqualTo(ErrorCategory.TRANSIENT);
+            + "</html>";
+    assertThat(OctopusErrorClassifier.classify(1, output)).isEqualTo(ErrorCategory.TRANSIENT);
   }
 
   @ParameterizedTest
   @ValueSource(
       strings = {
-        "The remote server returned an error: (401) Unauthorized",
-        "The remote server returned an error: (403) Forbidden",
-        "The remote server returned an error: (404) Not Found",
         "HTTP status 401",
         "HTTP status 403",
         "HTTP status 404",
@@ -117,16 +103,15 @@ class OctopusErrorClassifierTest {
     String output =
         "Starting deployment...\n"
             + "Connecting to server...\n"
-            + "Unable to connect to the remote server\n"
-            + "at System.Net.HttpWebRequest.GetResponse()";
+            + "dial tcp 10.0.0.1:443: connection refused\n"
+            + "Retrying...";
     assertThat(OctopusErrorClassifier.classify(1, output)).isEqualTo(ErrorCategory.TRANSIENT);
   }
 
   @Test
   void permanentPatternTakesPrecedenceOverTransient() {
     String output =
-        "Unable to connect to the remote server\n"
-            + "The remote server returned an error: (401) Unauthorized";
+        "dial tcp 10.0.0.1:443: connection refused\n" + "server returned HTTP status 401";
     assertThat(OctopusErrorClassifier.classify(1, output)).isEqualTo(ErrorCategory.PERMANENT);
   }
 

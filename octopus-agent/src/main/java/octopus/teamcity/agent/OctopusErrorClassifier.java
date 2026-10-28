@@ -42,22 +42,15 @@ public class OctopusErrorClassifier {
 
   private static final List<Pattern> TRANSIENT_PATTERNS =
       Arrays.asList(
-          Pattern.compile("Unable to connect to .*server", Pattern.CASE_INSENSITIVE),
-          Pattern.compile(
-              "The remote server returned an error: \\(50[234]\\)", Pattern.CASE_INSENSITIVE),
-          Pattern.compile("The remote name could not be resolved", Pattern.CASE_INSENSITIVE),
-          Pattern.compile("A connection attempt failed", Pattern.CASE_INSENSITIVE),
           Pattern.compile("connection refused", Pattern.CASE_INSENSITIVE),
           Pattern.compile("context deadline exceeded", Pattern.CASE_INSENSITIVE),
           Pattern.compile("i/o timeout", Pattern.CASE_INSENSITIVE),
           Pattern.compile("no such host", Pattern.CASE_INSENSITIVE),
           Pattern.compile("server returned HTTP status 50[234]", Pattern.CASE_INSENSITIVE),
-          Pattern.compile("The Octopus server .* is not available", Pattern.CASE_INSENSITIVE),
           Pattern.compile("undergoing maintenance", Pattern.CASE_INSENSITIVE));
 
   private static final List<Pattern> PERMANENT_PATTERNS =
       Arrays.asList(
-          Pattern.compile("\\(40[134]\\)", Pattern.CASE_INSENSITIVE),
           Pattern.compile("HTTP status 40[134]", Pattern.CASE_INSENSITIVE),
           Pattern.compile("Could not find (project|environment|channel)", Pattern.CASE_INSENSITIVE),
           Pattern.compile("(API-Key|apikey).*invalid", Pattern.CASE_INSENSITIVE),

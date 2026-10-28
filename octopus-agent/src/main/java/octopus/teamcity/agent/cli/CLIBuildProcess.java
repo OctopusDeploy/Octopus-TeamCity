@@ -41,12 +41,6 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.util.StringUtils;
 
 public abstract class CLIBuildProcess implements BuildProcess {
-  /**
-   * The folder under {@code resources/cli/} holding the bundled CLI. Steps saved by older plugin
-   * versions may carry an {@code octopus_version}; it no longer selects anything.
-   */
-  private static final String BUNDLED_CLI_FOLDER = "2.0";
-
   private final AgentRunningBuild runningBuild;
   private final BuildRunnerContext context;
   private volatile Process process;
@@ -137,9 +131,7 @@ public abstract class CLIBuildProcess implements BuildProcess {
       if (osFolder.startsWith("windows-os")) {
         octopusBinaryName = "octopus.exe";
       }
-      extractedTo =
-          new File(
-              tempDirectory, String.format("octopus-temp/%s/%s", BUNDLED_CLI_FOLDER, osFolder));
+      extractedTo = new File(tempDirectory, String.format("octopus-temp/%s", osFolder));
       boolean success = binaryExtracted(osFolder);
       if (!success) {
         throw new RuntimeException("Failed to set executable permission on octopus binary");
@@ -159,7 +151,7 @@ public abstract class CLIBuildProcess implements BuildProcess {
     }
     EmbeddedResourceExtractor extractor = new EmbeddedResourceExtractor();
     String destinationName = extractedTo.getAbsolutePath();
-    extractor.extractCliTo(destinationName, BUNDLED_CLI_FOLDER, osFolder);
+    extractor.extractCliTo(destinationName, osFolder);
     File file = new File(String.format("%s/%s", destinationName, octopusBinaryName));
     return file.setExecutable(true, false);
   }
