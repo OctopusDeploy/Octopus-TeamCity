@@ -17,8 +17,8 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Full end-to-end for the Push runner: pack a package on the agent, then push it (via a connection)
- * to the Octopus built-in feed with the real {@code octo} CLI. Uses the default Space (the
- * free-tier license allows only one), so the connection's space is left blank.
+ * to the Octopus built-in feed with the real Octopus CLI. Uses the default Space (the free-tier
+ * license allows only one), so the connection's space is left blank.
  */
 class OctopusPushPackageE2ETest {
 

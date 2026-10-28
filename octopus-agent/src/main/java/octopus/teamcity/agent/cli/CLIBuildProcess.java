@@ -170,11 +170,9 @@ public abstract class CLIBuildProcess implements BuildProcess {
     logger.progressMessage(getLogMessage());
 
     try {
-      // Execute this CLI command wrapped in retry logic. Unlike the legacy path, the Go CLI
-      // has its own built-in retry on login, so this is a second safety net. On transient
-      // failures, the entire process (binary launch → login → command) is re-executed with
-      // exponential backoff. stdout and stderr are merged (redirectErrorStream) and captured
-      // in outputBuilder for error classification after each attempt.
+      // The Go CLI retries its own login; this retry is a second safety net. On a transient
+      // failure the whole process is re-run with exponential backoff. stdout and stderr are
+      // merged and captured in outputBuilder, which classifies the error after each attempt.
       OctopusCliRetryExecutor.CliResult result =
           retryExecutor.executeWithRetry(
               () -> {

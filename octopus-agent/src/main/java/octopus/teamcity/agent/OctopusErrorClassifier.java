@@ -23,13 +23,10 @@ import java.util.regex.Pattern;
 /**
  * Classifies CLI exit failures as transient (worth retrying) or permanent (fail immediately).
  *
- * <p>Both the legacy .NET CLI (octo.dll) and the Go CLI (octopus) produce different error messages
- * for the same failure modes, so patterns cover both formats: - .NET: "The remote server returned
- * an error: (502)" / "Unable to connect to .*server" - Go: "server returned HTTP status 502" /
- * "connection refused" / "i/o timeout"
- *
- * <p>Also handles the case where Octopus Cloud returns a maintenance HTML page (which masks the
- * underlying HTTP 503 from octo.dll) by matching "undergoing maintenance" anywhere in the body.
+ * <p>The patterns match the CLI's output for network and server failures, such as "server returned
+ * HTTP status 502", "connection refused" and "i/o timeout". Octopus Cloud can answer with a
+ * maintenance HTML page instead of an HTTP 503, so "undergoing maintenance" anywhere in the output
+ * is also transient.
  *
  * <p>Classification priority: permanent patterns are checked first. If neither matches, the error
  * is treated as permanent (fail-safe: unknown errors are not retried).

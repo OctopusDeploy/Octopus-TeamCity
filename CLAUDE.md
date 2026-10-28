@@ -48,7 +48,7 @@ Gradle modules:
   its `PropertiesProcessor` (server-side validation). JSP edit forms live in
   `src/main/resources/buildServerResources/`.
 - **`octopus-agent`** — executes a step: a build process reads runner parameters by `OctopusConstants`
-  key and builds an `octo` command line.
+  key and builds an `octopus` (Go CLI) command line.
 - **`e2e`** — Testcontainers-based integration tests (not part of the shipped plugin).
 
 **The server→agent flow:** the server stores a build step's settings as runner parameters keyed by
@@ -68,14 +68,14 @@ JVM's `os.arch`, `EmbeddedResourceExtractor` extracts the archive, and the build
 
 ### Reusable Octopus connections
 
-Lets an admin define the Octopus URL/API key/version/space **once** as a project-level TeamCity OAuth
+Lets an admin define the Octopus URL, credentials and space **once** as a project-level TeamCity OAuth
 connection and reference it from steps, instead of re-entering credentials per step. Optional and
 backward compatible — a step with no connection uses its inline fields as before. Key pieces:
 
 - `OctopusConnection` (an `OAuthProvider`) + `OctopusConnectionsManager` (list/resolve, walking the
   project tree) + `OctopusConnectionPropertiesProcessor` (validation).
 - `OctopusConnectionBuildStartProcessor` resolves the selected connection at **build start** and
-  injects its URL/key/version/space into the step's runner parameters **under the same
+  injects its URL, credentials and space into the step's runner parameters **under the same
   `OctopusConstants` keys** — so the agent is unchanged and connection-agnostic. A step's own space
   value wins over the connection's.
 - The step edit forms get the connection list from the **`OctopusConnectionUiData` static accessor**,
