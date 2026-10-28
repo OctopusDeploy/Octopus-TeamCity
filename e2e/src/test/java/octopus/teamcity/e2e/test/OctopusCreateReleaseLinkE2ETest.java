@@ -72,7 +72,6 @@ class OctopusCreateReleaseLinkE2ETest {
               stack.octopusApiKey(),
               "");
       tc.createBuildType(TC_BUILD_TYPE_ID, "Create release", TC_PROJECT_ID);
-      tc.setParameter(TC_BUILD_TYPE_ID, "env.OCTOPUS_NEW_CLI", "true");
       // Declared empty so a later step can reference them; the step fills them in as it runs.
       tc.setParameter(TC_BUILD_TYPE_ID, RELEASE_URL_PARAMETER, "");
       tc.setParameter(TC_BUILD_TYPE_ID, RELEASE_NUMBER_PARAMETER, "");
