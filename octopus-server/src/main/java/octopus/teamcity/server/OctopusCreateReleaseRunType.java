@@ -1,6 +1,7 @@
 package octopus.teamcity.server;
 
 import static octopus.teamcity.server.PropertiesValidator.checkCredentialsUnlessUsingConnection;
+import static octopus.teamcity.server.PropertiesValidator.checkNoLegacyDeployToArgument;
 import static octopus.teamcity.server.PropertiesValidator.checkNotEmpty;
 import static octopus.teamcity.server.PropertiesValidator.checkPromptedVariablesOnlyWhenDeploying;
 import static octopus.teamcity.server.PropertiesValidator.checkSpaceUnlessUsingConnection;
@@ -61,6 +62,7 @@ public class OctopusCreateReleaseRunType extends RunType {
         checkCredentialsUnlessUsingConnection(p, c, result);
         checkSpaceUnlessUsingConnection(p, c, result);
         checkNotEmpty(p, c.getProjectNameKey(), "Project name must be specified", result);
+        checkNoLegacyDeployToArgument(p, c, result);
         checkPromptedVariablesOnlyWhenDeploying(p, c, result);
 
         if (result.isEmpty()) {

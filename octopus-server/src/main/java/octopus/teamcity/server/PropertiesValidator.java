@@ -32,11 +32,8 @@ public final class PropertiesValidator {
       Pattern.compile("(?:^|\\s)--variable(?:[\\s=]|$)");
 
   /**
-   * The legacy {@code octo} CLI takes the deploy target as {@code --deployTo} on {@code
-   * create-release}, and its option parser is case insensitive and accepts {@code -}, {@code --}
-   * and {@code /} prefixes. A step that supplies the target that way rather than through the
-   * "Deploy to" field does deploy, so {@code --variable} takes effect and must not be reported as
-   * useless.
+   * The legacy {@code octo} CLI's deploy target argument on {@code create-release}, in any of the
+   * forms its case-insensitive parser accepted ({@code -}, {@code --} or {@code /} prefix).
    */
   private static final Pattern DEPLOY_TO_ARGUMENT =
       Pattern.compile("(?:^|\\s)(?:--?|/)deployto(?:[\\s=]|$)", Pattern.CASE_INSENSITIVE);
@@ -89,16 +86,35 @@ public final class PropertiesValidator {
   }
 
   /**
+   * Rejects the legacy {@code --deployTo} in the additional command line arguments of a step that
+   * creates a release. The Octopus CLI has no such argument and fails the step with {@code unknown
+   * flag}; the deploy target belongs in the "Deploy to" field.
+   */
+  public static void checkNoLegacyDeployToArgument(
+      @NotNull final Map<String, String> properties,
+      @NotNull final OctopusConstants constants,
+      @NotNull final Collection<InvalidProperty> result) {
+    final String additionalArguments = properties.get(constants.getCommandLineArgumentsKey());
+    if (StringUtil.isEmptyOrSpaces(additionalArguments)) {
+      return;
+    }
+    if (DEPLOY_TO_ARGUMENT.matcher(additionalArguments).find()) {
+      result.add(
+          new InvalidProperty(
+              constants.getCommandLineArgumentsKey(),
+              "The Octopus CLI has no --deployTo argument. Enter the environments to deploy to in"
+                  + " 'Deploy to' instead."));
+    }
+  }
+
+  /**
    * Rejects {@code --variable} in the additional command line arguments of a step that only creates
    * a release. Prompted variables are supplied when a release is deployed, so the Octopus CLI
    * accepts the argument on a create-only command and then ignores it, leaving the deployment to
    * fail later with "Please provide a variable for the prompted value".
    *
-   * <p>A step deploys when "Deploy to" is set, and also when the additional arguments carry the
-   * legacy {@code --deployTo}; only a step that does neither is reported. Which CLI will run is an
-   * agent-side decision, so this cannot be narrowed further here - on the new CLI {@code
-   * --deployTo} is not a {@code release create} argument at all and the step fails with {@code
-   * unknown flag}, which is loud enough to diagnose without help from this check.
+   * <p>A step with {@code --deployTo} in its additional arguments is left to {@link
+   * #checkNoLegacyDeployToArgument}, which reports the same field.
    */
   public static void checkPromptedVariablesOnlyWhenDeploying(
       @NotNull final Map<String, String> properties,

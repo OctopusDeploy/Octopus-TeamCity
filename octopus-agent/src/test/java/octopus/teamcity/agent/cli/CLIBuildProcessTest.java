@@ -65,6 +65,18 @@ class CLIBuildProcessTest {
     assertThat(process.commandsRun).isEmpty();
   }
 
+  @ParameterizedTest
+  @ValueSource(strings = {"", "Preview", "1.0+", "2.0+", "3.0+"})
+  void extractsTheBundledCliWhateverOctopusVersionTheStepCarries(final String octopusVersion)
+      throws Exception {
+    final ScriptedBuildProcess process = processWithExitCodes(0, 0);
+    process.runnerParameters.put(OctopusConstants.Instance.getOctopusVersion(), octopusVersion);
+
+    process.start();
+
+    assertThat(process.commandsRun).containsExactly("login", "deploy");
+  }
+
   private ScriptedBuildProcess processWithExitCodes(final Integer... exitCodes) {
     final AgentRunningBuild runningBuild = mock(AgentRunningBuild.class);
     final BuildRunnerContext context = mock(BuildRunnerContext.class);
