@@ -47,16 +47,11 @@ import jetbrains.buildServer.agent.BuildProgressLogger;
  * Delay doubles each attempt (5s → 10s → 20s → ...) with up to 1s of random jitter, capped at
  * {@code maxDelayMs} (default 2 minutes).
  *
- * <h3>Behavioural difference between CLI paths</h3>
+ * <h3>Retries inside the CLI</h3>
  *
- * <ul>
- *   <li><b>Legacy .NET CLI</b>: the CLI itself has no retry logic; this executor provides all
- *       resilience. Each CLI invocation fails fast on connection errors (~76s TCP timeout), so the
- *       executor's backoff controls the retry cadence.
- *   <li><b>Go CLI</b>: the CLI has its own built-in exponential backoff on login. A single
- *       invocation may run for several minutes retrying internally. This executor adds a second
- *       layer if the CLI exhausts its internal retries and exits with a transient error.
- * </ul>
+ * The CLI has its own exponential backoff on login, and a single invocation may run for several
+ * minutes retrying internally. This executor adds a second layer for when the CLI exhausts its
+ * internal retries and exits with a transient error.
  *
  * <h3>Configuration</h3>
  *

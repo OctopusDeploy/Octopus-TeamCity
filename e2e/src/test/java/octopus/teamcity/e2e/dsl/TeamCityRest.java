@@ -243,7 +243,7 @@ public final class TeamCityRest {
    * Sets a password (secret) configuration parameter on a build type, so a {@code %name%} reference
    * resolves at build time and the value is masked in the build log.
    */
-  /** Sets a plain build parameter, e.g. {@code env.OCTOPUS_NEW_CLI}, on a build configuration. */
+  /** Sets a plain build parameter on a build configuration. */
   public void setParameter(final String buildTypeId, final String name, final String value)
       throws Exception {
     send(

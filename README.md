@@ -47,17 +47,14 @@ The TeamCity Plugin uses Github actions for all CI/CD/Release operations.
 
 ## Updating the version of Octopus CLI we embed
 
-#### Note that [OctopusCLI](https://github.com/OctopusDeploy/OctopusCLI/releases) has been deprecated in favour of the newer [CLI](https://github.com/OctopusDeploy/cli/tags) which is written in Go. Due to compatibility issues with the new CLI, this plugin should continue to use [OctopusCLI](https://github.com/OctopusDeploy/OctopusCLI/releases).
+The plugin bundles the [Octopus CLI](https://github.com/OctopusDeploy/cli/releases), which is
+downloaded at build time rather than kept in git. To change the version:
 
-If the Octopus CLI has changed such that we need to update the version we embed with the plugin the
-steps are as follows:
+- Set `octopusCliVersion` in `gradle.properties` to the new release.
+- Replace each `octopusCliSha256*` hash in `gradle.properties` with the matching line from that
+  release's `SHA256SUMS` file.
 
-- Locate the latest release of the CLI on the [OctopusCLI repo](https://github.com/OctopusDeploy/OctopusCLI/releases)
-- Download the `OctopusTools.[version].win-x64.zip` package and extract the `octo.exe` from it
-- Also download the `OctopusTools.[version].portable.zip` file
-  ![Packages](packages.png)
-- Rename the latter to `OctopusTools.portable.zip` and then copy them into
-  the `\octopus-agent\src\main\resources\resources\3\0` folder, over the existing files
+The build fails if a downloaded archive does not match its hash.
 
 ## Using Docker
 
@@ -114,12 +111,9 @@ An Octopus connection can supply credentials three ways, chosen by the **API key
   Octopus service account id; the token is taken from the connector's token variable (default `%jwt.token%`). 
   This option appears only when an OIDC connector exists in the project.
 
-Note: Choosing OIDC switches the step to the new Octopus CLI — the legacy `octo` CLI does not support
-OIDC. The OIDC token is short-lived (the JWT lifetime defaults to ~10 minutes): the CLI logs in once
+Note: The OIDC token is short-lived (the JWT lifetime defaults to ~10 minutes). The CLI logs in once
 and reuses the session, so a single long-running deploy-with-wait that outlives the token may fail
-when it expires. OIDC is not available for the **Promote release** step, as the new Octopus CLI does not
-currently support promote-from; use an API key or parameter source there, or promote via a Deploy
-release step.
+when it expires.
 
 ## Choosing a space
 

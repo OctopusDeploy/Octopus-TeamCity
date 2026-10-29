@@ -10,7 +10,7 @@ import octopus.teamcity.e2e.dsl.TeamCityRest;
 import org.junit.jupiter.api.Test;
 
 /**
- * Full end-to-end for the Pack runner: it invokes the real bundled {@code octo} CLI on the agent to
+ * Full end-to-end for the Pack runner: it invokes the real bundled Octopus CLI on the agent to
  * package files. Pack is purely local — it does not talk to an Octopus server — so this runs with a
  * TeamCity + agent stack and no Octopus.
  *
