@@ -65,6 +65,32 @@ class CLIBuildProcessTest {
     assertThat(process.commandsRun).containsExactly("login", "deploy");
   }
 
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "Error: unknown flag: --progress",
+        "Error: unknown shorthand flag: 'x' in -x",
+      })
+  void explainsAnUnknownFlagWhenTheStepHasAdditionalArguments(final String output) {
+    assertThat(CLIBuildProcess.unknownArgumentHint("--progress", output))
+        .contains("additional command line arguments");
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"", " "})
+  void saysNothingExtraWhenTheStepHasNoAdditionalArguments(final String additionalArguments) {
+    assertThat(
+            CLIBuildProcess.unknownArgumentHint(
+                additionalArguments, "Error: unknown flag: --progress"))
+        .isNull();
+  }
+
+  @Test
+  void saysNothingExtraWhenTheFailureIsNotAnUnknownFlag() {
+    assertThat(CLIBuildProcess.unknownArgumentHint("--progress", "server returned HTTP status 401"))
+        .isNull();
+  }
+
   private ScriptedBuildProcess processWithExitCodes(final Integer... exitCodes) {
     final AgentRunningBuild runningBuild = mock(AgentRunningBuild.class);
     final BuildRunnerContext context = mock(BuildRunnerContext.class);
