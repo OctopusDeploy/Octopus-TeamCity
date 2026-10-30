@@ -18,6 +18,7 @@ package octopus.teamcity.server;
 
 import static octopus.teamcity.server.PropertiesValidator.checkCredentialsUnlessUsingConnection;
 import static octopus.teamcity.server.PropertiesValidator.checkNotEmpty;
+import static octopus.teamcity.server.PropertiesValidator.checkSpaceUnlessUsingConnection;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -73,6 +74,7 @@ public class OctopusPromoteReleaseRunType extends RunType {
         if (p == null) return result;
 
         checkCredentialsUnlessUsingConnection(p, c, result);
+        checkSpaceUnlessUsingConnection(p, c, result);
         checkNotEmpty(p, c.getProjectNameKey(), "Project name must be specified", result);
         checkNotEmpty(
             p, c.getPromoteFromKey(), "Environment to promote from must be specified", result);

@@ -39,6 +39,7 @@ import octopus.teamcity.agent.OctopusCliRetryExecutor;
 import octopus.teamcity.agent.OctopusCommandBuilder;
 import octopus.teamcity.agent.Output;
 import octopus.teamcity.common.OctopusConstants;
+import octopus.teamcity.common.SpaceSelection;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.util.StringUtils;
 
@@ -67,12 +68,22 @@ public abstract class CLIBuildProcess implements BuildProcess {
 
   protected abstract List<OctopusCommandBuilder> createCommand() throws RunBuildException;
 
+  /** Whether the step's commands act on an Octopus space, and so need one to be set. */
+  protected boolean usesSpace() {
+    return true;
+  }
+
   protected BuildRunnerContext getContext() {
     return context;
   }
 
   @Override
   public void start() throws RunBuildException {
+    if (usesSpace() && !SpaceSelection.isSet(context.getRunnerParameters())) {
+      throw new RunBuildException(
+          "No Octopus space is set. Choose a space on this step, or on the Octopus connection it"
+              + " uses.");
+    }
     extractOctopusBinary();
     retryExecutor =
         new OctopusCliRetryExecutor(logger, context.getBuildParameters().getEnvironmentVariables());
