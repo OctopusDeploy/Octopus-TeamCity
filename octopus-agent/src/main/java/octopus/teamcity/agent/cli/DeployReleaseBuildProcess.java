@@ -9,6 +9,7 @@ import jetbrains.buildServer.agent.AgentRunningBuild;
 import jetbrains.buildServer.agent.BuildRunnerContext;
 import octopus.teamcity.agent.OctopusCommandBuilder;
 import octopus.teamcity.common.OctopusConstants;
+import octopus.teamcity.common.ReleaseNumber;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,10 +46,8 @@ public class DeployReleaseBuildProcess extends CLIBuildProcess {
           "The release number is empty. Enter the release number to deploy, e.g. %octo.releaseNumber%"
               + " or %build.number%.");
     }
-    if ("latest".equalsIgnoreCase(releaseNumber.trim())) {
-      throw new RunBuildException(
-          "The Octopus CLI cannot deploy the 'latest' release. Enter the release number to deploy,"
-              + " e.g. %octo.releaseNumber% or %build.number%.");
+    if (ReleaseNumber.isLatest(releaseNumber)) {
+      throw new RunBuildException(ReleaseNumber.LATEST_NOT_SUPPORTED);
     }
   }
 
