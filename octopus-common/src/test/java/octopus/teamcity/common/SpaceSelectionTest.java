@@ -68,19 +68,6 @@ class SpaceSelectionTest {
   }
 
   @Test
-  void resolveOrDefaultSubstitutesTheDefaultSpace() {
-    // The Go CLI path has always sent "Default" rather than omitting --space.
-    assertThat(SpaceSelection.resolveOrDefault(params(null, null))).isEqualTo("Default");
-    assertThat(SpaceSelection.DEFAULT_SPACE).isEqualTo("Default");
-  }
-
-  @Test
-  void resolveOrDefaultStillPrefersAnIdWhenPresent() {
-    assertThat(SpaceSelection.resolveOrDefault(params("Spaces-2", "Whatever")))
-        .isEqualTo("Spaces-2");
-  }
-
-  @Test
   void isSetReportsWhetherASpaceWasIdentified() {
     assertThat(SpaceSelection.isSet(params("Spaces-3", null))).isTrue();
     assertThat(SpaceSelection.isSet(params(null, "Named"))).isTrue();

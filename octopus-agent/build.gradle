@@ -59,7 +59,7 @@ task downloadOctopusCli {
     def outputRoot = octopusCliResourcesDir.get().asFile
     project.delete(outputRoot)
     octopusCliArchives.each { osFolder, archive ->
-      def target = new File(outputRoot, "resources/cli/2.0/${osFolder}/${archive.name}")
+      def target = new File(outputRoot, "resources/cli/${osFolder}/${archive.name}")
       target.parentFile.mkdirs()
       def url = "https://github.com/OctopusDeploy/cli/releases/download/v${octopusCliVersion}/${archive.name}"
       logger.lifecycle("Downloading ${url}")
