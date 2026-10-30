@@ -22,6 +22,7 @@ import java.util.regex.Pattern;
 import jetbrains.buildServer.serverSide.InvalidProperty;
 import jetbrains.buildServer.util.StringUtil;
 import octopus.teamcity.common.OctopusConstants;
+import octopus.teamcity.common.ReleaseNumber;
 import org.jetbrains.annotations.NotNull;
 
 /** Shared validation helpers for run type {@code PropertiesProcessor}s. */
@@ -50,6 +51,17 @@ public final class PropertiesValidator {
       @NotNull final Collection<InvalidProperty> result) {
     if (StringUtil.isEmptyOrSpaces(properties.get(key))) {
       result.add(new InvalidProperty(key, message));
+    }
+  }
+
+  /** Rejects a release number of "latest", which the Octopus CLI cannot deploy. */
+  public static void checkNotLatest(
+      @NotNull final Map<String, String> properties,
+      @NotNull final OctopusConstants constants,
+      @NotNull final Collection<InvalidProperty> result) {
+    if (ReleaseNumber.isLatest(properties.get(constants.getReleaseNumberKey()))) {
+      result.add(
+          new InvalidProperty(constants.getReleaseNumberKey(), ReleaseNumber.LATEST_NOT_SUPPORTED));
     }
   }
 
