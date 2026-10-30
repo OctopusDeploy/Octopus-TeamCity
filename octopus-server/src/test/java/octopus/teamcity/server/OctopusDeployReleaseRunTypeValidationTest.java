@@ -109,4 +109,28 @@ class OctopusDeployReleaseRunTypeValidationTest {
         .containsKeys(
             CONSTANTS.getServerKey(), CONSTANTS.getApiKey(), CONSTANTS.getOctopusVersion());
   }
+
+  @Test
+  void inlineStepWithoutASpaceIsInvalid() {
+    final Map<String, String> properties = withMandatoryNonCredentialFields(new HashMap<>());
+    properties.put(CONSTANTS.getServerKey(), "https://octo");
+    properties.put(CONSTANTS.getApiKey(), "API-KEY");
+    assertThat(validate(properties)).contains(CONSTANTS.getSpaceName());
+  }
+
+  @Test
+  void inlineStepWithASpaceIdIsValidForSpace() {
+    final Map<String, String> properties = withMandatoryNonCredentialFields(new HashMap<>());
+    properties.put(CONSTANTS.getServerKey(), "https://octo");
+    properties.put(CONSTANTS.getApiKey(), "API-KEY");
+    properties.put(CONSTANTS.getSpaceId(), "Spaces-1");
+    assertThat(validate(properties)).doesNotContain(CONSTANTS.getSpaceName());
+  }
+
+  @Test
+  void connectionStepWithoutASpaceIsValidForSpace() {
+    final Map<String, String> properties = withMandatoryNonCredentialFields(new HashMap<>());
+    properties.put(CONSTANTS.getConnectionIdKey(), "PROJECT_EXT_1");
+    assertThat(validate(properties)).doesNotContain(CONSTANTS.getSpaceName());
+  }
 }

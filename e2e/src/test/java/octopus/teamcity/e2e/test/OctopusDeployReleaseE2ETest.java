@@ -56,7 +56,11 @@ class OctopusDeployReleaseE2ETest {
       tc.createProject("DepIT", "Deploy IT");
       final String connectionId =
           tc.createOctopusConnection(
-              "DepIT", "IT Octopus", stack.octopusUrlForContainers(), stack.octopusApiKey(), "");
+              "DepIT",
+              "IT Octopus",
+              stack.octopusUrlForContainers(),
+              stack.octopusApiKey(),
+              OctopusTeamCityStack.DEFAULT_SPACE_NAME);
       tc.createBuildType("DepIT_Deploy", "Create and deploy", "DepIT");
       tc.addCreateReleaseStepUsingConnection(
           "DepIT_Deploy", connectionId, OCTOPUS_PROJECT, RELEASE_VERSION);

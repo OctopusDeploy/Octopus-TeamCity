@@ -454,6 +454,7 @@ public final class TeamCityRest {
             "octopus.metadata",
             createProp("octopus_host", octopusUrl),
             createProp("secure:octopus_apikey", apiKey),
+            createProp("octopus_space_name", OctopusTeamCityStack.DEFAULT_SPACE_NAME),
             createProp("octopus_packageid", packageId),
             createProp("octopus_packageversion", packageVersion));
     send(
