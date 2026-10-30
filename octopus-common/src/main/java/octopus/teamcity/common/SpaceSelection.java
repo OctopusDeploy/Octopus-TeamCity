@@ -24,11 +24,11 @@ import java.util.Map;
  * Spaces-123} - or by name. The id is preferred because it survives the space being renamed, which
  * a name does not. The Go CLI accepts either for {@code --space}: it prefers a name match, then
  * falls back to an id.
+ *
+ * <p>The Go CLI refuses to run without a space when it cannot prompt. A step must identify one,
+ * either itself or through its connection.
  */
 public final class SpaceSelection {
-
-  /** The space used when a step names none. */
-  public static final String DEFAULT_SPACE = "Default";
 
   private SpaceSelection() {}
 
@@ -43,12 +43,6 @@ public final class SpaceSelection {
       return spaceId;
     }
     return trimToEmpty(params.get(constants.getSpaceName()));
-  }
-
-  /** As {@link #resolve}, but falls back to {@link #DEFAULT_SPACE} when no space is set. */
-  public static String resolveOrDefault(final Map<String, String> params) {
-    final String space = resolve(params);
-    return space.isEmpty() ? DEFAULT_SPACE : space;
   }
 
   /** Whether a space was identified at all, by either id or name. */

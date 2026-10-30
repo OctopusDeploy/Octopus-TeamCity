@@ -37,12 +37,9 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 
 public class EmbeddedResourceExtractor {
-  public void extractCliTo(String destinationPath, String octopusVersion, String osFolder)
-      throws Exception {
-    String binaryArchive =
-        getArchiveName(String.format("resources/cli/%s/%s", octopusVersion, osFolder));
-    String resourcePath =
-        String.format("/resources/cli/%s/%s/%s", octopusVersion, osFolder, binaryArchive);
+  public void extractCliTo(String destinationPath, String osFolder) throws Exception {
+    String binaryArchive = getArchiveName(String.format("resources/cli/%s", osFolder));
+    String resourcePath = String.format("/resources/cli/%s/%s", osFolder, binaryArchive);
     Path destDir = Paths.get(destinationPath);
 
     if (binaryArchive.endsWith(".zip")) {

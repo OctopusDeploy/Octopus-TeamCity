@@ -41,7 +41,7 @@ class OctopusConnectionTest {
   void describeConnectionOmitsAnyStoredVersion() {
     final Map<String, String> params = new HashMap<>();
     params.put(ConnectionPropertyNames.SERVER_URL, "https://octopus.example.com");
-    params.put(ConnectionPropertyNames.VERSION, "2019.1");
+    params.put("octopus_version", "2019.1");
 
     assertThat(provider.describeConnection(descriptorWith(params)))
         .isEqualTo("Octopus URL: https://octopus.example.com");
