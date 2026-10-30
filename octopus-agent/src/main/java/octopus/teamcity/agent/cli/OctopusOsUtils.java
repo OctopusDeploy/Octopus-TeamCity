@@ -40,13 +40,18 @@ public class OctopusOsUtils {
     return os + "-" + getBinaryArchitecture(jvmArchitecture);
   }
 
-  /** Whether the bundled Octopus CLI is built for the agent JVM's architecture. */
+  /** Whether the bundled Octopus CLI is built for the agent JVM's OS and architecture. */
   public static boolean canRunCli() {
-    return canRunCli(System.getProperty("os.arch"));
+    return canRunCli(System.getProperty("os.name"), System.getProperty("os.arch"));
   }
 
-  static boolean canRunCli(String jvmArchitecture) {
-    return binaryArchitectureOrNull(jvmArchitecture) != null;
+  static boolean canRunCli(String osName, String jvmArchitecture) {
+    return isSupportedOs(osName) && binaryArchitectureOrNull(jvmArchitecture) != null;
+  }
+
+  private static boolean isSupportedOs(String osName) {
+    final String os = osName == null ? "" : osName.toLowerCase(Locale.ROOT);
+    return os.startsWith("windows") || os.startsWith("mac") || os.equals("linux");
   }
 
   private static String getBinaryArchitecture(String jvmArchitecture) throws RunBuildException {
