@@ -239,10 +239,6 @@ public final class TeamCityRest {
     return "project:" + projectInternalId + ":build_type:" + buildTypeInternalId;
   }
 
-  /**
-   * Sets a password (secret) configuration parameter on a build type, so a {@code %name%} reference
-   * resolves at build time and the value is masked in the build log.
-   */
   /** Sets a plain build parameter on a build configuration. */
   public void setParameter(final String buildTypeId, final String name, final String value)
       throws Exception {
@@ -253,6 +249,10 @@ public final class TeamCityRest {
         createProp(name, value));
   }
 
+  /**
+   * Sets a password (secret) configuration parameter on a build type. A {@code %name%} reference
+   * resolves at build time, and the value is masked in the build log.
+   */
   public void setPasswordParameter(final String buildTypeId, final String name, final String value)
       throws Exception {
     final String json =

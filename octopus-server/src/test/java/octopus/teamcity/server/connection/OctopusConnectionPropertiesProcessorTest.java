@@ -36,7 +36,7 @@ class OctopusConnectionPropertiesProcessorTest {
   @Test
   void versionStoredByAnOlderPluginIsAccepted() {
     final Map<String, String> properties = validProps();
-    properties.put(ConnectionPropertyNames.VERSION, "banana");
+    properties.put("octopus_version", "banana");
     assertThat(processor.process(properties)).isEmpty();
   }
 
