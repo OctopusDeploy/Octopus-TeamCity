@@ -1,5 +1,19 @@
 # Changelog
 
+## [6.8.1](https://github.com/OctopusDeploy/Octopus-TeamCity/compare/v6.8.0...v6.8.1) (2026-10-27)
+
+
+### Bug Fixes
+
+* bump the bundled Go CLI to 2.31.1 ([#292](https://github.com/OctopusDeploy/Octopus-TeamCity/issues/292)) ([d75468e](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/d75468e459301cf29f0538ff9bb9e4669c3e5074))
+* bundle the Go CLI for amd64 and arm64 on every OS ([#283](https://github.com/OctopusDeploy/Octopus-TeamCity/issues/283)) ([c794df4](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/c794df4db9cc23bf0b987038851cc48cf73afd35))
+* fail a Go CLI deploy step whose release number is latest or empty ([#285](https://github.com/OctopusDeploy/Octopus-TeamCity/issues/285)) ([3afe988](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/3afe98816914971a510910bd2bbb6c0fef98274b))
+* fail build information steps cleanly when gathering data fails ([#278](https://github.com/OctopusDeploy/Octopus-TeamCity/issues/278)) ([95fae04](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/95fae0497de1243e279195eb762cdf5d3a752a7b))
+* honour a false cancel-on-timeout ([#277](https://github.com/OctopusDeploy/Octopus-TeamCity/issues/277)) ([d3e3f7b](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/d3e3f7b35412c9b7ac1c6061ea4091f2d5e599a7))
+* mask the API key and OIDC token in the logged login command ([#281](https://github.com/OctopusDeploy/Octopus-TeamCity/issues/281)) ([4e4c0fc](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/4e4c0fc1d6b8ba0d2579e39253d0284fe5e72f62))
+* pass the wait timeout to the Go CLI in seconds ([#284](https://github.com/OctopusDeploy/Octopus-TeamCity/issues/284)) ([0dc0932](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/0dc0932c5a673b6e84e15f483a78b56aea538091))
+* stop a step's CLI commands after any non-zero exit ([#279](https://github.com/OctopusDeploy/Octopus-TeamCity/issues/279)) ([a59380a](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/a59380a35637a5bffeb4e23c256f7eecc402c03d))
+
 ## [6.8.0](https://github.com/OctopusDeploy/Octopus-TeamCity/compare/v6.7.2...v6.8.0) (2026-10-19)
 
 
