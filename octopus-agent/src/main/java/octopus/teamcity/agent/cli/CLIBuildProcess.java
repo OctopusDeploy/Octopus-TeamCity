@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import com.intellij.openapi.diagnostic.Logger;
 import jetbrains.buildServer.RunBuildException;
@@ -37,10 +38,14 @@ import octopus.teamcity.agent.EmbeddedResourceExtractor;
 import octopus.teamcity.agent.OctopusCliRetryExecutor;
 import octopus.teamcity.agent.OctopusCommandBuilder;
 import octopus.teamcity.agent.Output;
+import octopus.teamcity.common.OctopusConstants;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.util.StringUtils;
 
 public abstract class CLIBuildProcess implements BuildProcess {
+  private static final Pattern UNKNOWN_FLAG =
+      Pattern.compile("unknown (?:shorthand )?flag", Pattern.CASE_INSENSITIVE);
+
   private final AgentRunningBuild runningBuild;
   private final BuildRunnerContext context;
   private volatile Process process;
@@ -230,6 +235,16 @@ public abstract class CLIBuildProcess implements BuildProcess {
       logger.message("Exit code: " + result.getExitCode());
       if (result.getExitCode() == 0) {
         command.readResponse(result.getCombinedOutput());
+      } else {
+        final String hint =
+            unknownArgumentHint(
+                context
+                    .getRunnerParameters()
+                    .get(OctopusConstants.Instance.getCommandLineArgumentsKey()),
+                result.getCombinedOutput());
+        if (hint != null) {
+          logger.error(hint);
+        }
       }
       return result.getExitCode();
 
@@ -243,5 +258,23 @@ public abstract class CLIBuildProcess implements BuildProcess {
       Logger.getInstance(getClass().getName()).error(message, e);
       throw new RunBuildException(message);
     }
+  }
+
+  /**
+   * Explains an "unknown flag" failure from a step with additional command line arguments. Those
+   * arguments reach the Octopus CLI unchanged, and the legacy {@code octo} CLI's arguments are not
+   * valid there.
+   */
+  static String unknownArgumentHint(final String additionalArguments, final String output) {
+    if (additionalArguments == null || additionalArguments.trim().isEmpty()) {
+      return null;
+    }
+    if (output == null || !UNKNOWN_FLAG.matcher(output).find()) {
+      return null;
+    }
+    return "The Octopus CLI rejected an argument. This step's additional command line arguments"
+        + " are passed to the Octopus CLI unchanged, and arguments for the legacy octo CLI, such as"
+        + " --progress or --deployTo, are not valid there. Run 'octopus <command> --help' for the"
+        + " arguments each command accepts.";
   }
 }

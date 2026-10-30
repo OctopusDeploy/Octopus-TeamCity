@@ -25,8 +25,8 @@ import java.util.regex.Pattern;
  *
  * <p>The patterns match the CLI's output for network and server failures, such as "server returned
  * HTTP status 502", "connection refused" and "i/o timeout". Octopus Cloud can answer with a
- * maintenance HTML page instead of an HTTP 503, so "undergoing maintenance" anywhere in the output
- * is also transient.
+ * maintenance HTML page instead of an HTTP 503; "undergoing maintenance" anywhere in the output is
+ * also transient.
  *
  * <p>Classification priority: permanent patterns are checked first. If neither matches, the error
  * is treated as permanent (fail-safe: unknown errors are not retried).
