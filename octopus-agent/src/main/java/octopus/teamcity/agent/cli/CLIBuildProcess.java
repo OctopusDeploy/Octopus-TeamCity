@@ -87,6 +87,7 @@ public abstract class CLIBuildProcess implements BuildProcess {
     // is independently wrapped in retry logic by runCommand(), so a transient failure on
     // one command won't skip subsequent commands until retries are exhausted.
     List<OctopusCommandBuilder> commandArgumentsList = createCommand();
+    logger.activityStarted("Octopus Deploy", BLOCK_TYPE_BUILD_STEP);
     for (OctopusCommandBuilder commandArguments : commandArgumentsList) {
       exitCode = runCommand(commandArguments);
       if (exitCode != 0) {
@@ -222,7 +223,7 @@ public abstract class CLIBuildProcess implements BuildProcess {
                         process.getInputStream(),
                         line -> {
                           listener.onStandardOutput(line);
-                          outputBuilder.append(line);
+                          outputBuilder.append(line).append('\n');
                         });
                 standardOutput.start();
                 int processExitCode = process.waitFor();
