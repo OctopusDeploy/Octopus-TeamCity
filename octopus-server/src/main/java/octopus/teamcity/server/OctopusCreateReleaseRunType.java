@@ -4,6 +4,7 @@ import static octopus.teamcity.server.PropertiesValidator.checkCredentialsUnless
 import static octopus.teamcity.server.PropertiesValidator.checkNoLegacyDeployToArgument;
 import static octopus.teamcity.server.PropertiesValidator.checkNotEmpty;
 import static octopus.teamcity.server.PropertiesValidator.checkPromptedVariablesOnlyWhenDeploying;
+import static octopus.teamcity.server.PropertiesValidator.checkSpaceUnlessUsingConnection;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -59,6 +60,7 @@ public class OctopusCreateReleaseRunType extends RunType {
         if (p == null) return result;
 
         checkCredentialsUnlessUsingConnection(p, c, result);
+        checkSpaceUnlessUsingConnection(p, c, result);
         checkNotEmpty(p, c.getProjectNameKey(), "Project name must be specified", result);
         checkNoLegacyDeployToArgument(p, c, result);
         checkPromptedVariablesOnlyWhenDeploying(p, c, result);

@@ -43,7 +43,7 @@
   </td>
 </tr>
 <jsp:include page="../spacePicker.jsp">
-  <jsp:param name="note" value="Specify the Octopus Space name to promote within. Leave blank to use the default space."/>
+  <jsp:param name="note" value="Specify the Octopus Space name to promote within. Required unless the selected connection sets a space."/>
 </jsp:include>
 </l:settingsGroup>
 

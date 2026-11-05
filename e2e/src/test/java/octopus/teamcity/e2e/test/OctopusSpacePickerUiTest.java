@@ -62,12 +62,15 @@ class OctopusSpacePickerUiTest {
 
             // A fresh Octopus has the Default space, suggested as "<name> (<id>)".
             assertThat(suggestions(page)).contains("Default (Spaces-1)");
-            page.locator("ul.ui-autocomplete li", new Page.LocatorOptions().setHasText("Default"))
+            page.locator(
+                    "ul.ui-autocomplete li",
+                    new Page.LocatorOptions().setHasText(OctopusTeamCityStack.DEFAULT_SPACE_NAME))
                 .first()
                 .click();
 
             assertThat(spaceId(page)).isEqualTo("Spaces-1");
-            assertThat(spaceName(page).inputValue()).isEqualTo("Default");
+            assertThat(spaceName(page).inputValue())
+                .isEqualTo(OctopusTeamCityStack.DEFAULT_SPACE_NAME);
           });
     }
   }
@@ -261,7 +264,11 @@ class OctopusSpacePickerUiTest {
       tc.setStepProperty(
           "SpacePickerSwitchIT_Release", runnerId, "octopus_connection_id", connectionId);
       tc.setStepProperty("SpacePickerSwitchIT_Release", runnerId, "octopus_space_id", "Spaces-1");
-      tc.setStepProperty("SpacePickerSwitchIT_Release", runnerId, "octopus_space_name", "Default");
+      tc.setStepProperty(
+          "SpacePickerSwitchIT_Release",
+          runnerId,
+          "octopus_space_name",
+          OctopusTeamCityStack.DEFAULT_SPACE_NAME);
 
       PlaywrightUi.withLoggedInPage(
           stack,
@@ -273,7 +280,8 @@ class OctopusSpacePickerUiTest {
             page.selectOption("#octopusConnectionId", new String[] {""});
 
             assertThat(spaceId(page)).isEmpty();
-            assertThat(spaceName(page).inputValue()).isEqualTo("Default");
+            assertThat(spaceName(page).inputValue())
+                .isEqualTo(OctopusTeamCityStack.DEFAULT_SPACE_NAME);
           });
     }
   }
@@ -339,7 +347,9 @@ class OctopusSpacePickerUiTest {
                 .click();
             waitForSpaces(page);
             assertThat(suggestions(page)).contains("Default (Spaces-1)");
-            page.locator("ul.ui-autocomplete li", new Page.LocatorOptions().setHasText("Default"))
+            page.locator(
+                    "ul.ui-autocomplete li",
+                    new Page.LocatorOptions().setHasText(OctopusTeamCityStack.DEFAULT_SPACE_NAME))
                 .first()
                 .click();
             assertThat(spaceId(page)).isEqualTo("Spaces-1");
@@ -353,7 +363,8 @@ class OctopusSpacePickerUiTest {
             page.locator("input[name='prop:octopus_host']").fill("https://elsewhere.example");
 
             assertThat(spaceId(page)).isEmpty();
-            assertThat(spaceName(page).inputValue()).isEqualTo("Default");
+            assertThat(spaceName(page).inputValue())
+                .isEqualTo(OctopusTeamCityStack.DEFAULT_SPACE_NAME);
           });
     }
   }
