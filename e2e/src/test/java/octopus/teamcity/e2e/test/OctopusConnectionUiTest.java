@@ -29,7 +29,7 @@ class OctopusConnectionUiTest {
           "My Octopus Connection",
           "https://octopus.example.com",
           "API-EXAMPLEKEY0000000000000",
-          "Default");
+          OctopusTeamCityStack.DEFAULT_SPACE_NAME);
       tc.createBuildType("UiIT_Release", "Create release", "UiIT");
       final String runnerId = tc.addCreateReleaseStep("UiIT_Release");
 
@@ -63,9 +63,8 @@ class OctopusConnectionUiTest {
                 "#octopusConnectionId", new SelectOption().setLabel("My Octopus Connection"));
             assertThat(page.locator("tr.octopusInlineConnectionField").first().isHidden()).isTrue();
 
-            // The selected connection defines a space ("Default"), so the step's Space field is
-            // hidden
-            // — the connection's space is used.
+            // The selected connection defines a space, so the step's Space field is hidden and the
+            // connection's space is used.
             assertThat(page.locator("#octopus_space_name").isHidden()).isTrue();
 
             // Create-release Git Ref/Commit rows are always available, whether or not a connection

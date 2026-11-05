@@ -83,7 +83,7 @@ public class CommandHelper {
       Map<String, String> params, String autoCreatedReleaseNumber) {
     final OctopusConstants constants = OctopusConstants.Instance;
     final ArrayList<String> commands = new ArrayList<>();
-    final String spaceName = SpaceSelection.resolveOrDefault(params);
+    final String spaceName = SpaceSelection.resolve(params);
     final String commandLineArguments = params.get(constants.getCommandLineArgumentsKey());
     final String releaseNumber = params.get(constants.getReleaseNumberKey());
     final String deployTo = params.get(constants.getDeployToKey());
@@ -137,7 +137,7 @@ public class CommandHelper {
   public static String[] promoteRelease(Map<String, String> params) {
     final OctopusConstants constants = OctopusConstants.Instance;
     final ArrayList<String> commands = new ArrayList<>();
-    final String spaceName = SpaceSelection.resolveOrDefault(params);
+    final String spaceName = SpaceSelection.resolve(params);
     final String commandLineArguments = params.get(constants.getCommandLineArgumentsKey());
     final String projectName = params.get(constants.getProjectNameKey());
     final String promoteFrom = params.get(constants.getPromoteFromKey());
@@ -188,7 +188,7 @@ public class CommandHelper {
   public static String[] runbookRun(Map<String, String> params) {
     final OctopusConstants constants = OctopusConstants.Instance;
     final ArrayList<String> commands = new ArrayList<>();
-    final String spaceName = SpaceSelection.resolveOrDefault(params);
+    final String spaceName = SpaceSelection.resolve(params);
     final String commandLineArguments = params.get(constants.getCommandLineArgumentsKey());
     final String projectName = params.get(constants.getProjectNameKey());
     final String runbookName = params.get(constants.getRunbookNameKey());
@@ -275,7 +275,7 @@ public class CommandHelper {
    * step creates is built from.
    */
   public static String[] spaceView(Map<String, String> params) {
-    final String spaceName = SpaceSelection.resolveOrDefault(params);
+    final String spaceName = SpaceSelection.resolve(params);
 
     return new String[] {"space", "view", spaceName, "--output-format", "json", "--no-prompt"};
   }
@@ -284,7 +284,7 @@ public class CommandHelper {
   public static String[] createRelease(Map<String, String> parameters) {
     final OctopusConstants constants = OctopusConstants.Instance;
     final ArrayList<String> commands = new ArrayList<>();
-    final String spaceName = SpaceSelection.resolveOrDefault(parameters);
+    final String spaceName = SpaceSelection.resolve(parameters);
     final String commandLineArguments = parameters.get(constants.getCommandLineArgumentsKey());
     final String releaseNumber = parameters.get(constants.getReleaseNumberKey());
     final String channelName = parameters.get(constants.getChannelNameKey());
@@ -386,7 +386,7 @@ public class CommandHelper {
       @Override
       protected String[] buildCommand(boolean masked) {
         final ArrayList<String> commands = new ArrayList<String>();
-        final String spaceName = SpaceSelection.resolveOrDefault(parameters);
+        final String spaceName = SpaceSelection.resolve(parameters);
         final String commandLineArguments = parameters.get(constants.getCommandLineArgumentsKey());
         final String forcePush = parameters.get(constants.getForcePushKey());
 
@@ -434,7 +434,7 @@ public class CommandHelper {
       @Override
       protected String[] buildCommand(boolean masked) {
         final ArrayList<String> commands = new ArrayList<String>();
-        final String spaceName = SpaceSelection.resolveOrDefault(parameters);
+        final String spaceName = SpaceSelection.resolve(parameters);
         final String packageIds = parameters.get(constants.getPackageIdKey());
         final String packageVersion = parameters.get(constants.getPackageVersionKey());
         final String commandLineArguments = parameters.get(constants.getCommandLineArgumentsKey());
@@ -487,7 +487,7 @@ public class CommandHelper {
     final String deploymentTimeout = params.get(constants.getDeploymentTimeout());
     final boolean cancelOnTimeout =
         Boolean.parseBoolean(params.get(constants.getCancelDeploymentOnTimeout()));
-    final String spaceName = SpaceSelection.resolveOrDefault(params);
+    final String spaceName = SpaceSelection.resolve(params);
     commands.add("task");
     commands.add("wait");
 

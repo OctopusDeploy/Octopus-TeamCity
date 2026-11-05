@@ -18,6 +18,7 @@ package octopus.teamcity.server;
 
 import static octopus.teamcity.server.PropertiesValidator.checkCredentialsUnlessUsingConnection;
 import static octopus.teamcity.server.PropertiesValidator.checkNotEmpty;
+import static octopus.teamcity.server.PropertiesValidator.checkSpaceUnlessUsingConnection;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -73,6 +74,7 @@ public class OctopusPushPackageRunType extends RunType {
         if (p == null) return result;
 
         checkCredentialsUnlessUsingConnection(p, c, result);
+        checkSpaceUnlessUsingConnection(p, c, result);
         checkNotEmpty(p, c.getPackagePathsKey(), "Package paths must be specified", result);
 
         if (result.isEmpty()) {
