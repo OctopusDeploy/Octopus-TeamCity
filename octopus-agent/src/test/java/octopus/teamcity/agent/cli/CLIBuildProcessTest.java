@@ -1,6 +1,8 @@
 package octopus.teamcity.agent.cli;
 
+import static jetbrains.buildServer.messages.DefaultMessagesInfo.BLOCK_TYPE_BUILD_STEP;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -27,10 +29,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.InOrder;
 
 class CLIBuildProcessTest {
 
   @TempDir File buildTempDirectory;
+
+  private final BuildProgressLogger logger = mock(BuildProgressLogger.class);
 
   @ParameterizedTest
   @ValueSource(ints = {1, 2, 137})
@@ -91,12 +96,24 @@ class CLIBuildProcessTest {
         .isNull();
   }
 
+  @Test
+  void opensTheBuildLogBlockItCloses() throws Exception {
+    final ScriptedBuildProcess process = processWithExitCodes(0, 0);
+
+    process.start();
+    process.waitFor();
+
+    final InOrder inOrder = inOrder(logger);
+    inOrder.verify(logger).activityStarted("Octopus Deploy", BLOCK_TYPE_BUILD_STEP);
+    inOrder.verify(logger).activityFinished("Octopus Deploy", BLOCK_TYPE_BUILD_STEP);
+  }
+
   private ScriptedBuildProcess processWithExitCodes(final Integer... exitCodes) {
     final AgentRunningBuild runningBuild = mock(AgentRunningBuild.class);
     final BuildRunnerContext context = mock(BuildRunnerContext.class);
     final BuildAgentConfiguration agentConfiguration = mock(BuildAgentConfiguration.class);
     final BuildParametersMap buildParameters = mock(BuildParametersMap.class);
-    when(runningBuild.getBuildLogger()).thenReturn(mock(BuildProgressLogger.class));
+    when(runningBuild.getBuildLogger()).thenReturn(logger);
     when(runningBuild.getBuildTempDirectory()).thenReturn(buildTempDirectory);
     when(runningBuild.getAgentConfiguration()).thenReturn(agentConfiguration);
     when(runningBuild.getFailBuildOnExitCode()).thenReturn(true);
