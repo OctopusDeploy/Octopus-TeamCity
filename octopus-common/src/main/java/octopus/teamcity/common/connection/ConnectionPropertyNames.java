@@ -22,8 +22,6 @@ public class ConnectionPropertyNames {
   public static final String DISPLAY_NAME = "displayName";
   public static final String SERVER_URL = "octopus_host";
   public static final String API_KEY = Constants.SECURE_PROPERTY_PREFIX + "octopus_apikey";
-  // No longer configurable; retained because existing connections may still store it.
-  public static final String VERSION = "octopus_version";
   public static final String SPACE_NAME = "octopus_space_name";
   // The id of the selected space. Preferred over SPACE_NAME as it survives a rename.
   public static final String SPACE_ID = "octopus_space_id";

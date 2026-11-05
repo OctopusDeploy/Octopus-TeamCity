@@ -66,7 +66,7 @@ Tests build everything programmatically — there's no project export to maintai
 
 1. Grab the shared stack: `try (OctopusTeamCityStack stack = SharedStack.full()) { ... }`.
 2. Provision any Octopus prerequisites with `OctopusProvisioner` (e.g. a project with a deployment
-   process so `octo create-release` has a viable plan).
+   process so `octopus release create` has a viable plan).
 3. Create the TeamCity project/build and add the Octopus step over `TeamCityRest`, then trigger the
    build.
 4. Assert on the outcome in Octopus via the SDK client from `stack.octopusClient()`.

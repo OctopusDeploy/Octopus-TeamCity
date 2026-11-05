@@ -70,7 +70,7 @@ class OctopusCreateReleaseLinkE2ETest {
               "IT Octopus",
               stack.octopusUrlForContainers(),
               stack.octopusApiKey(),
-              "");
+              OctopusTeamCityStack.DEFAULT_SPACE_NAME);
       tc.createBuildType(TC_BUILD_TYPE_ID, "Create release", TC_PROJECT_ID);
       // Declared empty so a later step can reference them; the step fills them in as it runs.
       tc.setParameter(TC_BUILD_TYPE_ID, RELEASE_URL_PARAMETER, "");

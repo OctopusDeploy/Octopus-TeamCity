@@ -17,8 +17,8 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Full end-to-end for the Push runner: pack a package on the agent, then push it (via a connection)
- * to the Octopus built-in feed with the real Octopus CLI. Uses the default Space (the free-tier
- * license allows only one), so the connection's space is left blank.
+ * to the Octopus built-in feed with the real Octopus CLI. Uses the Default space (the free-tier
+ * license allows only one).
  */
 class OctopusPushPackageE2ETest {
 
@@ -34,7 +34,11 @@ class OctopusPushPackageE2ETest {
       tc.createProject("PushIT", "Push IT");
       final String connectionId =
           tc.createOctopusConnection(
-              "PushIT", "IT Octopus", stack.octopusUrlForContainers(), stack.octopusApiKey(), "");
+              "PushIT",
+              "IT Octopus",
+              stack.octopusUrlForContainers(),
+              stack.octopusApiKey(),
+              OctopusTeamCityStack.DEFAULT_SPACE_NAME);
       tc.createBuildType("PushIT_Push", "Pack and push", "PushIT");
       tc.addCommandLineStep(
           "PushIT_Push", "Create source", "mkdir -p topack && printf 'hi' > topack/readme.txt");
