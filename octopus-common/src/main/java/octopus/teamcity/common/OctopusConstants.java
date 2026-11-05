@@ -33,22 +33,6 @@ public class OctopusConstants {
     return "octopus_version";
   }
 
-  public String getVersion1() {
-    return "1.0+";
-  }
-
-  public String getVersion2() {
-    return "2.0+";
-  }
-
-  public String getVersion3() {
-    return "3.0+";
-  }
-
-  public String getPreviewVersion() {
-    return "Preview";
-  }
-
   public String getSpaceName() {
     return "octopus_space_name";
   }

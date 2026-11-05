@@ -48,7 +48,7 @@ Gradle modules:
   its `PropertiesProcessor` (server-side validation). JSP edit forms live in
   `src/main/resources/buildServerResources/`.
 - **`octopus-agent`** — executes a step: a build process reads runner parameters by `OctopusConstants`
-  key and builds an `octo` command line.
+  key and builds an `octopus` (Go CLI) command line.
 - **`e2e`** — Testcontainers-based integration tests (not part of the shipped plugin).
 
 **The server→agent flow:** the server stores a build step's settings as runner parameters keyed by
@@ -57,27 +57,25 @@ the CLI. There are **six runners**: `octopus.create.release`, `octopus.deploy.re
 `octopus.promote.release`, `octopus.push.package`, `octopus.pack.package`, and `octopus.metadata`
 (build information).
 
-**Two CLI generations on the agent.** The bundled CLI binaries live in
-`octopus-agent/src/main/resources/resources/{1,2,3}/...` (legacy, per Octopus version / OS) and
-`resources/newcli/2.0/<os>-<arch>/...` (Go CLI). The Go CLI archives are not in git: the `downloadOctopusCli` task fetches
-them from the OctopusDeploy/cli GitHub release into `octopus-agent/build/generated/octopus-cli/` and
-checks them against the SHA-256 hashes in `gradle.properties`. To bump the Go CLI, update
-`octopusCliVersion` and every hash from the release's `SHA256SUMS` file.
-`EmbeddedResourceExtractor` + `OctopusBuildProcess` pick the binary from the `octopus_version`
-parameter and the agent OS; the Go CLI folder also depends on the agent JVM's `os.arch`. The top-level `Octopus*BuildProcess` classes drive the legacy
-`OctopusCLI` (`octo.exe`/`octo.dll`); the `cli/` package drives the newer Go CLI. The plugin
-deliberately stays on the legacy OctopusCLI for compatibility (see `README.md`).
+**The Go CLI on the agent.** The agent bundles the Octopus Go CLI as classpath resources at
+`resources/cli/2.0/<os>-<arch>/...`. The archives are not in git: the `downloadOctopusCli` task
+fetches them from the OctopusDeploy/cli GitHub release into
+`octopus-agent/build/generated/octopus-cli/` and checks them against the SHA-256 hashes in
+`gradle.properties`. To bump the Go CLI, update `octopusCliVersion` and every hash from the
+release's `SHA256SUMS` file. `OctopusOsUtils` picks the folder from the agent OS and the agent
+JVM's `os.arch`, `EmbeddedResourceExtractor` extracts the archive, and the build processes in the
+`cli/` package run it.
 
 ### Reusable Octopus connections
 
-Lets an admin define the Octopus URL/API key/version/space **once** as a project-level TeamCity OAuth
+Lets an admin define the Octopus URL, credentials and space **once** as a project-level TeamCity OAuth
 connection and reference it from steps, instead of re-entering credentials per step. Optional and
 backward compatible — a step with no connection uses its inline fields as before. Key pieces:
 
 - `OctopusConnection` (an `OAuthProvider`) + `OctopusConnectionsManager` (list/resolve, walking the
   project tree) + `OctopusConnectionPropertiesProcessor` (validation).
 - `OctopusConnectionBuildStartProcessor` resolves the selected connection at **build start** and
-  injects its URL/key/version/space into the step's runner parameters **under the same
+  injects its URL, credentials and space into the step's runner parameters **under the same
   `OctopusConstants` keys** — so the agent is unchanged and connection-agnostic. A step's own space
   value wins over the connection's.
 - The step edit forms get the connection list from the **`OctopusConnectionUiData` static accessor**,

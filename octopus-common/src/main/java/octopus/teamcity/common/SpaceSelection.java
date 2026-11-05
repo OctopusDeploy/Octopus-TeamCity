@@ -22,18 +22,12 @@ import java.util.Map;
  *
  * <p>A step (or the connection it inherits from) can identify a space either by id - {@code
  * Spaces-123} - or by name. The id is preferred because it survives the space being renamed, which
- * a name does not. Both CLIs the agent drives accept either: the legacy {@code octo} CLI resolves
- * {@code --space} with {@code Spaces.FindByNameOrIdOrFail}, and the Go CLI prefers a name match
- * then falls back to an id. So whichever value we pick here can be passed through unchanged.
- *
- * <p>The two CLI paths differ in how they treat "no space set", so this class deliberately offers
- * both behaviours rather than imposing one: {@link #resolve} returns an empty string so the legacy
- * path can omit {@code --space} altogether, while {@link #resolveOrDefault} substitutes {@link
- * #DEFAULT_SPACE} as the Go CLI path has always done.
+ * a name does not. The Go CLI accepts either for {@code --space}: it prefers a name match, then
+ * falls back to an id.
  */
 public final class SpaceSelection {
 
-  /** The space the Go CLI path falls back to when a step names none. */
+  /** The space used when a step names none. */
   public static final String DEFAULT_SPACE = "Default";
 
   private SpaceSelection() {}

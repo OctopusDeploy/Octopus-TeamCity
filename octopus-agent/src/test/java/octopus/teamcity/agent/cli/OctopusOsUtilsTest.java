@@ -1,4 +1,4 @@
-package octopus.teamcity.agent;
+package octopus.teamcity.agent.cli;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -57,6 +57,23 @@ class OctopusOsUtilsTest {
     assertThatThrownBy(() -> OctopusOsUtils.getBinaryOsFolder(runningBuild, "x86"))
         .isInstanceOf(RunBuildException.class)
         .hasMessageContaining("'x86'");
+  }
+
+  @ParameterizedTest
+  @CsvSource({"amd64", "x86_64", "AMD64", "aarch64", "arm64"})
+  void canRunCli_isTrue_whenArchitectureIsSupported(String jvmArchitecture) {
+    assertThat(OctopusOsUtils.canRunCli(jvmArchitecture)).isTrue();
+  }
+
+  @ParameterizedTest
+  @CsvSource({"x86", "i386", "ppc64le", "s390x", "arm", "''"})
+  void canRunCli_isFalse_whenArchitectureIsUnsupported(String jvmArchitecture) {
+    assertThat(OctopusOsUtils.canRunCli(jvmArchitecture)).isFalse();
+  }
+
+  @Test
+  void canRunCli_isFalse_whenArchitectureIsUnknown() {
+    assertThat(OctopusOsUtils.canRunCli(null)).isFalse();
   }
 
   private static AgentRunningBuild runningBuildOn(boolean isWindows, boolean isMac) {

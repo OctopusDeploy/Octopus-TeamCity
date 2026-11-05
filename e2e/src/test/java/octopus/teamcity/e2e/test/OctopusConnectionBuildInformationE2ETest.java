@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test;
  * a real Octopus Deploy.
  *
  * <p>Uses the default Space — the free-tier Octopus license allows only one space, so we don't
- * create another. Leaving the connection's space blank makes {@code octo} target the default space.
+ * create another. Leaving the connection's space blank makes the CLI target the default space.
  */
 class OctopusConnectionBuildInformationE2ETest {
 

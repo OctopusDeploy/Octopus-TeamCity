@@ -23,6 +23,7 @@ import jetbrains.buildServer.agent.BuildAgentConfiguration;
 import jetbrains.buildServer.agent.BuildProcess;
 import jetbrains.buildServer.agent.BuildRunnerContext;
 import octopus.teamcity.agent.cli.BuildInformationBuildProcess;
+import octopus.teamcity.agent.cli.OctopusOsUtils;
 import octopus.teamcity.common.OctopusConstants;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,10 +33,7 @@ public class OctopusBuildInformationRunner implements AgentBuildRunner {
   @NotNull
   public BuildProcess createBuildProcess(
       @NotNull AgentRunningBuild runningBuild, @NotNull BuildRunnerContext context) {
-    if (OctopusCliSelector.shouldUseNewCli(runningBuild, context)) {
-      return new BuildInformationBuildProcess(runningBuild, context);
-    }
-    return new OctopusBuildInformationBuildProcess(runningBuild, context);
+    return new BuildInformationBuildProcess(runningBuild, context);
   }
 
   @Override
@@ -50,7 +48,7 @@ public class OctopusBuildInformationRunner implements AgentBuildRunner {
 
       @Override
       public boolean canRun(@NotNull BuildAgentConfiguration agentConfiguration) {
-        return true;
+        return OctopusOsUtils.canRunCli();
       }
     };
   }

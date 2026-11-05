@@ -19,8 +19,8 @@ import org.junit.jupiter.api.Test;
  * Full end-to-end for the "Reference a parameter" API key source: the connection stores a {@code
  * %param%} reference instead of a stored secret, and the referenced (secret) build parameter holds
  * the real key. Proves the build-start processor injects the reference into the api-key slot and
- * TeamCity resolves it at build time, so the {@code octo} CLI authenticates and the package lands
- * in Octopus — with the key still masked in the log.
+ * TeamCity resolves it at build time, so the Octopus CLI authenticates and the package lands in
+ * Octopus — with the key still masked in the log.
  */
 class OctopusParameterSourcePushE2ETest {
 
