@@ -18,6 +18,7 @@ package octopus.teamcity.server;
 
 import static octopus.teamcity.server.PropertiesValidator.checkCredentialsUnlessUsingConnection;
 import static octopus.teamcity.server.PropertiesValidator.checkNotEmpty;
+import static octopus.teamcity.server.PropertiesValidator.checkNotLatest;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -75,7 +76,7 @@ public class OctopusDeployReleaseRunType extends RunType {
         checkCredentialsUnlessUsingConnection(p, c, result);
         checkNotEmpty(p, c.getProjectNameKey(), "Project name must be specified", result);
         checkNotEmpty(p, c.getReleaseNumberKey(), "Release number must be specified", result);
-        checkNotLatest(p, c.getReleaseNumberKey(), result);
+        checkNotLatest(p, c, result);
         checkNotEmpty(p, c.getDeployToKey(), "Deploy to must be specified", result);
 
         if (result.isEmpty()) {
@@ -85,20 +86,6 @@ public class OctopusDeployReleaseRunType extends RunType {
         return result;
       }
     };
-  }
-
-  private static void checkNotLatest(
-      final Map<String, String> properties,
-      final String releaseNumberKey,
-      final Collection<InvalidProperty> result) {
-    final String releaseNumber = properties.get(releaseNumberKey);
-    if (releaseNumber != null && "latest".equalsIgnoreCase(releaseNumber.trim())) {
-      result.add(
-          new InvalidProperty(
-              releaseNumberKey,
-              "The Octopus CLI cannot deploy the 'latest' release. Enter the release number to"
-                  + " deploy, e.g. %octo.releaseNumber% or %build.number%."));
-    }
   }
 
   @Nullable
