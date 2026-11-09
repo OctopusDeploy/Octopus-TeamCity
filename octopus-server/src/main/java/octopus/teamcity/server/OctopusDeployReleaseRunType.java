@@ -19,6 +19,7 @@ package octopus.teamcity.server;
 import static octopus.teamcity.server.PropertiesValidator.checkCredentialsUnlessUsingConnection;
 import static octopus.teamcity.server.PropertiesValidator.checkNotEmpty;
 import static octopus.teamcity.server.PropertiesValidator.checkNotLatest;
+import static octopus.teamcity.server.PropertiesValidator.checkSpaceUnlessUsingConnection;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -74,6 +75,7 @@ public class OctopusDeployReleaseRunType extends RunType {
         if (p == null) return result;
 
         checkCredentialsUnlessUsingConnection(p, c, result);
+        checkSpaceUnlessUsingConnection(p, c, result);
         checkNotEmpty(p, c.getProjectNameKey(), "Project name must be specified", result);
         checkNotEmpty(p, c.getReleaseNumberKey(), "Release number must be specified", result);
         checkNotLatest(p, c, result);

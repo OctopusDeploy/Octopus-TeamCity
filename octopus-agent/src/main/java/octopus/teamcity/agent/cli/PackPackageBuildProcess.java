@@ -48,6 +48,11 @@ public class PackPackageBuildProcess extends CLIBuildProcess {
   }
 
   @Override
+  protected boolean usesSpace() {
+    return false;
+  }
+
+  @Override
   protected String getLogMessage() {
     return "Creating package";
   }

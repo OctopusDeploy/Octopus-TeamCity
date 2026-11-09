@@ -2,6 +2,7 @@ package octopus.teamcity.agent.cli;
 
 import static jetbrains.buildServer.messages.DefaultMessagesInfo.BLOCK_TYPE_BUILD_STEP;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -56,6 +57,17 @@ class CLIBuildProcessTest {
 
     assertThat(process.commandsRun).containsExactly("login", "deploy");
     assertThat(process.waitFor()).isEqualTo(BuildFinishedStatus.FINISHED_SUCCESS);
+  }
+
+  @Test
+  void failsBeforeRunningAnyCommandWhenNoSpaceIsSet() {
+    final ScriptedBuildProcess process = processWithExitCodes(0, 0);
+    process.runnerParameters.remove(OctopusConstants.Instance.getSpaceName());
+
+    assertThatThrownBy(process::start)
+        .isInstanceOf(RunBuildException.class)
+        .hasMessageContaining("No Octopus space is set");
+    assertThat(process.commandsRun).isEmpty();
   }
 
   @ParameterizedTest
@@ -119,6 +131,7 @@ class CLIBuildProcessTest {
     when(runningBuild.getFailBuildOnExitCode()).thenReturn(true);
     when(agentConfiguration.getSystemInfo()).thenReturn(mock(BuildAgentSystemInfo.class));
     final Map<String, String> runnerParameters = new HashMap<>();
+    runnerParameters.put(OctopusConstants.Instance.getSpaceName(), "Default");
     when(context.getRunnerParameters()).thenReturn(runnerParameters);
     when(context.getBuildParameters()).thenReturn(buildParameters);
     when(buildParameters.getEnvironmentVariables()).thenReturn(new HashMap<>());
