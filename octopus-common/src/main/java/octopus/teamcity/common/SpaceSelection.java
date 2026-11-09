@@ -25,7 +25,7 @@ import java.util.Map;
  * a name does not. The Go CLI accepts either for {@code --space}: it prefers a name match, then
  * falls back to an id.
  *
- * <p>The Go CLI refuses to run without a space when it cannot prompt, so a step must identify one,
+ * <p>The Go CLI refuses to run without a space when it cannot prompt. A step must identify one,
  * either itself or through its connection.
  */
 public final class SpaceSelection {

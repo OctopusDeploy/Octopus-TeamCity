@@ -68,7 +68,7 @@ public abstract class CLIBuildProcess implements BuildProcess {
 
   protected abstract List<OctopusCommandBuilder> createCommand() throws RunBuildException;
 
-  /** Whether the step's commands act on an Octopus space, and so need one to be set. */
+  /** Whether the step's commands act on an Octopus space, which then must be set. */
   protected boolean usesSpace() {
     return true;
   }
