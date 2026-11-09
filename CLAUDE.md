@@ -58,7 +58,7 @@ the CLI. There are **six runners**: `octopus.create.release`, `octopus.deploy.re
 (build information).
 
 **The Go CLI on the agent.** The agent bundles the Octopus Go CLI as classpath resources at
-`resources/cli/2.0/<os>-<arch>/...`. The archives are not in git: the `downloadOctopusCli` task
+`resources/cli/<os>-<arch>/...`. The archives are not in git: the `downloadOctopusCli` task
 fetches them from the OctopusDeploy/cli GitHub release into
 `octopus-agent/build/generated/octopus-cli/` and checks them against the SHA-256 hashes in
 `gradle.properties`. To bump the Go CLI, update `octopusCliVersion` and every hash from the
