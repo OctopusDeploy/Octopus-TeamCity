@@ -1,5 +1,23 @@
 # Changelog
 
+## [7.0.0](https://github.com/OctopusDeploy/Octopus-TeamCity/compare/v6.8.1...v7.0.0) (2026-11-09)
+
+
+### ⚠ BREAKING CHANGES
+
+* Remove legacy CLI and default new Go CLI ([#276](https://github.com/OctopusDeploy/Octopus-TeamCity/issues/276))
+
+### Features
+
+* Remove legacy CLI and default new Go CLI ([#276](https://github.com/OctopusDeploy/Octopus-TeamCity/issues/276)) ([5315b59](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/5315b592f59fd71b7a2290b41f386e5cfb497cc4))
+
+
+### Bug Fixes
+
+* mark agents on an OS without a bundled Go CLI as incompatible ([#299](https://github.com/OctopusDeploy/Octopus-TeamCity/issues/299)) ([ff4c26d](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/ff4c26dbd9cb4c67a20c253e2f7d76ffc853f988))
+* open the build log block each step closes, and keep CLI output lines apart ([#298](https://github.com/OctopusDeploy/Octopus-TeamCity/issues/298)) ([36fac11](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/36fac11d066ed29e9da8cf97e53a4dc6963d5401))
+* require an Octopus space instead of falling back to Default ([#287](https://github.com/OctopusDeploy/Octopus-TeamCity/issues/287)) ([b95c949](https://github.com/OctopusDeploy/Octopus-TeamCity/commit/b95c9491b8bb2e191027e7cb1b142ebfcc54ff9a))
+
 ## [6.8.1](https://github.com/OctopusDeploy/Octopus-TeamCity/compare/v6.8.0...v6.8.1) (2026-10-27)
 
 
