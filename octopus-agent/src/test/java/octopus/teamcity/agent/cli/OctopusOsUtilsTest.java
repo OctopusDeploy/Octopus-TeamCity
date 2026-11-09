@@ -60,20 +60,35 @@ class OctopusOsUtilsTest {
   }
 
   @ParameterizedTest
-  @CsvSource({"amd64", "x86_64", "AMD64", "aarch64", "arm64"})
-  void canRunCli_isTrue_whenArchitectureIsSupported(String jvmArchitecture) {
-    assertThat(OctopusOsUtils.canRunCli(jvmArchitecture)).isTrue();
+  @CsvSource({
+    "Windows Server 2022, amd64",
+    "Windows 11, aarch64",
+    "Mac OS X, x86_64",
+    "Mac OS X, aarch64",
+    "Linux, amd64",
+    "Linux, AMD64",
+    "Linux, arm64"
+  })
+  void canRunCli_isTrue_whenOsAndArchitectureAreSupported(String osName, String jvmArchitecture) {
+    assertThat(OctopusOsUtils.canRunCli(osName, jvmArchitecture)).isTrue();
   }
 
   @ParameterizedTest
   @CsvSource({"x86", "i386", "ppc64le", "s390x", "arm", "''"})
   void canRunCli_isFalse_whenArchitectureIsUnsupported(String jvmArchitecture) {
-    assertThat(OctopusOsUtils.canRunCli(jvmArchitecture)).isFalse();
+    assertThat(OctopusOsUtils.canRunCli("Linux", jvmArchitecture)).isFalse();
+  }
+
+  @ParameterizedTest
+  @CsvSource({"FreeBSD", "OpenBSD", "SunOS", "AIX", "''"})
+  void canRunCli_isFalse_whenOsIsUnsupported(String osName) {
+    assertThat(OctopusOsUtils.canRunCli(osName, "amd64")).isFalse();
   }
 
   @Test
-  void canRunCli_isFalse_whenArchitectureIsUnknown() {
-    assertThat(OctopusOsUtils.canRunCli(null)).isFalse();
+  void canRunCli_isFalse_whenOsOrArchitectureIsUnknown() {
+    assertThat(OctopusOsUtils.canRunCli(null, "amd64")).isFalse();
+    assertThat(OctopusOsUtils.canRunCli("Linux", null)).isFalse();
   }
 
   private static AgentRunningBuild runningBuildOn(boolean isWindows, boolean isMac) {
