@@ -53,14 +53,14 @@ jobs:
         cache-provider: basic
 
     - name: Install GitVersion
-      uses: gittools/actions/gitversion/setup@v4.7.0
+      uses: gittools/actions/gitversion/setup@v4.7.2
       with:
         # gittools/actions 4.7.x requires GitVersion >=6.2.0 <7.0.0; '5.x' resolves to 5.12.0 and the
         # setup step rejects it. See https://github.com/GitTools/actions/blob/main/docs/versions.md
         versionSpec: '6.x'
 
     - name: Call GitVersion
-      uses: gittools/actions/gitversion/execute@v4.7.0
+      uses: gittools/actions/gitversion/execute@v4.7.2
 
     - name: Determine Version
       id: git-version
